@@ -278,8 +278,19 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     return Object.values(activeFilters).filter(v => v).length;
   };
 
+  // Build webpart background style
+  const webpartBackgroundStyle: React.CSSProperties = {};
+  if (props.webpartBackgroundImage) {
+    webpartBackgroundStyle.backgroundImage = `url(${props.webpartBackgroundImage})`;
+    webpartBackgroundStyle.backgroundSize = 'cover';
+    webpartBackgroundStyle.backgroundPosition = 'center';
+    webpartBackgroundStyle.backgroundRepeat = 'no-repeat';
+  } else if (props.webpartBackgroundColor) {
+    webpartBackgroundStyle.backgroundColor = props.webpartBackgroundColor;
+  }
+
   return (
-    <div className={styles.peopleDirectory}>
+    <div className={styles.peopleDirectory} style={webpartBackgroundStyle}>
       <Stack tokens={{ childrenGap: 20 }}>
         {/* Header */}
         <Stack tokens={{ childrenGap: 16 }}>
@@ -514,6 +525,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       profilePropertiesFontColor={props.profilePropertiesFontColor}
                       iconSize={props.iconSize}
                       iconColor={props.iconColor}
+                      profileCardBackgroundColor={props.profileCardBackgroundColor}
+                      profileCardBackgroundImage={props.profileCardBackgroundImage}
                     />
                   ))}
                 </div>

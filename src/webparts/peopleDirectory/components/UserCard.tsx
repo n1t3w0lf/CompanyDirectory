@@ -34,6 +34,10 @@ export interface IUserCardProps {
   // Icon Styling
   iconSize?: number;
   iconColor?: string;
+
+  // Profile Card Background
+  profileCardBackgroundColor?: string;
+  profileCardBackgroundImage?: string;
 }
 
 export const UserCard: React.FC<IUserCardProps> = ({
@@ -54,7 +58,9 @@ export const UserCard: React.FC<IUserCardProps> = ({
   profilePropertiesFontSize = 14,
   profilePropertiesFontColor = '#605E5C',
   iconSize = 20,
-  iconColor = '#0078d4'
+  iconColor = '#0078d4',
+  profileCardBackgroundColor = '',
+  profileCardBackgroundImage = ''
 }) => {
   const getInitials = (): string => {
     const firstName = user.givenName || '';
@@ -78,8 +84,19 @@ export const UserCard: React.FC<IUserCardProps> = ({
     color: iconColor
   };
 
+  // Build card background style
+  const cardBackgroundStyle: React.CSSProperties = {};
+  if (profileCardBackgroundImage) {
+    cardBackgroundStyle.backgroundImage = `url(${profileCardBackgroundImage})`;
+    cardBackgroundStyle.backgroundSize = 'cover';
+    cardBackgroundStyle.backgroundPosition = 'center';
+    cardBackgroundStyle.backgroundRepeat = 'no-repeat';
+  } else if (profileCardBackgroundColor) {
+    cardBackgroundStyle.backgroundColor = profileCardBackgroundColor;
+  }
+
   return (
-    <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0}>
+    <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0} style={cardBackgroundStyle}>
       <Stack tokens={{ childrenGap: 12 }} horizontal>
         <Stack.Item>
           <Persona

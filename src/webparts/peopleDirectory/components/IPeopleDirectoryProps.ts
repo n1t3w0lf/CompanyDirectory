@@ -38,4 +38,12 @@ export interface IPeopleDirectoryProps {
   // Icon Styling
   iconSize: number;
   iconColor: string;
+
+  // Profile Card Background
+  profileCardBackgroundColor: string;
+  profileCardBackgroundImage: string;
+
+  // Webpart Background
+  webpartBackgroundColor: string;
+  webpartBackgroundImage: string;
 }

@@ -53,6 +53,14 @@ export interface IPeopleDirectoryWebPartProps {
   // Icon Styling
   iconSize: number;
   iconColor: string;
+
+  // Profile Card Background
+  profileCardBackgroundColor: string;
+  profileCardBackgroundImage: string;
+
+  // Webpart Background
+  webpartBackgroundColor: string;
+  webpartBackgroundImage: string;
 }
 
 export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopleDirectoryWebPartProps> {
@@ -130,7 +138,15 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
 
         // Icon Styling
         iconSize: this.properties.iconSize || 20,
-        iconColor: this.properties.iconColor || '#0078d4'
+        iconColor: this.properties.iconColor || '#0078d4',
+
+        // Profile Card Background
+        profileCardBackgroundColor: this.properties.profileCardBackgroundColor || '',
+        profileCardBackgroundImage: this.properties.profileCardBackgroundImage || '',
+
+        // Webpart Background
+        webpartBackgroundColor: this.properties.webpartBackgroundColor || '',
+        webpartBackgroundImage: this.properties.webpartBackgroundImage || ''
       }
     );
 
@@ -168,15 +184,10 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   value: 28,
                   showValue: true
                 }),
-                PropertyPaneChoiceGroup('headingFontColor', {
-                  label: 'Heading Color',
-                  options: [
-                    { key: '#323130', text: 'Dark Gray (Default)' },
-                    { key: '#000000', text: 'Black' },
-                    { key: '#0078d4', text: 'Blue' },
-                    { key: '#004578', text: 'Dark Blue' },
-                    { key: '#107c10', text: 'Green' }
-                  ]
+                PropertyPaneTextField('headingFontColor', {
+                  label: 'Heading Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #0078d4, rgba(0,120,212,0.8), hsla(206,100%,42%,0.8)'
                 }),
                 PropertyPaneTextField('subtextText', {
                   label: 'Subtext',
@@ -192,14 +203,10 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   value: 14,
                   showValue: true
                 }),
-                PropertyPaneChoiceGroup('subtextFontColor', {
-                  label: 'Subtext Color',
-                  options: [
-                    { key: '#666666', text: 'Gray (Default)' },
-                    { key: '#605E5C', text: 'Medium Gray' },
-                    { key: '#323130', text: 'Dark Gray' },
-                    { key: '#000000', text: 'Black' }
-                  ]
+                PropertyPaneTextField('subtextFontColor', {
+                  label: 'Subtext Color (hex, rgba, or hsla)',
+                  placeholder: '#666666 or rgba(102,102,102,1)',
+                  description: 'Examples: #666666, rgba(102,102,102,0.9), hsla(0,0%,40%,0.9)'
                 })
               ]
             },
@@ -214,14 +221,10 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   value: 18,
                   showValue: true
                 }),
-                PropertyPaneChoiceGroup('profileNameFontColor', {
-                  label: 'Name Color',
-                  options: [
-                    { key: '#323130', text: 'Dark Gray (Default)' },
-                    { key: '#000000', text: 'Black' },
-                    { key: '#0078d4', text: 'Blue' },
-                    { key: '#004578', text: 'Dark Blue' }
-                  ]
+                PropertyPaneTextField('profileNameFontColor', {
+                  label: 'Name Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #000000, rgba(0,0,0,0.9), hsla(0,0%,0%,0.9)'
                 })
               ]
             },
@@ -236,14 +239,10 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   value: 14,
                   showValue: true
                 }),
-                PropertyPaneChoiceGroup('profilePropertiesFontColor', {
-                  label: 'Properties Color',
-                  options: [
-                    { key: '#605E5C', text: 'Medium Gray (Default)' },
-                    { key: '#323130', text: 'Dark Gray' },
-                    { key: '#000000', text: 'Black' },
-                    { key: '#0078d4', text: 'Blue' }
-                  ]
+                PropertyPaneTextField('profilePropertiesFontColor', {
+                  label: 'Properties Color (hex, rgba, or hsla)',
+                  placeholder: '#605E5C or rgba(96,94,92,1)',
+                  description: 'Examples: #605E5C, rgba(96,94,92,0.9), hsla(20,3%,37%,0.9)'
                 })
               ]
             },
@@ -258,15 +257,40 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   value: 20,
                   showValue: true
                 }),
-                PropertyPaneChoiceGroup('iconColor', {
-                  label: 'Icon Color',
-                  options: [
-                    { key: '#0078d4', text: 'Blue (Default)' },
-                    { key: '#323130', text: 'Dark Gray' },
-                    { key: '#107c10', text: 'Green' },
-                    { key: '#8764b8', text: 'Purple' },
-                    { key: '#d13438', text: 'Red' }
-                  ]
+                PropertyPaneTextField('iconColor', {
+                  label: 'Icon Color (hex, rgba, or hsla)',
+                  placeholder: '#0078d4 or rgba(0,120,212,1)',
+                  description: 'Examples: #0078d4, rgba(0,120,212,0.8), hsla(206,100%,42%,0.8)'
+                })
+              ]
+            },
+            {
+              groupName: 'Profile Card Background',
+              groupFields: [
+                PropertyPaneTextField('profileCardBackgroundColor', {
+                  label: 'Background Color (hex, rgba, or hsla)',
+                  placeholder: '#ffffff or rgba(255,255,255,1)',
+                  description: 'Examples: #f3f2f1, rgba(243,242,241,0.9), hsla(0,0%,95%,0.9)'
+                }),
+                PropertyPaneTextField('profileCardBackgroundImage', {
+                  label: 'Background Image URL (optional)',
+                  placeholder: 'https://example.com/image.jpg',
+                  description: 'Leave empty to use color only. Image will override color if both are set.'
+                })
+              ]
+            },
+            {
+              groupName: 'Webpart Background',
+              groupFields: [
+                PropertyPaneTextField('webpartBackgroundColor', {
+                  label: 'Background Color (hex, rgba, or hsla)',
+                  placeholder: '#ffffff or rgba(255,255,255,1)',
+                  description: 'Examples: #faf9f8, rgba(250,249,248,1), hsla(30,20%,97%,1)'
+                }),
+                PropertyPaneTextField('webpartBackgroundImage', {
+                  label: 'Background Image URL (optional)',
+                  placeholder: 'https://example.com/background.jpg',
+                  description: 'Leave empty to use color only. Image will override color if both are set.'
                 })
               ]
             },
