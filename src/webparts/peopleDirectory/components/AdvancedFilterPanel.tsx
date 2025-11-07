@@ -36,35 +36,55 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
 }) => {
   const [filters, setFilters] = React.useState<IAdvancedFilters>(currentFilters);
 
-  const departmentOptions: IDropdownOption[] = [
+  const departmentOptions: IDropdownOption[] = React.useMemo(() => [
     { key: '', text: 'All Departments' },
     ...departments.map(d => ({ key: d, text: d }))
-  ];
+  ], [departments]);
 
-  const locationOptions: IDropdownOption[] = [
+  const locationOptions: IDropdownOption[] = React.useMemo(() => [
     { key: '', text: 'All Locations' },
     ...locations.map(l => ({ key: l, text: l }))
-  ];
+  ], [locations]);
 
-  const cityOptions: IDropdownOption[] = [
+  const cityOptions: IDropdownOption[] = React.useMemo(() => [
     { key: '', text: 'All Cities' },
     ...cities.map(c => ({ key: c, text: c }))
-  ];
+  ], [cities]);
 
-  const countryOptions: IDropdownOption[] = [
+  const countryOptions: IDropdownOption[] = React.useMemo(() => [
     { key: '', text: 'All Countries' },
     ...countries.map(c => ({ key: c, text: c }))
-  ];
+  ], [countries]);
 
-  const handleApply = (): void => {
+  const handleDepartmentChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+    setFilters(prev => ({ ...prev, department: option?.key as string || undefined }));
+  }, []);
+
+  const handleLocationChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+    setFilters(prev => ({ ...prev, officeLocation: option?.key as string || undefined }));
+  }, []);
+
+  const handleCityChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+    setFilters(prev => ({ ...prev, city: option?.key as string || undefined }));
+  }, []);
+
+  const handleCountryChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+    setFilters(prev => ({ ...prev, country: option?.key as string || undefined }));
+  }, []);
+
+  const handleJobTitleChange = React.useCallback((_: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    setFilters(prev => ({ ...prev, jobTitle: newValue || undefined }));
+  }, []);
+
+  const handleApply = React.useCallback((): void => {
     onApplyFilters(filters);
-  };
+  }, [filters, onApplyFilters]);
 
-  const handleClear = (): void => {
+  const handleClear = React.useCallback((): void => {
     const emptyFilters: IAdvancedFilters = {};
     setFilters(emptyFilters);
     onClearFilters();
-  };
+  }, [onClearFilters]);
 
   return (
     <Stack tokens={{ childrenGap: 16 }} styles={{ root: { padding: '20px 0' } }}>
@@ -72,7 +92,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Department"
         options={departmentOptions}
         selectedKey={filters.department || ''}
-        onChange={(_, option) => setFilters({ ...filters, department: option?.key as string || undefined })}
+        onChange={handleDepartmentChange}
         placeholder="Select a department"
       />
 
@@ -80,7 +100,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Office Location"
         options={locationOptions}
         selectedKey={filters.officeLocation || ''}
-        onChange={(_, option) => setFilters({ ...filters, officeLocation: option?.key as string || undefined })}
+        onChange={handleLocationChange}
         placeholder="Select a location"
       />
 
@@ -88,7 +108,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="City"
         options={cityOptions}
         selectedKey={filters.city || ''}
-        onChange={(_, option) => setFilters({ ...filters, city: option?.key as string || undefined })}
+        onChange={handleCityChange}
         placeholder="Select a city"
       />
 
@@ -96,14 +116,14 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Country"
         options={countryOptions}
         selectedKey={filters.country || ''}
-        onChange={(_, option) => setFilters({ ...filters, country: option?.key as string || undefined })}
+        onChange={handleCountryChange}
         placeholder="Select a country"
       />
 
       <TextField
         label="Job Title (search)"
         value={filters.jobTitle || ''}
-        onChange={(_, newValue) => setFilters({ ...filters, jobTitle: newValue || undefined })}
+        onChange={handleJobTitleChange}
         placeholder="Enter job title keywords"
       />
 

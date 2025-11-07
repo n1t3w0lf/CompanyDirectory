@@ -311,6 +311,66 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     return Object.values(activeFilters).filter(v => v).length;
   };
 
+  // Callback handlers for dropdowns
+  const handleDepartmentFilterChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: { key: string; text: string }) => {
+    const newFilters = { ...activeFilters, department: option?.key || undefined };
+    handleApplyFilters(newFilters);
+  }, [activeFilters]);
+
+  const handleLocationFilterChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: { key: string; text: string }) => {
+    const newFilters = { ...activeFilters, officeLocation: option?.key || undefined };
+    handleApplyFilters(newFilters);
+  }, [activeFilters]);
+
+  const handleCityFilterChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: { key: string; text: string }) => {
+    const newFilters = { ...activeFilters, city: option?.key || undefined };
+    handleApplyFilters(newFilters);
+  }, [activeFilters]);
+
+  // Callback for search box
+  const handleSearchBoxChange = useCallback((_: React.ChangeEvent<HTMLInputElement> | undefined, newValue?: string) => {
+    handleSearchChange(newValue);
+  }, []);
+
+  const handleSearchBoxClear = useCallback(() => {
+    handleSearchChange('');
+  }, []);
+
+  // Callback for dismissing panel
+  const handlePanelDismiss = useCallback(() => {
+    setIsPanelOpen(false);
+    setSelectedUser(null);
+  }, []);
+
+  // Callbacks for filter dismissals
+  const handleDismissDepartmentFilter = useCallback(() => {
+    handleApplyFilters({ ...activeFilters, department: undefined });
+  }, [activeFilters]);
+
+  const handleDismissLocationFilter = useCallback(() => {
+    handleApplyFilters({ ...activeFilters, officeLocation: undefined });
+  }, [activeFilters]);
+
+  const handleDismissCityFilter = useCallback(() => {
+    handleApplyFilters({ ...activeFilters, city: undefined });
+  }, [activeFilters]);
+
+  const handleDismissCountryFilter = useCallback(() => {
+    handleApplyFilters({ ...activeFilters, country: undefined });
+  }, [activeFilters]);
+
+  const handleDismissJobTitleFilter = useCallback(() => {
+    handleApplyFilters({ ...activeFilters, jobTitle: undefined });
+  }, [activeFilters]);
+
+  const handleDismissError = useCallback(() => {
+    setError('');
+  }, []);
+
+  const handleDismissFilterPanel = useCallback(() => {
+    setIsFilterPanelOpen(false);
+  }, []);
+
   // Build webpart background style
   const webpartBackgroundStyle: React.CSSProperties = {};
   if (props.webpartBackgroundImage) {
@@ -364,10 +424,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                   ...departments.map(d => ({ key: d, text: d }))
                 ]}
                 selectedKey={activeFilters.department || ''}
-                onChange={(_, option) => {
-                  const newFilters = { ...activeFilters, department: option?.key as string || undefined };
-                  handleApplyFilters(newFilters);
-                }}
+                onChange={handleDepartmentFilterChange}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -379,10 +436,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                   ...locations.map(l => ({ key: l, text: l }))
                 ]}
                 selectedKey={activeFilters.officeLocation || ''}
-                onChange={(_, option) => {
-                  const newFilters = { ...activeFilters, officeLocation: option?.key as string || undefined };
-                  handleApplyFilters(newFilters);
-                }}
+                onChange={handleLocationFilterChange}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -394,10 +448,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                   ...cities.map(c => ({ key: c, text: c }))
                 ]}
                 selectedKey={activeFilters.city || ''}
-                onChange={(_, option) => {
-                  const newFilters = { ...activeFilters, city: option?.key as string || undefined };
-                  handleApplyFilters(newFilters);
-                }}
+                onChange={handleCityFilterChange}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -423,8 +474,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Search Box */}
         <SearchBox
           placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
-          onChange={(_, newValue) => handleSearchChange(newValue)}
-          onClear={() => handleSearchChange('')}
+          onChange={handleSearchBoxChange}
+          onClear={handleSearchBoxClear}
           value={searchText}
           disabled={loading}
           className={styles.searchBox}
@@ -434,22 +485,28 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {props.showLetterIndex && (
           <div className={styles.letterIndex}>
             <Stack horizontal tokens={{ childrenGap: 4 }} wrap>
-              {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
-                <div
-                  key={letter}
-                  className={`${styles.letterButton} ${selectedLetter === letter ? styles.letterButtonActive : ''}`}
-                  onClick={() => handleLetterClick(letter)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      handleLetterClick(letter);
-                    }
-                  }}
-                >
-                  {letter}
-                </div>
-              ))}
+              {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
+                const handleClick = (): void => {
+                  handleLetterClick(letter);
+                };
+                const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleLetterClick(letter);
+                  }
+                };
+                return (
+                  <div
+                    key={letter}
+                    className={`${styles.letterButton} ${selectedLetter === letter ? styles.letterButtonActive : ''}`}
+                    onClick={handleClick}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={handleKeyDown}
+                  >
+                    {letter}
+                  </div>
+                );
+              })}
             </Stack>
           </div>
         )}
@@ -460,7 +517,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.department && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, department: undefined })}
+                onDismiss={handleDismissDepartmentFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -470,7 +527,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.officeLocation && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, officeLocation: undefined })}
+                onDismiss={handleDismissLocationFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -480,7 +537,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.city && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, city: undefined })}
+                onDismiss={handleDismissCityFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -490,7 +547,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.country && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, country: undefined })}
+                onDismiss={handleDismissCountryFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -500,7 +557,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.jobTitle && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, jobTitle: undefined })}
+                onDismiss={handleDismissJobTitleFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -512,7 +569,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
         {/* Error Message */}
         {error && (
-          <MessageBar messageBarType={MessageBarType.error} onDismiss={() => setError('')}>
+          <MessageBar messageBarType={MessageBarType.error} onDismiss={handleDismissError}>
             {error}
           </MessageBar>
         )}
@@ -546,12 +603,16 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                   {searchText || getActiveFilterCount() > 0 ? 'Found' : 'Showing'} {users.length} {users.length === 1 ? 'person' : 'people'}
                 </Text>
                 <div className={styles.userGrid}>
-                  {users.map(user => (
-                    <UserCard
-                      key={user.id}
-                      user={user}
-                      onClick={() => handleUserClick(user)}
-                      showEmail={props.showEmail}
+                  {users.map(user => {
+                    const handleClick = (): void => {
+                      handleUserClick(user);
+                    };
+                    return (
+                      <UserCard
+                        key={user.id}
+                        user={user}
+                        onClick={handleClick}
+                        showEmail={props.showEmail}
                       showJobTitle={props.showJobTitle}
                       showDepartment={props.showDepartment}
                       showOfficeLocation={props.showOfficeLocation}
@@ -575,8 +636,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       profileCardBackgroundColor={props.profileCardBackgroundColor}
                       profileCardBackgroundImage={props.profileCardBackgroundImage}
                       showProfilePicture={props.showProfilePicture}
-                    />
-                  ))}
+                      />
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -587,7 +649,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       {/* Advanced Filter Panel */}
       <Panel
         isOpen={isFilterPanelOpen}
-        onDismiss={() => setIsFilterPanelOpen(false)}
+        onDismiss={handleDismissFilterPanel}
         headerText="Advanced Filters"
         closeButtonAriaLabel="Close"
         isLightDismiss
@@ -609,10 +671,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         <UserDetailsPanel
           user={selectedUser}
           isOpen={isPanelOpen}
-          onDismiss={() => {
-            setIsPanelOpen(false);
-            setSelectedUser(null);
-          }}
+          onDismiss={handlePanelDismiss}
         />
       )}
     </div>

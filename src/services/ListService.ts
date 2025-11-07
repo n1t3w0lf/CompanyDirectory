@@ -6,7 +6,7 @@ import '@pnp/sp/fields';
 import { IUserProfile } from '../models/IUserProfile';
 import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
-import { ISharePointList, ISharePointField, ISharePointListItem, IUserCacheListItem } from '../models/SharePointTypes';
+import { ISharePointList, ISharePointField, IUserCacheListItem } from '../models/SharePointTypes';
 
 /**
  * Service for managing SharePoint list cache
