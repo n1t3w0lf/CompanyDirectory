@@ -1,0 +1,50 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "people-directory-webpart",
+    "id": "8f4a7a9e-3c2b-4d1e-9f8a-6b5c4d3e2f1a",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "Enterprise IT",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Enterprise People Directory with Microsoft Graph integration"
+      },
+      "longDescription": {
+        "default": "Search and discover people across your organization with real-time data from Azure AD"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "people-directory-webpart Feature",
+        "description": "The feature that activates elements of the people-directory-webpart solution.",
+        "id": "9f5b8c7d-4e3a-2f1d-8e9c-7b6a5d4c3e2f",
+        "version": "1.0.0.0"
+      }
+    ],
+    "webApiPermissionRequests": [
+      {
+        "resource": "Microsoft Graph",
+        "scope": "User.ReadBasic.All"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "User.Read.All"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/people-directory-webpart.sppkg"
+  }
+}

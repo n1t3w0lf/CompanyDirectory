@@ -1,0 +1,196 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.peopleDirectory {
+  padding: 20px;
+  background-color: $ms-color-white;
+  min-height: 400px;
+
+  .searchBox {
+    max-width: 600px;
+  }
+
+  .userGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1025px) {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+
+  .userCard {
+    background-color: $ms-color-white;
+    border: 1px solid $ms-color-neutralLight;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+      border-color: $ms-color-themePrimary;
+    }
+
+    &:focus {
+      outline: 2px solid $ms-color-themePrimary;
+      outline-offset: 2px;
+    }
+
+    .userName {
+      font-weight: 600;
+      color: $ms-color-neutralPrimary;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .userJobTitle {
+      color: $ms-color-neutralSecondary;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .userInfo {
+      color: $ms-color-neutralSecondary;
+      font-size: 13px;
+    }
+
+    .icon {
+      color: $ms-color-themePrimary;
+      font-size: 14px;
+    }
+
+    .actionButton {
+      color: $ms-color-themePrimary;
+
+      &:hover {
+        background-color: $ms-color-themeLight;
+      }
+    }
+  }
+
+  // User Details Panel Styles
+  .detailIcon {
+    font-size: 18px;
+    color: $ms-color-themePrimary;
+    margin-top: 2px;
+  }
+
+  .detailLabel {
+    color: $ms-color-neutralSecondary;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  .detailValue {
+    color: $ms-color-neutralPrimary;
+    word-break: break-word;
+  }
+
+  .detailsName {
+    font-weight: 600;
+    color: $ms-color-neutralPrimary;
+    text-align: center;
+  }
+
+  .detailsJobTitle {
+    color: $ms-color-neutralSecondary;
+    text-align: center;
+  }
+
+  .sectionTitle {
+    font-weight: 600;
+    color: $ms-color-neutralPrimary;
+    margin-bottom: 8px;
+  }
+
+  .metadata {
+    color: $ms-color-neutralTertiary;
+    font-style: italic;
+  }
+
+  // Loading and Empty States
+  .emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: $ms-color-neutralSecondary;
+
+    .emptyStateIcon {
+      font-size: 64px;
+      color: $ms-color-neutralTertiaryAlt;
+      margin-bottom: 16px;
+    }
+
+    .emptyStateText {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .emptyStateSubtext {
+      font-size: 14px;
+      color: $ms-color-neutralTertiary;
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 640px) {
+    padding: 12px;
+
+    .searchBox {
+      max-width: 100%;
+    }
+
+    .userCard {
+      padding: 16px;
+    }
+  }
+
+  // Accessibility
+  *:focus-visible {
+    outline: 2px solid $ms-color-themePrimary;
+    outline-offset: 2px;
+  }
+
+  // Print styles
+  @media print {
+    .searchBox,
+    .actionButton {
+      display: none;
+    }
+
+    .userCard {
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #ccc;
+    }
+  }
+}
+
+// Dark mode support (if theme switching is implemented)
+@media (prefers-color-scheme: dark) {
+  .peopleDirectory {
+    background-color: $ms-color-neutralLighter;
+
+    .userCard {
+      background-color: $ms-color-neutralLight;
+      border-color: $ms-color-neutralQuaternary;
+
+      &:hover {
+        border-color: $ms-color-themePrimary;
+      }
+    }
+  }
+}
