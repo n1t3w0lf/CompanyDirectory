@@ -265,6 +265,196 @@ export class ListService {
   }
 
   /**
+   * Get paginated users from list (for initial display)
+   */
+  public async getPaginatedUsers(pageSize = 30, pageNumber = 1, orderBy = 'Title'): Promise<IUserProfile[]> {
+    try {
+      await this.ensureList();
+
+      const skipCount = (pageNumber - 1) * pageSize;
+
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('Id', 'UserId', 'UserPrincipalName', 'Title', 'Email', 'Department', 'JobTitle',
+          'OfficeLocation', 'BusinessPhones', 'MobilePhone', 'City', 'Country', 'CompanyName',
+          'PhotoUrl', 'GivenName', 'Surname', 'LastVerified', 'AccessCount')
+        .orderBy(orderBy, true)
+        .skip(skipCount)
+        .top(pageSize)();
+
+      return items.map(item => this.mapListItemToUser(item));
+    } catch (error) {
+      console.error('Error getting paginated users:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get total user count from list
+   */
+  public async getTotalUserCount(): Promise<number> {
+    try {
+      await this.ensureList();
+
+      // Use a simple count query
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('Id')
+        .top(1)();
+
+      // For large lists, we need to estimate
+      // This is a limitation of SharePoint - getting exact count > 5000 is expensive
+      const result = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('Id')
+        .top(5000)();
+
+      return result.length;
+    } catch (error) {
+      console.error('Error getting user count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Add or update user (optimized for bulk operations)
+   */
+  public async addOrUpdateUser(user: IUserProfile): Promise<void> {
+    try {
+      await this.ensureList();
+
+      const list = this.sp.web.lists.getByTitle(this.listTitle);
+      const itemData = this.mapUserToListItem(user);
+
+      // Check if user exists
+      const existingItems = await list.items
+        .filter(`UserPrincipalName eq '${user.userPrincipalName.replace(/'/g, "''")}'`)
+        .top(1)
+        .select('Id')();
+
+      if (existingItems.length > 0) {
+        // Update existing
+        await list.items.getById(existingItems[0].Id).update(itemData);
+      } else {
+        // Add new
+        await list.items.add(itemData);
+      }
+    } catch (error) {
+      console.error(`Error adding/updating user ${user.userPrincipalName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sync metadata
+   */
+  public async getSyncMetadata(): Promise<any> {
+    try {
+      await this.ensureList();
+
+      // Try to get metadata from a special "metadata" item (Title = "_SyncMetadata")
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.filter("Title eq '_SyncMetadata'")
+        .top(1)();
+
+      if (items.length === 0) {
+        return null;
+      }
+
+      return {
+        lastFullSync: items[0].LastVerified ? new Date(items[0].LastVerified) : null,
+        totalUsers: items[0].AccessCount || 0,
+        lastSyncSuccess: items[0].Department === 'Success'
+      };
+    } catch (error) {
+      console.error('Error getting sync metadata:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update sync metadata
+   */
+  public async updateSyncMetadata(metadata: { lastFullSync: Date; totalUsers: number; lastSyncSuccess: boolean }): Promise<void> {
+    try {
+      await this.ensureList();
+
+      const list = this.sp.web.lists.getByTitle(this.listTitle);
+
+      // Check if metadata item exists
+      const existingItems = await list.items
+        .filter("Title eq '_SyncMetadata'")
+        .top(1)
+        .select('Id')();
+
+      const metadataItem = {
+        Title: '_SyncMetadata',
+        UserPrincipalName: 'system',
+        LastVerified: metadata.lastFullSync,
+        AccessCount: metadata.totalUsers,
+        Department: metadata.lastSyncSuccess ? 'Success' : 'Failed',
+        Email: 'Sync Metadata - Do Not Delete'
+      };
+
+      if (existingItems.length > 0) {
+        // Update existing metadata
+        await list.items.getById(existingItems[0].Id).update(metadataItem);
+      } else {
+        // Create metadata item
+        await list.items.add(metadataItem);
+      }
+    } catch (error) {
+      console.error('Error updating sync metadata:', error);
+      // Don't throw - metadata update failure shouldn't break the sync
+    }
+  }
+
+  /**
+   * Get advanced filtered users
+   */
+  public async getFilteredUsers(filters: {
+    department?: string;
+    officeLocation?: string;
+    city?: string;
+    country?: string;
+    jobTitle?: string;
+  }, pageSize = 50): Promise<IUserProfile[]> {
+    try {
+      await this.ensureList();
+
+      let filterQuery = "Title ne '_SyncMetadata'"; // Exclude metadata item
+
+      if (filters.department) {
+        filterQuery += ` and Department eq '${filters.department.replace(/'/g, "''")}'`;
+      }
+      if (filters.officeLocation) {
+        filterQuery += ` and OfficeLocation eq '${filters.officeLocation.replace(/'/g, "''")}'`;
+      }
+      if (filters.city) {
+        filterQuery += ` and City eq '${filters.city.replace(/'/g, "''")}'`;
+      }
+      if (filters.country) {
+        filterQuery += ` and Country eq '${filters.country.replace(/'/g, "''")}'`;
+      }
+      if (filters.jobTitle) {
+        filterQuery += ` and substringof('${filters.jobTitle.replace(/'/g, "''")}', JobTitle)`;
+      }
+
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.filter(filterQuery)
+        .top(pageSize)
+        .orderBy('Title', true)();
+
+      return items.map(item => this.mapListItemToUser(item));
+    } catch (error) {
+      console.error('Error getting filtered users:', error);
+      return [];
+    }
+  }
+
+  /**
    * Map SharePoint list item to user profile
    */
   private mapListItemToUser(item: any): IUserProfile {

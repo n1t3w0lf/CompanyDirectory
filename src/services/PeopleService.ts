@@ -256,15 +256,166 @@ export class PeopleService {
   }
 
   /**
+   * Get initial users for display (first 30 from list)
+   */
+  public async getInitialUsers(pageSize = 30): Promise<IUserProfile[]> {
+    try {
+      // Get users from SharePoint list (primary data source now)
+      const users = await this.listService.getPaginatedUsers(pageSize, 1, 'Title');
+
+      // Enrich with photos asynchronously (don't block)
+      this.enrichUsersWithPhotos(users).catch(console.error);
+
+      return users;
+    } catch (error) {
+      console.error('Error getting initial users:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get filtered users with advanced filters
+   */
+  public async getFilteredUsers(filters: {
+    searchText?: string;
+    department?: string;
+    officeLocation?: string;
+    city?: string;
+    country?: string;
+    jobTitle?: string;
+  }, pageSize = 50): Promise<IUserProfile[]> {
+    try {
+      let users: IUserProfile[] = [];
+
+      // If there's a search text, search in the list
+      if (filters.searchText && filters.searchText.length >= Constants.MIN_SEARCH_LENGTH) {
+        users = await this.listService.searchUsers(filters.searchText, pageSize);
+      } else {
+        // Get filtered users from list
+        users = await this.listService.getFilteredUsers({
+          department: filters.department,
+          officeLocation: filters.officeLocation,
+          city: filters.city,
+          country: filters.country,
+          jobTitle: filters.jobTitle
+        }, pageSize);
+      }
+
+      // Apply additional client-side filtering if needed
+      if (filters.searchText && users.length > 0) {
+        const searchLower = filters.searchText.toLowerCase();
+        users = users.filter(u =>
+          u.displayName?.toLowerCase().includes(searchLower) ||
+          u.mail?.toLowerCase().includes(searchLower) ||
+          u.department?.toLowerCase().includes(searchLower) ||
+          u.jobTitle?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return users;
+    } catch (error) {
+      console.error('Error getting filtered users:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all unique cities from list
+   */
+  public async getCities(): Promise<string[]> {
+    const cacheKey = this.getCacheKey('cities', 'all');
+
+    try {
+      // Try cache first
+      const cached = await cacheHelper.get<string[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // This would require a custom implementation or aggregation
+      // For now, return empty array - can be enhanced later
+      const cities: string[] = [];
+      await cacheHelper.set(cacheKey, cities, Constants.LIST_CACHE_TTL);
+
+      return cities;
+    } catch (error) {
+      console.error('Error getting cities:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all unique countries from list
+   */
+  public async getCountries(): Promise<string[]> {
+    const cacheKey = this.getCacheKey('countries', 'all');
+
+    try {
+      // Try cache first
+      const cached = await cacheHelper.get<string[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // This would require a custom implementation or aggregation
+      // For now, return empty array - can be enhanced later
+      const countries: string[] = [];
+      await cacheHelper.set(cacheKey, countries, Constants.LIST_CACHE_TTL);
+
+      return countries;
+    } catch (error) {
+      console.error('Error getting countries:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all unique job titles from list
+   */
+  public async getJobTitles(): Promise<string[]> {
+    const cacheKey = this.getCacheKey('jobtitles', 'all');
+
+    try {
+      // Try cache first
+      const cached = await cacheHelper.get<string[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // This would require a custom implementation or aggregation
+      // For now, return empty array - can be enhanced later
+      const jobTitles: string[] = [];
+      await cacheHelper.set(cacheKey, jobTitles, Constants.LIST_CACHE_TTL);
+
+      return jobTitles;
+    } catch (error) {
+      console.error('Error getting job titles:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get total user count
+   */
+  public async getTotalUserCount(): Promise<number> {
+    try {
+      return await this.listService.getTotalUserCount();
+    } catch (error) {
+      console.error('Error getting total user count:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get cache statistics
    */
   public async getCacheStats(): Promise<{ clientCache: number; listCache: number }> {
     try {
       const clientStats = await cacheHelper.getStats();
-      // List cache count would require a separate query
+      const listCount = await this.listService.getTotalUserCount();
       return {
         clientCache: clientStats.count,
-        listCache: 0 // TODO: Implement list cache count
+        listCache: listCount
       };
     } catch (error) {
       console.error('Error getting cache stats:', error);
