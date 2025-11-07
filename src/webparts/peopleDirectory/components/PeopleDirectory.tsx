@@ -433,7 +433,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Letter Index */}
         {props.showLetterIndex && (
           <div className={styles.letterIndex}>
-            <Stack horizontal tokens={{ childrenGap: 8 }} wrap>
+            <Stack horizontal tokens={{ childrenGap: 4 }} wrap>
               {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
                 <div
                   key={letter}
