@@ -29,7 +29,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
   locations,
   cities,
   countries,
-  jobTitles,
+  jobTitles: _jobTitles,
   currentFilters,
   onApplyFilters,
   onClearFilters

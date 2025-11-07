@@ -348,7 +348,7 @@ export class ListService {
       await this.ensureList();
 
       // Use a simple count query
-      const items = await this.sp.web.lists
+      const _items = await this.sp.web.lists
         .getByTitle(this.listTitle)
         .items.select('Id')
         .top(1)();

@@ -11,7 +11,7 @@ import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
 import { IconButton } from '@fluentui/react/lib/Button';
 import { Panel } from '@fluentui/react/lib/Panel';
-import { Dropdown, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Dropdown } from '@fluentui/react/lib/Dropdown';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
@@ -373,7 +373,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
               />
             </Stack.Item>
             {totalUsers > 0 && (
-              <Stack.Item grow verticalAlign="center">
+              <Stack.Item grow>
                 <Text variant="small" style={{ color: '#666', paddingTop: 8 }}>
                   {totalUsers.toLocaleString()} people
                 </Text>

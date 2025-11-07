@@ -9,7 +9,7 @@ import {
   PropertyPaneChoiceGroup
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import * as strings from 'PeopleDirectoryWebPartStrings';
+// import * as strings from 'PeopleDirectoryWebPartStrings';
 import { PeopleDirectory } from './components/PeopleDirectory';
 import { IPeopleDirectoryProps } from './components/IPeopleDirectoryProps';
 import { GraphService } from '../../services/GraphService';

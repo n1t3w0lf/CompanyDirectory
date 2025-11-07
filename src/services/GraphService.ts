@@ -2,6 +2,7 @@ import { MSGraphClientV3 } from '@microsoft/sp-http';
 import { IUserProfile, ISearchResult } from '../models/IUserProfile';
 import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
+import { IGraphResponse, IGraphUser, IBatchResponse } from '../models/SharePointTypes';
 
 /**
  * Service for interacting with Microsoft Graph API
@@ -41,12 +42,12 @@ export class GraphService {
         endpoint += `&$skiptoken=${skipToken}`;
       }
 
-      const response = await this.graphClient
+      const response: IGraphResponse = await this.graphClient
         .api(endpoint)
         .header('ConsistencyLevel', 'eventual')
         .get();
 
-      const users: IUserProfile[] = response.value.map((user: any) => this.mapGraphUserToProfile(user));
+      const users: IUserProfile[] = response.value.map((user: IGraphUser) => this.mapGraphUserToProfile(user));
 
       return {
         users,
@@ -64,14 +65,14 @@ export class GraphService {
    */
   public async getUserById(userId: string): Promise<IUserProfile | null> {
     try {
-      const user = await this.graphClient
+      const user: IGraphUser = await this.graphClient
         .api(`/users/${userId}`)
         .select(Constants.GRAPH_SELECT_FIELDS)
         .get();
 
       return this.mapGraphUserToProfile(user);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
+      if ((error as { statusCode?: number }).statusCode === 404) {
         return null;
       }
       throw new Error(ErrorHandler.getUserMessage(error, 'GraphService.getUserById'));
@@ -104,14 +105,14 @@ export class GraphService {
    */
   public async getUserManager(userId: string): Promise<IUserProfile | null> {
     try {
-      const manager = await this.graphClient
+      const manager: IGraphUser = await this.graphClient
         .api(`/users/${userId}/manager`)
         .select(Constants.GRAPH_SELECT_FIELDS)
         .get();
 
       return this.mapGraphUserToProfile(manager);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
+      if ((error as { statusCode?: number }).statusCode === 404) {
         return null;
       }
       console.warn('Failed to fetch user manager:', error);
@@ -127,7 +128,7 @@ export class GraphService {
     try {
       // Get unique departments - limit to first 1000 users for performance
       // Must include id in select for Graph API v1.0
-      const response = await this.graphClient
+      const response: IGraphResponse = await this.graphClient
         .api('/users')
         .select('id,department')
         .top(1000)
@@ -135,7 +136,7 @@ export class GraphService {
         .get();
 
       const departments = new Set<string>();
-      response.value.forEach((user: any) => {
+      response.value.forEach((user: IGraphUser) => {
         if (user.department) {
           departments.add(user.department);
         }
@@ -153,7 +154,7 @@ export class GraphService {
   public async getOfficeLocations(): Promise<string[]> {
     try {
       // Must include id in select for Graph API v1.0
-      const response = await this.graphClient
+      const response: IGraphResponse = await this.graphClient
         .api('/users')
         .select('id,officeLocation')
         .top(1000)
@@ -161,7 +162,7 @@ export class GraphService {
         .get();
 
       const locations = new Set<string>();
-      response.value.forEach((user: any) => {
+      response.value.forEach((user: IGraphUser) => {
         if (user.officeLocation) {
           locations.add(user.officeLocation);
         }
@@ -195,11 +196,11 @@ export class GraphService {
           url: `/users/${id}?$select=${Constants.GRAPH_SELECT_FIELDS}`
         }));
 
-        const batchResponse = await this.graphClient
+        const batchResponse: IBatchResponse = await this.graphClient
           .api('/$batch')
           .post({ requests: batchRequests });
 
-        batchResponse.responses.forEach((response: any) => {
+        batchResponse.responses.forEach((response) => {
           if (response.status === 200) {
             allUsers.push(this.mapGraphUserToProfile(response.body));
           }
@@ -215,7 +216,7 @@ export class GraphService {
   /**
    * Map Graph API user object to IUserProfile
    */
-  private mapGraphUserToProfile(graphUser: any): IUserProfile {
+  private mapGraphUserToProfile(graphUser: IGraphUser): IUserProfile {
     return {
       id: graphUser.id,
       userPrincipalName: graphUser.userPrincipalName,
