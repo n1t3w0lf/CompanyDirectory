@@ -132,7 +132,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   /**
    * Handle initial sync start
    */
-  const handleStartSync = async (): Promise<void> => {
+  const handleStartSync = useCallback(async (): Promise<void> => {
     try {
       setSyncStatus({
         isRunning: true,
@@ -157,15 +157,15 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       setError('Sync failed. Please try again.');
       setSyncStatus(props.syncService.getSyncStatus());
     }
-  };
+  }, [props.syncService]);
 
   /**
    * Handle sync cancellation
    */
-  const handleCancelSync = (): void => {
+  const handleCancelSync = useCallback((): void => {
     props.syncService.cancelSync();
     setSyncStatus(props.syncService.getSyncStatus());
-  };
+  }, [props.syncService]);
 
   /**
    * Debounced search
@@ -220,7 +220,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   /**
    * Apply advanced filters
    */
-  const handleApplyFilters = async (filters: IAdvancedFilters): Promise<void> => {
+  const handleApplyFilters = useCallback(async (filters: IAdvancedFilters): Promise<void> => {
     setActiveFilters(filters);
     setIsFilterPanelOpen(false);
     setLoading(true);
@@ -239,18 +239,18 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchText, props.peopleService]);
 
   /**
    * Clear all filters
    */
-  const handleClearFilters = async (): Promise<void> => {
+  const handleClearFilters = useCallback(async (): Promise<void> => {
     setActiveFilters({});
     setSearchText('');
     setSelectedLetter(null);
     setIsFilterPanelOpen(false);
     await loadInitialUsers();
-  };
+  }, []);
 
   /**
    * Handle letter index click
@@ -340,6 +340,40 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const handlePanelDismiss = useCallback(() => {
     setIsPanelOpen(false);
     setSelectedUser(null);
+  }, []);
+
+  // Letter index click handler using data attribute
+  const handleLetterButtonClick = useCallback((e: React.MouseEvent<HTMLDivElement>): void => {
+    const letter = (e.currentTarget as HTMLDivElement).getAttribute('data-letter');
+    if (letter) {
+      handleLetterClick(letter);
+    }
+  }, []);
+
+  // Letter index keydown handler using data attribute
+  const handleLetterButtonKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const letter = (e.currentTarget as HTMLDivElement).getAttribute('data-letter');
+      if (letter) {
+        handleLetterClick(letter);
+      }
+    }
+  }, []);
+
+  // User card click handler using data attribute
+  const handleUserCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>): void => {
+    const userId = (e.currentTarget as HTMLDivElement).getAttribute('data-user-id');
+    if (userId) {
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        handleUserClick(user);
+      }
+    }
+  }, [users]);
+
+  // Empty function for UserCard onClick prop (click handled by wrapper)
+  const emptyClickHandler = useCallback(() => {
+    // Click is handled by parent wrapper div
   }, []);
 
   // Callbacks for filter dismissals
@@ -485,28 +519,19 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {props.showLetterIndex && (
           <div className={styles.letterIndex}>
             <Stack horizontal tokens={{ childrenGap: 4 }} wrap>
-              {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => {
-                const handleClick = (): void => {
-                  handleLetterClick(letter);
-                };
-                const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleLetterClick(letter);
-                  }
-                };
-                return (
-                  <div
-                    key={letter}
-                    className={`${styles.letterButton} ${selectedLetter === letter ? styles.letterButtonActive : ''}`}
-                    onClick={handleClick}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={handleKeyDown}
-                  >
-                    {letter}
-                  </div>
-                );
-              })}
+              {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
+                <div
+                  key={letter}
+                  data-letter={letter}
+                  className={`${styles.letterButton} ${selectedLetter === letter ? styles.letterButtonActive : ''}`}
+                  onClick={handleLetterButtonClick}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleLetterButtonKeyDown}
+                >
+                  {letter}
+                </div>
+              ))}
             </Stack>
           </div>
         )}
@@ -603,42 +628,38 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                   {searchText || getActiveFilterCount() > 0 ? 'Found' : 'Showing'} {users.length} {users.length === 1 ? 'person' : 'people'}
                 </Text>
                 <div className={styles.userGrid}>
-                  {users.map(user => {
-                    const handleClick = (): void => {
-                      handleUserClick(user);
-                    };
-                    return (
+                  {users.map(user => (
+                    <div key={user.id} data-user-id={user.id} onClick={handleUserCardClick}>
                       <UserCard
-                        key={user.id}
                         user={user}
-                        onClick={handleClick}
+                        onClick={emptyClickHandler}
                         showEmail={props.showEmail}
-                      showJobTitle={props.showJobTitle}
-                      showDepartment={props.showDepartment}
-                      showOfficeLocation={props.showOfficeLocation}
-                      showBusinessPhones={props.showBusinessPhones}
-                      showMobilePhone={props.showMobilePhone}
-                      showCity={props.showCity}
-                      showCountry={props.showCountry}
-                      showCompanyName={props.showCompanyName}
-                      showEmployeeId={props.showEmployeeId}
-                      profileNameFontSize={props.profileNameFontSize}
-                      profileNameFontColor={props.profileNameFontColor}
-                      jobTitleFontSize={props.jobTitleFontSize}
-                      jobTitleFontColor={props.jobTitleFontColor}
-                      jobTitleBold={props.jobTitleBold}
-                      profilePropertiesFontSize={props.profilePropertiesFontSize}
-                      profilePropertiesFontColor={props.profilePropertiesFontColor}
-                      propertyDisplayOrder={props.propertyDisplayOrder}
-                      textEllipsisLength={props.textEllipsisLength}
-                      iconSize={props.iconSize}
-                      iconColor={props.iconColor}
-                      profileCardBackgroundColor={props.profileCardBackgroundColor}
-                      profileCardBackgroundImage={props.profileCardBackgroundImage}
-                      showProfilePicture={props.showProfilePicture}
+                        showJobTitle={props.showJobTitle}
+                        showDepartment={props.showDepartment}
+                        showOfficeLocation={props.showOfficeLocation}
+                        showBusinessPhones={props.showBusinessPhones}
+                        showMobilePhone={props.showMobilePhone}
+                        showCity={props.showCity}
+                        showCountry={props.showCountry}
+                        showCompanyName={props.showCompanyName}
+                        showEmployeeId={props.showEmployeeId}
+                        profileNameFontSize={props.profileNameFontSize}
+                        profileNameFontColor={props.profileNameFontColor}
+                        jobTitleFontSize={props.jobTitleFontSize}
+                        jobTitleFontColor={props.jobTitleFontColor}
+                        jobTitleBold={props.jobTitleBold}
+                        profilePropertiesFontSize={props.profilePropertiesFontSize}
+                        profilePropertiesFontColor={props.profilePropertiesFontColor}
+                        propertyDisplayOrder={props.propertyDisplayOrder}
+                        textEllipsisLength={props.textEllipsisLength}
+                        iconSize={props.iconSize}
+                        iconColor={props.iconColor}
+                        profileCardBackgroundColor={props.profileCardBackgroundColor}
+                        profileCardBackgroundImage={props.profileCardBackgroundImage}
+                        showProfilePicture={props.showProfilePicture}
                       />
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </>
             )}
