@@ -19,14 +19,14 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
   };
 
-  const handleEmailClick = (e: React.MouseEvent<HTMLElement>): void => {
+  const handleEmailClick = (e: React.MouseEvent): void => {
     e.stopPropagation();
     if (user.mail) {
       window.location.href = `mailto:${user.mail}`;
     }
   };
 
-  const handlePhoneClick = (e: React.MouseEvent<HTMLElement>, phone: string): void => {
+  const handlePhoneClick = (e: React.MouseEvent, phone: string): void => {
     e.stopPropagation();
     window.location.href = `tel:${phone}`;
   };
@@ -90,7 +90,7 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'Phone' }}
               title={`Call ${user.displayName}`}
               ariaLabel="Call"
-              onClick={(e) => handlePhoneClick(e, user.businessPhones![0])}
+              onClick={(e) => handlePhoneClick(e, user.businessPhones[0])}
               className={styles.actionButton}
             />
           )}
