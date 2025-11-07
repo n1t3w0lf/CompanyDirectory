@@ -19,18 +19,6 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
   };
 
-  const handleEmailClick = (e: React.MouseEvent): void => {
-    e.stopPropagation();
-    if (user.mail) {
-      window.location.href = `mailto:${user.mail}`;
-    }
-  };
-
-  const handlePhoneClick = (e: React.MouseEvent, phone: string): void => {
-    e.stopPropagation();
-    window.location.href = `tel:${phone}`;
-  };
-
   return (
     <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0}>
       <Stack tokens={{ childrenGap: 12 }}>
@@ -81,7 +69,10 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'Mail' }}
               title={`Email ${user.displayName}`}
               ariaLabel="Send email"
-              onClick={handleEmailClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `mailto:${user.mail}`;
+              }}
               className={styles.actionButton}
             />
           )}
@@ -90,7 +81,10 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'Phone' }}
               title={`Call ${user.displayName}`}
               ariaLabel="Call"
-              onClick={(e) => handlePhoneClick(e, user.businessPhones[0])}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `tel:${user.businessPhones[0]}`;
+              }}
               className={styles.actionButton}
             />
           )}
@@ -99,7 +93,10 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'CellPhone' }}
               title={`Call mobile ${user.displayName}`}
               ariaLabel="Call mobile"
-              onClick={(e) => handlePhoneClick(e, user.mobilePhone)}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `tel:${user.mobilePhone}`;
+              }}
               className={styles.actionButton}
             />
           )}
