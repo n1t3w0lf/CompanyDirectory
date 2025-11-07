@@ -126,10 +126,12 @@ export class GraphService {
   public async getDepartments(): Promise<string[]> {
     try {
       // Get unique departments - limit to first 1000 users for performance
+      // Must include id in select for Graph API v1.0
       const response = await this.graphClient
         .api('/users')
-        .select('department')
+        .select('id,department')
         .top(1000)
+        .header('ConsistencyLevel', 'eventual')
         .get();
 
       const departments = new Set<string>();
@@ -150,10 +152,12 @@ export class GraphService {
    */
   public async getOfficeLocations(): Promise<string[]> {
     try {
+      // Must include id in select for Graph API v1.0
       const response = await this.graphClient
         .api('/users')
-        .select('officeLocation')
+        .select('id,officeLocation')
         .top(1000)
+        .header('ConsistencyLevel', 'eventual')
         .get();
 
       const locations = new Set<string>();

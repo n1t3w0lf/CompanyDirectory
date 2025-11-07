@@ -26,50 +26,101 @@ export class ListService {
     if (this.isListReady) return;
 
     try {
+      let list;
+      let listExists = false;
+
       // Check if list exists
       try {
-        await this.sp.web.lists.getByTitle(this.listTitle).select('Id')();
-        this.isListReady = true;
-        return;
+        list = this.sp.web.lists.getByTitle(this.listTitle);
+        await list.select('Id')();
+        listExists = true;
       } catch {
         // List doesn't exist, create it
+        listExists = false;
       }
 
-      // Create the list
-      const listAddResult = await this.sp.web.lists.add(this.listTitle, '', 100, false, {
-        Hidden: false,
-        OnQuickLaunch: false,
-        AllowContentTypes: false
-      });
+      if (!listExists) {
+        // Create the list
+        const listAddResult = await this.sp.web.lists.add(this.listTitle, '', 100, false, {
+          Hidden: false,
+          OnQuickLaunch: false,
+          AllowContentTypes: false
+        });
+        list = listAddResult.list;
+      }
 
-      const list = listAddResult.list;
-
-      // Add custom fields
-      await list.fields.addText('UserPrincipalName', { MaxLength: 255, Required: true });
-      await list.fields.addText('Email', { MaxLength: 255 });
-      await list.fields.addText('Department', { MaxLength: 255 });
-      await list.fields.addText('JobTitle', { MaxLength: 255 });
-      await list.fields.addText('OfficeLocation', { MaxLength: 255 });
-      await list.fields.addText('BusinessPhones', { MaxLength: 500 });
-      await list.fields.addText('MobilePhone', { MaxLength: 50 });
-      await list.fields.addText('City', { MaxLength: 100 });
-      await list.fields.addText('Country', { MaxLength: 100 });
-      await list.fields.addText('CompanyName', { MaxLength: 255 });
-      await list.fields.addText('PhotoUrl', { MaxLength: 1000 });
-      await list.fields.addText('GivenName', { MaxLength: 255 });
-      await list.fields.addText('Surname', { MaxLength: 255 });
-      await list.fields.addText('UserId', { MaxLength: 100 });
-      await list.fields.addDateTime('LastVerified', { DisplayFormat: 1 });
-      await list.fields.addNumber('AccessCount', { MinimumValue: 0 });
-
-      // Create indexes for performance
-      await list.fields.getByInternalNameOrTitle('UserPrincipalName').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('Department').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('LastVerified').update({ Indexed: true });
+      // Ensure all required fields exist
+      await this.ensureFields(list);
 
       this.isListReady = true;
     } catch (error) {
       throw new Error(ErrorHandler.getUserMessage(error, 'ListService.ensureList'));
+    }
+  }
+
+  /**
+   * Ensure all required fields exist in the list
+   */
+  private async ensureFields(list: any): Promise<void> {
+    try {
+      // Get existing fields
+      const existingFields = await list.fields.select('InternalName')();
+      const existingFieldNames = new Set(existingFields.map((f: any) => f.InternalName));
+
+      // Define all required fields
+      const requiredFields = [
+        { name: 'UserPrincipalName', type: 'text', options: { MaxLength: 255, Required: true } },
+        { name: 'Email', type: 'text', options: { MaxLength: 255 } },
+        { name: 'Department', type: 'text', options: { MaxLength: 255 } },
+        { name: 'JobTitle', type: 'text', options: { MaxLength: 255 } },
+        { name: 'OfficeLocation', type: 'text', options: { MaxLength: 255 } },
+        { name: 'BusinessPhones', type: 'text', options: { MaxLength: 500 } },
+        { name: 'MobilePhone', type: 'text', options: { MaxLength: 50 } },
+        { name: 'City', type: 'text', options: { MaxLength: 100 } },
+        { name: 'Country', type: 'text', options: { MaxLength: 100 } },
+        { name: 'CompanyName', type: 'text', options: { MaxLength: 255 } },
+        { name: 'PhotoUrl', type: 'text', options: { MaxLength: 1000 } },
+        { name: 'GivenName', type: 'text', options: { MaxLength: 255 } },
+        { name: 'Surname', type: 'text', options: { MaxLength: 255 } },
+        { name: 'UserId', type: 'text', options: { MaxLength: 100 } },
+        { name: 'LastVerified', type: 'datetime', options: { DisplayFormat: 1 } },
+        { name: 'AccessCount', type: 'number', options: { MinimumValue: 0 } }
+      ];
+
+      // Add missing fields
+      for (const field of requiredFields) {
+        if (!existingFieldNames.has(field.name)) {
+          console.log(`Adding missing field: ${field.name}`);
+          try {
+            if (field.type === 'text') {
+              await list.fields.addText(field.name, field.options);
+            } else if (field.type === 'datetime') {
+              await list.fields.addDateTime(field.name, field.options);
+            } else if (field.type === 'number') {
+              await list.fields.addNumber(field.name, field.options);
+            }
+          } catch (fieldError) {
+            console.warn(`Error adding field ${field.name}:`, fieldError);
+            // Continue with other fields even if one fails
+          }
+        }
+      }
+
+      // Create indexes for performance (only if fields don't have indexes)
+      const indexFields = ['UserPrincipalName', 'Department', 'LastVerified'];
+      for (const fieldName of indexFields) {
+        try {
+          if (existingFieldNames.has(fieldName)) {
+            await list.fields.getByInternalNameOrTitle(fieldName).update({ Indexed: true });
+          }
+        } catch (indexError) {
+          console.warn(`Could not create index on ${fieldName}:`, indexError);
+          // Index creation is optional, continue anyway
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring fields:', error);
+      // Don't throw - we'll try to work with whatever fields exist
     }
   }
 
