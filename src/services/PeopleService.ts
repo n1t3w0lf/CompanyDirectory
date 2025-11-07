@@ -271,15 +271,18 @@ export class PeopleService {
   }
 
   /**
-   * Get initial users for display (first 30 from list)
+   * Get initial users for display (optimized for fast loading)
    */
-  public async getInitialUsers(pageSize = 30): Promise<IUserProfile[]> {
+  public async getInitialUsers(pageSize = Constants.INITIAL_PAGE_SIZE): Promise<IUserProfile[]> {
     try {
       // Get users from SharePoint list (primary data source now)
       const users = await this.listService.getPaginatedUsers(pageSize, 1, 'Title');
 
-      // Enrich with photos asynchronously (don't block)
-      this.enrichUsersWithPhotos(users).catch(console.error);
+      // Defer photo loading to prioritize initial render
+      // Photos will load after delay to ensure fast initial paint
+      setTimeout(() => {
+        this.enrichUsersWithPhotos(users).catch(console.error);
+      }, Constants.PHOTO_LOAD_DELAY_MS);
 
       return users;
     } catch (error) {

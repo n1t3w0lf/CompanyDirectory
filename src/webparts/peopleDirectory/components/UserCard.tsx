@@ -53,7 +53,7 @@ export interface IUserCardProps {
   showProfilePicture?: boolean;
 }
 
-export const UserCard: React.FC<IUserCardProps> = ({
+const UserCardComponent: React.FC<IUserCardProps> = ({
   user,
   onClick,
   showEmail = true,
@@ -241,3 +241,15 @@ export const UserCard: React.FC<IUserCardProps> = ({
     </div>
   );
 };
+
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when user data or visibility props change
+export const UserCard = React.memo(UserCardComponent, (prevProps, nextProps) => {
+  // Re-render only if user ID changes or photoUrl updates
+  return prevProps.user.id === nextProps.user.id &&
+    prevProps.user.photoUrl === nextProps.user.photoUrl &&
+    prevProps.showEmail === nextProps.showEmail &&
+    prevProps.showJobTitle === nextProps.showJobTitle &&
+    prevProps.showDepartment === nextProps.showDepartment &&
+    prevProps.showProfilePicture === nextProps.showProfilePicture;
+});

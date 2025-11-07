@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { IPeopleDirectoryProps } from './IPeopleDirectoryProps';
 import { IUserProfile } from '../../../models/IUserProfile';
 import { ISyncStatus } from '../../../services/SyncService';
@@ -15,8 +15,11 @@ import { PrimaryButton } from '@fluentui/react/lib/Button';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
-import { AdvancedFilterPanel, IAdvancedFilters } from './AdvancedFilterPanel';
+import type { IAdvancedFilters } from './AdvancedFilterPanel';
 import styles from './PeopleDirectory.module.scss';
+
+// Code-split the Advanced Filter Panel to reduce initial bundle size
+const AdvancedFilterPanel = lazy(() => import('./AdvancedFilterPanel').then(module => ({ default: module.AdvancedFilterPanel })));
 
 export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   // State management
@@ -34,6 +37,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const [cities, setCities] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [jobTitles, setJobTitles] = useState<string[]>([]);
+  const [filtersLoaded, setFiltersLoaded] = useState<boolean>(false);
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<IAdvancedFilters>({});
@@ -53,10 +57,12 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const initializeData = async (): Promise<void> => {
     try {
       setLoading(true);
-      await props.peopleService.initialize();
 
-      // Check if initial sync is needed
-      const syncNeeded = await props.syncService.isInitialSyncNeeded();
+      // Parallelize service initialization and sync check
+      const [, syncNeeded] = await Promise.all([
+        props.peopleService.initialize(),
+        props.syncService.isInitialSyncNeeded()
+      ]);
 
       if (syncNeeded) {
         // Show sync banner
@@ -74,8 +80,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         // Load initial 30 users
         await loadInitialUsers();
 
-        // Load filter options in background
-        loadFilterOptions();
+        // Filter options will be loaded on demand when user interacts with filters
       }
     } catch (err) {
       console.error('Error initializing:', err);
@@ -85,17 +90,17 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   };
 
   /**
-   * Load first 30 users
+   * Load initial users for faster initial load
    */
   const loadInitialUsers = async (): Promise<void> => {
     try {
       setLoading(true);
-      const initialUsers = await props.peopleService.getInitialUsers(30);
+      const initialUsers = await props.peopleService.getInitialUsers(Constants.INITIAL_PAGE_SIZE);
       setUsers(initialUsers);
 
-      // Get total count
-      const count = await props.peopleService.getTotalUserCount();
-      setTotalUsers(count);
+      // Skip total count on initial load for better performance
+      // Load it in background after users are displayed
+      props.peopleService.getTotalUserCount().then(setTotalUsers).catch(console.error);
 
       setLoading(false);
     } catch (err) {
@@ -106,9 +111,11 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   };
 
   /**
-   * Load filter options
+   * Load filter options on demand (only when user interacts with filters)
    */
   const loadFilterOptions = async (): Promise<void> => {
+    if (filtersLoaded) return; // Already loaded, skip
+
     try {
       const [depts, locs, citiesData, countriesData, titlesData] = await Promise.all([
         props.peopleService.getDepartments(),
@@ -123,6 +130,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       setCities(citiesData);
       setCountries(countriesData);
       setJobTitles(titlesData);
+      setFiltersLoaded(true);
     } catch (err) {
       console.error('Error loading filter options:', err);
     }
@@ -149,7 +157,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
       // Sync complete, load users
       await loadInitialUsers();
-      loadFilterOptions();
+      // Filter options will be loaded on demand when user interacts with filters
 
     } catch (err) {
       console.error('Sync error:', err);
@@ -312,6 +320,11 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const getActiveFilterCount = (): number => {
     return Object.values(activeFilters).filter(v => v).length;
   };
+
+  // Load filters on first interaction with filter dropdowns
+  const handleFilterDropdownFocus = useCallback(() => {
+    loadFilterOptions();
+  }, [filtersLoaded]);
 
   // Callback handlers for dropdowns
   const handleDepartmentFilterChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: { key: string; text: string }) => {
@@ -486,6 +499,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 ]}
                 selectedKey={activeFilters.department || ''}
                 onChange={handleDepartmentFilterChange}
+                onFocus={handleFilterDropdownFocus}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -498,6 +512,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 ]}
                 selectedKey={activeFilters.officeLocation || ''}
                 onChange={handleLocationFilterChange}
+                onFocus={handleFilterDropdownFocus}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -510,6 +525,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 ]}
                 selectedKey={activeFilters.city || ''}
                 onChange={handleCityFilterChange}
+                onFocus={handleFilterDropdownFocus}
                 styles={{ dropdown: { width: 200 } }}
               />
             </Stack.Item>
@@ -722,16 +738,18 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         closeButtonAriaLabel="Close"
         isLightDismiss
       >
-        <AdvancedFilterPanel
-          departments={departments}
-          locations={locations}
-          cities={cities}
-          countries={countries}
-          jobTitles={jobTitles}
-          currentFilters={activeFilters}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-        />
+        <Suspense fallback={<Spinner size={SpinnerSize.medium} label="Loading filters..." />}>
+          <AdvancedFilterPanel
+            departments={departments}
+            locations={locations}
+            cities={cities}
+            countries={countries}
+            jobTitles={jobTitles}
+            currentFilters={activeFilters}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+          />
+        </Suspense>
       </Panel>
 
       {/* User Details Panel */}

@@ -18,7 +18,9 @@ export class Constants {
   public static readonly SEARCH_DEBOUNCE_MS = 3000; // 3 seconds
   public static readonly MIN_SEARCH_LENGTH = 2;
   public static readonly DEFAULT_PAGE_SIZE = 50;
+  public static readonly INITIAL_PAGE_SIZE = 20; // Reduced for faster initial load
   public static readonly VIRTUAL_SCROLL_ITEM_HEIGHT = 120;
+  public static readonly PHOTO_LOAD_DELAY_MS = 500; // Delay photo loading for faster render
 
   // Graph API Configuration
   public static readonly GRAPH_BATCH_SIZE = 20;
