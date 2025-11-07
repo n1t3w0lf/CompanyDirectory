@@ -63,4 +63,10 @@ export interface IPeopleDirectoryProps {
 
   // Profile Picture
   showProfilePicture: boolean;
+
+  // Search Button Configuration
+  searchButtonText: string;
+  searchButtonColor: string;
+  searchButtonTextSize: number;
+  searchButtonHoverColor: string;
 }

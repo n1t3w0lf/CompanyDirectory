@@ -77,6 +77,12 @@ export interface IPeopleDirectoryWebPartProps {
 
   // Profile Picture
   showProfilePicture: boolean;
+
+  // Search Button Configuration
+  searchButtonText: string;
+  searchButtonColor: string;
+  searchButtonTextSize: number;
+  searchButtonHoverColor: string;
 }
 
 export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopleDirectoryWebPartProps> {
@@ -179,7 +185,13 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         showLetterIndex: this.properties.showLetterIndex !== false,
 
         // Profile Picture
-        showProfilePicture: this.properties.showProfilePicture !== false
+        showProfilePicture: this.properties.showProfilePicture !== false,
+
+        // Search Button Configuration
+        searchButtonText: this.properties.searchButtonText || 'Search',
+        searchButtonColor: this.properties.searchButtonColor || '#0078d4',
+        searchButtonTextSize: this.properties.searchButtonTextSize || 14,
+        searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe'
       }
     );
 
@@ -442,6 +454,34 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   label: 'Show Profile Pictures',
                   onText: 'Visible',
                   offText: 'Hidden'
+                })
+              ]
+            },
+            {
+              groupName: 'Search Button Configuration',
+              groupFields: [
+                PropertyPaneTextField('searchButtonText', {
+                  label: 'Button Text',
+                  placeholder: 'Search',
+                  description: 'Text displayed on the search button'
+                }),
+                PropertyPaneTextField('searchButtonColor', {
+                  label: 'Button Color (hex or rgba)',
+                  placeholder: '#0078d4 or rgba(0,120,212,1)',
+                  description: 'Background color of the button'
+                }),
+                PropertyPaneSlider('searchButtonTextSize', {
+                  label: 'Button Text Size (px)',
+                  min: 10,
+                  max: 24,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneTextField('searchButtonHoverColor', {
+                  label: 'Button Hover Color (hex or rgba)',
+                  placeholder: '#106ebe or rgba(16,110,190,1)',
+                  description: 'Background color when hovering over the button'
                 })
               ]
             }

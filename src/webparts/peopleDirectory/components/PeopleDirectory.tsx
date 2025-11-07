@@ -11,6 +11,7 @@ import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
 import { Panel } from '@fluentui/react/lib/Panel';
 import { Dropdown } from '@fluentui/react/lib/Dropdown';
+import { PrimaryButton } from '@fluentui/react/lib/Button';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
@@ -168,32 +169,22 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   }, [props.syncService]);
 
   /**
-   * Debounced search
+   * Handle search text change (no auto-search)
    */
   const handleSearchChange = useCallback((newValue?: string): void => {
     const value = newValue || '';
     setSearchText(value);
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.length < Constants.MIN_SEARCH_LENGTH) {
-      // Reload initial users when search is cleared
-      loadInitialUsers();
-      return;
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(value);
-    }, Constants.SEARCH_DEBOUNCE_MS) as unknown as number;
   }, []);
 
   /**
    * Perform search with fallback to Active Directory
    */
-  const performSearch = async (searchValue: string): Promise<void> => {
-    if (searchValue.length < Constants.MIN_SEARCH_LENGTH) {
+  const performSearch = useCallback(async (): Promise<void> => {
+    const searchValue = searchText.trim();
+
+    // If search is empty or too short, reload initial users
+    if (!searchValue || searchValue.length < Constants.MIN_SEARCH_LENGTH) {
+      await loadInitialUsers();
       return;
     }
 
@@ -228,7 +219,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchText, activeFilters, props.peopleService]);
 
   /**
    * Apply advanced filters
@@ -343,11 +334,24 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   // Callback for search box
   const handleSearchBoxChange = useCallback((_: React.ChangeEvent<HTMLInputElement> | undefined, newValue?: string) => {
     handleSearchChange(newValue);
-  }, []);
+  }, [handleSearchChange]);
 
   const handleSearchBoxClear = useCallback(() => {
     handleSearchChange('');
-  }, []);
+    loadInitialUsers();
+  }, [handleSearchChange]);
+
+  // Callback for search button click
+  const handleSearchButtonClick = useCallback(() => {
+    performSearch();
+  }, [performSearch]);
+
+  // Handle Enter key in search box
+  const handleSearchBoxKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  }, [performSearch]);
 
   // Callback for dismissing panel
   const handlePanelDismiss = useCallback(() => {
@@ -518,15 +522,41 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           />
         )}
 
-        {/* Search Box */}
-        <SearchBox
-          placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
-          onChange={handleSearchBoxChange}
-          onClear={handleSearchBoxClear}
-          value={searchText}
-          disabled={loading}
-          className={styles.searchBox}
-        />
+        {/* Search Box with Button */}
+        <Stack horizontal tokens={{ childrenGap: 8 }} verticalAlign="end">
+          <Stack.Item grow>
+            <SearchBox
+              placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
+              onChange={handleSearchBoxChange}
+              onClear={handleSearchBoxClear}
+              onKeyDown={handleSearchBoxKeyDown}
+              value={searchText}
+              disabled={loading}
+              className={styles.searchBox}
+            />
+          </Stack.Item>
+          <Stack.Item>
+            <PrimaryButton
+              text={props.searchButtonText}
+              onClick={handleSearchButtonClick}
+              disabled={loading}
+              className={styles.searchButton}
+              style={{
+                backgroundColor: props.searchButtonColor,
+                borderColor: props.searchButtonColor,
+                fontSize: `${props.searchButtonTextSize}px`
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonHoverColor;
+                (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonHoverColor;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonColor;
+                (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonColor;
+              }}
+            />
+          </Stack.Item>
+        </Stack>
 
         {/* Letter Index */}
         {props.showLetterIndex && (

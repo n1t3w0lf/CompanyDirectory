@@ -6,7 +6,13 @@
   min-height: 400px;
 
   .searchBox {
-    max-width: 600px;
+    flex: 1;
+  }
+
+  .searchButton {
+    min-width: 100px;
+    height: 32px;
+    transition: background-color 0.2s ease-in-out;
   }
 
   .letterIndex {
