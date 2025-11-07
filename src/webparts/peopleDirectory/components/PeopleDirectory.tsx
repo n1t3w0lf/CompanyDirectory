@@ -505,8 +505,12 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       showEmployeeId={props.showEmployeeId}
                       profileNameFontSize={props.profileNameFontSize}
                       profileNameFontColor={props.profileNameFontColor}
+                      jobTitleFontSize={props.jobTitleFontSize}
+                      jobTitleFontColor={props.jobTitleFontColor}
+                      jobTitleBold={props.jobTitleBold}
                       profilePropertiesFontSize={props.profilePropertiesFontSize}
                       profilePropertiesFontColor={props.profilePropertiesFontColor}
+                      propertyDisplayOrder={props.propertyDisplayOrder}
                       textEllipsisLength={props.textEllipsisLength}
                       iconSize={props.iconSize}
                       iconColor={props.iconColor}

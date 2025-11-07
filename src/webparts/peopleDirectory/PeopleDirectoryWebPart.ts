@@ -46,9 +46,17 @@ export interface IPeopleDirectoryWebPartProps {
   profileNameFontSize: number;
   profileNameFontColor: string;
 
+  // Job Title Styling
+  jobTitleFontSize: number;
+  jobTitleFontColor: string;
+  jobTitleBold: boolean;
+
   // Profile Properties Styling
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
+
+  // Property Display Order
+  propertyDisplayOrder: string;
 
   // Text Truncation
   textEllipsisLength: number;
@@ -135,9 +143,17 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         profileNameFontSize: this.properties.profileNameFontSize || 18,
         profileNameFontColor: this.properties.profileNameFontColor || '#323130',
 
+        // Job Title Styling
+        jobTitleFontSize: this.properties.jobTitleFontSize || 16,
+        jobTitleFontColor: this.properties.jobTitleFontColor || '#323130',
+        jobTitleBold: this.properties.jobTitleBold !== false,
+
         // Profile Properties Styling
         profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
         profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
+
+        // Property Display Order
+        propertyDisplayOrder: this.properties.propertyDisplayOrder || 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
 
         // Text Truncation
         textEllipsisLength: this.properties.textEllipsisLength || 50,
@@ -235,6 +251,29 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
               ]
             },
             {
+              groupName: 'Job Title Styling',
+              groupFields: [
+                PropertyPaneSlider('jobTitleFontSize', {
+                  label: 'Job Title Font Size (px)',
+                  min: 12,
+                  max: 24,
+                  step: 1,
+                  value: 16,
+                  showValue: true
+                }),
+                PropertyPaneTextField('jobTitleFontColor', {
+                  label: 'Job Title Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #323130, rgba(50,49,48,0.9), hsla(0,0%,20%,0.9)'
+                }),
+                PropertyPaneToggle('jobTitleBold', {
+                  label: 'Bold Job Title',
+                  onText: 'Bold',
+                  offText: 'Normal'
+                })
+              ]
+            },
+            {
               groupName: 'Profile Properties Styling',
               groupFields: [
                 PropertyPaneSlider('profilePropertiesFontSize', {
@@ -249,6 +288,18 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   label: 'Properties Color (hex, rgba, or hsla)',
                   placeholder: '#605E5C or rgba(96,94,92,1)',
                   description: 'Examples: #605E5C, rgba(96,94,92,0.9), hsla(20,3%,37%,0.9)'
+                })
+              ]
+            },
+            {
+              groupName: 'Property Display Order',
+              groupFields: [
+                PropertyPaneTextField('propertyDisplayOrder', {
+                  label: 'Field Display Order (comma-separated)',
+                  placeholder: 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
+                  description: 'Specify the order of fields. Available: jobTitle, email, department, officeLocation, city, country, companyName, businessPhones, mobilePhone, employeeId',
+                  multiline: true,
+                  rows: 3
                 })
               ]
             },

@@ -31,9 +31,17 @@ export interface IPeopleDirectoryProps {
   profileNameFontSize: number;
   profileNameFontColor: string;
 
+  // Job Title Styling
+  jobTitleFontSize: number;
+  jobTitleFontColor: string;
+  jobTitleBold: boolean;
+
   // Profile Properties Styling
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
+
+  // Property Display Order
+  propertyDisplayOrder: string;
 
   // Text Truncation
   textEllipsisLength: number;
