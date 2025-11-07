@@ -35,6 +35,9 @@ export interface IPeopleDirectoryProps {
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
 
+  // Text Truncation
+  textEllipsisLength: number;
+
   // Icon Styling
   iconSize: number;
   iconColor: string;

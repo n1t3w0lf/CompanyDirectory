@@ -172,7 +172,14 @@ export class PeopleService {
         return cached;
       }
 
-      // Get from Graph
+      // Try list cache (faster than Graph for large orgs)
+      const listLocations = await this.listService.getOfficeLocations();
+      if (listLocations.length > 0) {
+        await cacheHelper.set(cacheKey, listLocations, Constants.LIST_CACHE_TTL);
+        return listLocations;
+      }
+
+      // Fallback to Graph
       const locations = await this.graphService.getOfficeLocations();
       await cacheHelper.set(cacheKey, locations, Constants.LIST_CACHE_TTL);
 
@@ -332,9 +339,8 @@ export class PeopleService {
         return cached;
       }
 
-      // This would require a custom implementation or aggregation
-      // For now, return empty array - can be enhanced later
-      const cities: string[] = [];
+      // Get from list cache
+      const cities = await this.listService.getCities();
       await cacheHelper.set(cacheKey, cities, Constants.LIST_CACHE_TTL);
 
       return cities;

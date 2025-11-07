@@ -248,6 +248,58 @@ export class ListService {
   }
 
   /**
+   * Get unique office locations from cached list
+   */
+  public async getOfficeLocations(): Promise<string[]> {
+    try {
+      await this.ensureList();
+
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('OfficeLocation')
+        .top(5000)();
+
+      const locations = new Set<string>();
+      items.forEach(item => {
+        if (item.OfficeLocation) {
+          locations.add(item.OfficeLocation);
+        }
+      });
+
+      return Array.from(locations).sort();
+    } catch (error) {
+      console.error('Error getting office locations from list:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get unique cities from cached list
+   */
+  public async getCities(): Promise<string[]> {
+    try {
+      await this.ensureList();
+
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('City')
+        .top(5000)();
+
+      const cities = new Set<string>();
+      items.forEach(item => {
+        if (item.City) {
+          cities.add(item.City);
+        }
+      });
+
+      return Array.from(cities).sort();
+    } catch (error) {
+      console.error('Error getting cities from list:', error);
+      return [];
+    }
+  }
+
+  /**
    * Evict least recently accessed item from cache
    */
   private async evictLeastAccessedItem(): Promise<void> {

@@ -9,7 +9,6 @@ import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
-import { IconButton } from '@fluentui/react/lib/Button';
 import { Panel } from '@fluentui/react/lib/Panel';
 import { Dropdown } from '@fluentui/react/lib/Dropdown';
 import { UserCard } from './UserCard';
@@ -319,21 +318,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 </Text>
               )}
             </Stack.Item>
-            <Stack horizontal tokens={{ childrenGap: 8 }}>
-              <IconButton
-                iconProps={{ iconName: 'Filter' }}
-                title="Advanced filters"
-                ariaLabel="Advanced filters"
-                onClick={() => setIsFilterPanelOpen(true)}
-                text={getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined}
-              />
-              <IconButton
-                iconProps={{ iconName: 'Refresh' }}
-                title="Reload users"
-                ariaLabel="Reload users"
-                onClick={() => loadInitialUsers()}
-              />
-            </Stack>
           </Stack>
 
           {/* Filter Dropdowns */}
@@ -523,6 +507,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       profileNameFontColor={props.profileNameFontColor}
                       profilePropertiesFontSize={props.profilePropertiesFontSize}
                       profilePropertiesFontColor={props.profilePropertiesFontColor}
+                      textEllipsisLength={props.textEllipsisLength}
                       iconSize={props.iconSize}
                       iconColor={props.iconColor}
                       profileCardBackgroundColor={props.profileCardBackgroundColor}

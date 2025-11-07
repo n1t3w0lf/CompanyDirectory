@@ -30,6 +30,9 @@ export interface IUserCardProps {
   profilePropertiesFontSize?: number;
   profilePropertiesFontColor?: string;
 
+  // Text Truncation
+  textEllipsisLength?: number;
+
   // Icon Styling
   iconSize?: number;
   iconColor?: string;
@@ -56,6 +59,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
   profileNameFontColor = '#323130',
   profilePropertiesFontSize = 14,
   profilePropertiesFontColor = '#605E5C',
+  textEllipsisLength = 50,
   iconSize = 20,
   iconColor = '#0078d4',
   profileCardBackgroundColor = '',
@@ -65,6 +69,13 @@ export const UserCard: React.FC<IUserCardProps> = ({
     const firstName = user.givenName || '';
     const lastName = user.surname || '';
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
+  };
+
+  const truncateText = (text: string, maxLength: number): string => {
+    if (!text || text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + '...';
   };
 
   const nameStyle: React.CSSProperties = {
@@ -109,21 +120,21 @@ export const UserCard: React.FC<IUserCardProps> = ({
         </Stack.Item>
 
         <Stack tokens={{ childrenGap: 8 }} grow>
-          <Text variant="large" block className={styles.userName} style={nameStyle}>
-            {user.displayName}
+          <Text variant="large" block className={styles.userName} style={nameStyle} title={user.displayName}>
+            {truncateText(user.displayName, textEllipsisLength)}
           </Text>
 
           {showJobTitle && user.jobTitle && (
-            <Text variant="medium" block className={styles.userJobTitle} style={propertiesStyle}>
-              {user.jobTitle}
+            <Text variant="medium" block className={styles.userJobTitle} style={propertiesStyle} title={user.jobTitle}>
+              {truncateText(user.jobTitle, textEllipsisLength)}
             </Text>
           )}
 
           {showEmail && user.mail && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Mail" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.mail}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mail}>
+                {truncateText(user.mail, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -131,8 +142,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showDepartment && user.department && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Org" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.department}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.department}>
+                {truncateText(user.department, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -140,8 +151,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showOfficeLocation && user.officeLocation && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="POI" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.officeLocation}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.officeLocation}>
+                {truncateText(user.officeLocation, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -149,8 +160,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCity && user.city && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="CityNext" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.city}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.city}>
+                {truncateText(user.city, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -158,8 +169,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCountry && user.country && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Globe" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.country}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.country}>
+                {truncateText(user.country, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -167,8 +178,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCompanyName && user.companyName && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="CompanyDirectory" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.companyName}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.companyName}>
+                {truncateText(user.companyName, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -176,8 +187,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showBusinessPhones && (user.businessPhones && user.businessPhones.length > 0) && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Phone" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.businessPhones[0]}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.businessPhones[0]}>
+                {truncateText(user.businessPhones[0], textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -185,8 +196,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showMobilePhone && user.mobilePhone && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="CellPhone" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                {user.mobilePhone}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mobilePhone}>
+                {truncateText(user.mobilePhone, textEllipsisLength)}
               </Text>
             </Stack>
           )}
@@ -194,8 +205,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showEmployeeId && user.employeeId && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Contact" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
-                ID: {user.employeeId}
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={`ID: ${user.employeeId}`}>
+                ID: {truncateText(user.employeeId, textEllipsisLength)}
               </Text>
             </Stack>
           )}

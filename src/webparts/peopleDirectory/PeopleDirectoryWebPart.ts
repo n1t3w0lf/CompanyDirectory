@@ -50,6 +50,9 @@ export interface IPeopleDirectoryWebPartProps {
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
 
+  // Text Truncation
+  textEllipsisLength: number;
+
   // Icon Styling
   iconSize: number;
   iconColor: string;
@@ -135,6 +138,9 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         // Profile Properties Styling
         profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
         profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
+
+        // Text Truncation
+        textEllipsisLength: this.properties.textEllipsisLength || 50,
 
         // Icon Styling
         iconSize: this.properties.iconSize || 20,
@@ -243,6 +249,19 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   label: 'Properties Color (hex, rgba, or hsla)',
                   placeholder: '#605E5C or rgba(96,94,92,1)',
                   description: 'Examples: #605E5C, rgba(96,94,92,0.9), hsla(20,3%,37%,0.9)'
+                })
+              ]
+            },
+            {
+              groupName: 'Text Truncation',
+              groupFields: [
+                PropertyPaneSlider('textEllipsisLength', {
+                  label: 'Maximum Characters Before Ellipsis',
+                  min: 20,
+                  max: 200,
+                  step: 10,
+                  value: 50,
+                  showValue: true
                 })
               ]
             },
