@@ -45,8 +45,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const [syncStatus, setSyncStatus] = useState<ISyncStatus | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
 
-  const searchTimeoutRef = useRef<number | null>(null);
-
   // Initialize: Check sync status and load initial users
   useEffect(() => {
     initializeData();
@@ -353,6 +351,18 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     }
   }, [performSearch]);
 
+  // Handle search button mouse enter (hover effect)
+  const handleSearchButtonMouseEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonHoverColor;
+    (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonHoverColor;
+  }, [props.searchButtonHoverColor]);
+
+  // Handle search button mouse leave (remove hover effect)
+  const handleSearchButtonMouseLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonColor;
+    (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonColor;
+  }, [props.searchButtonColor]);
+
   // Callback for dismissing panel
   const handlePanelDismiss = useCallback(() => {
     setIsPanelOpen(false);
@@ -546,14 +556,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 borderColor: props.searchButtonColor,
                 fontSize: `${props.searchButtonTextSize}px`
               }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonHoverColor;
-                (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonHoverColor;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = props.searchButtonColor;
-                (e.currentTarget as HTMLButtonElement).style.borderColor = props.searchButtonColor;
-              }}
+              onMouseEnter={handleSearchButtonMouseEnter}
+              onMouseLeave={handleSearchButtonMouseLeave}
             />
           </Stack.Item>
         </Stack>
