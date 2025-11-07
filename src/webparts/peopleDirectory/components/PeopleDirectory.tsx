@@ -285,9 +285,34 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           <Stack.Item grow>
             <Text variant="xxLarge" block>People Directory</Text>
             {totalUsers > 0 && (
-              <Text variant="small" block style={{ color: '#666', marginTop: 4 }}>
-                {totalUsers.toLocaleString()} people in directory
-              </Text>
+              <Stack horizontal tokens={{ childrenGap: 20 }} style={{ marginTop: 8 }}>
+                <Stack>
+                  <Text variant="small" style={{ color: '#666' }}>
+                    {totalUsers.toLocaleString()} people
+                  </Text>
+                </Stack>
+                {departments.length > 0 && (
+                  <Stack>
+                    <Text variant="small" style={{ color: '#666' }}>
+                      {departments.length} departments
+                    </Text>
+                  </Stack>
+                )}
+                {locations.length > 0 && (
+                  <Stack>
+                    <Text variant="small" style={{ color: '#666' }}>
+                      {locations.length} office locations
+                    </Text>
+                  </Stack>
+                )}
+                {cities.length > 0 && (
+                  <Stack>
+                    <Text variant="small" style={{ color: '#666' }}>
+                      {cities.length} cities
+                    </Text>
+                  </Stack>
+                )}
+              </Stack>
             )}
           </Stack.Item>
           <Stack horizontal tokens={{ childrenGap: 8 }}>

@@ -68,8 +68,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
 
   return (
     <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0}>
-      <Stack tokens={{ childrenGap: 12 }}>
-        <Stack horizontal horizontalAlign="center">
+      <Stack tokens={{ childrenGap: 12 }} horizontal>
+        <Stack.Item>
           <Persona
             imageUrl={user.photoUrl || undefined}
             imageInitials={getInitials()}
@@ -78,9 +78,9 @@ export const UserCard: React.FC<IUserCardProps> = ({
             imageShouldFadeIn
             imageShouldStartVisible={!!user.photoUrl}
           />
-        </Stack>
+        </Stack.Item>
 
-        <Stack tokens={{ childrenGap: 4 }}>
+        <Stack tokens={{ childrenGap: 8 }} grow>
           <Text variant="large" block className={styles.userName} style={textStyle}>
             {user.displayName}
           </Text>
@@ -144,48 +144,48 @@ export const UserCard: React.FC<IUserCardProps> = ({
               </Text>
             </Stack>
           )}
-        </Stack>
-
-        <Stack horizontal horizontalAlign="center" tokens={{ childrenGap: 8 }}>
-          {showEmail && user.mail && (
-            <IconButton
-              iconProps={{ iconName: 'Mail' }}
-              title={`Email ${user.displayName}`}
-              ariaLabel="Send email"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `mailto:${user.mail}`;
-              }}
-              className={styles.actionButton}
-              style={{ color: iconColor }}
-            />
-          )}
-          {showBusinessPhones && (user.businessPhones && user.businessPhones.length > 0) && (
-            <IconButton
-              iconProps={{ iconName: 'Phone' }}
-              title={`Call ${user.displayName}`}
-              ariaLabel="Call"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `tel:${user.businessPhones[0]}`;
-              }}
-              className={styles.actionButton}
-              style={{ color: iconColor }}
-            />
-          )}
-          {showMobilePhone && user.mobilePhone && (
-            <IconButton
-              iconProps={{ iconName: 'CellPhone' }}
-              title={`Call mobile ${user.displayName}`}
-              ariaLabel="Call mobile"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `tel:${user.mobilePhone}`;
-              }}
-              className={styles.actionButton}
-              style={{ color: iconColor }}
-            />
-          )}
+          {/* Action Buttons */}
+          <Stack horizontal tokens={{ childrenGap: 8 }} style={{ marginTop: 8 }}>
+            {showEmail && user.mail && (
+              <IconButton
+                iconProps={{ iconName: 'Mail' }}
+                title={`Email ${user.displayName}`}
+                ariaLabel="Send email"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `mailto:${user.mail}`;
+                }}
+                className={styles.actionButton}
+                style={{ color: iconColor }}
+              />
+            )}
+            {showBusinessPhones && (user.businessPhones && user.businessPhones.length > 0) && (
+              <IconButton
+                iconProps={{ iconName: 'Phone' }}
+                title={`Call ${user.displayName}`}
+                ariaLabel="Call"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `tel:${user.businessPhones[0]}`;
+                }}
+                className={styles.actionButton}
+                style={{ color: iconColor }}
+              />
+            )}
+            {showMobilePhone && user.mobilePhone && (
+              <IconButton
+                iconProps={{ iconName: 'CellPhone' }}
+                title={`Call mobile ${user.displayName}`}
+                ariaLabel="Call mobile"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `tel:${user.mobilePhone}`;
+                }}
+                className={styles.actionButton}
+                style={{ color: iconColor }}
+              />
+            )}
+          </Stack>
         </Stack>
       </Stack>
     </div>
