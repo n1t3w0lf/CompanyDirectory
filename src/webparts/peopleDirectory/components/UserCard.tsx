@@ -125,80 +125,80 @@ export const UserCard: React.FC<IUserCardProps> = ({
 
   // Map of field renderers
   const fieldRenderers: { [key: string]: () => JSX.Element | null } = {
-    jobTitle: () => showJobTitle && user.jobTitle ? (
-      <Text variant="medium" block className={styles.userJobTitle} style={jobTitleStyle} title={user.jobTitle}>
-        {truncateText(user.jobTitle, textEllipsisLength)}
+    jobTitle: () => showJobTitle ? (
+      <Text variant="medium" block className={styles.userJobTitle} style={jobTitleStyle} title={user.jobTitle || ''}>
+        {truncateText(user.jobTitle || '', textEllipsisLength)}
       </Text>
     ) : null,
-    email: () => showEmail && user.mail ? (
+    email: () => showEmail ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="Mail" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mail}>
-          {truncateText(user.mail, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mail || ''}>
+          {truncateText(user.mail || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    department: () => showDepartment && user.department ? (
+    department: () => showDepartment ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="Org" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.department}>
-          {truncateText(user.department, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.department || ''}>
+          {truncateText(user.department || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    officeLocation: () => showOfficeLocation && user.officeLocation ? (
+    officeLocation: () => showOfficeLocation ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="POI" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.officeLocation}>
-          {truncateText(user.officeLocation, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.officeLocation || ''}>
+          {truncateText(user.officeLocation || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    city: () => showCity && user.city ? (
+    city: () => showCity ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="CityNext" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.city}>
-          {truncateText(user.city, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.city || ''}>
+          {truncateText(user.city || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    country: () => showCountry && user.country ? (
+    country: () => showCountry ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="Globe" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.country}>
-          {truncateText(user.country, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.country || ''}>
+          {truncateText(user.country || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    companyName: () => showCompanyName && user.companyName ? (
+    companyName: () => showCompanyName ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="CompanyDirectory" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.companyName}>
-          {truncateText(user.companyName, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.companyName || ''}>
+          {truncateText(user.companyName || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    businessPhones: () => showBusinessPhones && user.businessPhones && user.businessPhones.length > 0 ? (
+    businessPhones: () => showBusinessPhones ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="Phone" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.businessPhones[0]}>
-          {truncateText(user.businessPhones[0], textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={(user.businessPhones && user.businessPhones[0]) || ''}>
+          {truncateText((user.businessPhones && user.businessPhones[0]) || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    mobilePhone: () => showMobilePhone && user.mobilePhone ? (
+    mobilePhone: () => showMobilePhone ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="CellPhone" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mobilePhone}>
-          {truncateText(user.mobilePhone, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.mobilePhone || ''}>
+          {truncateText(user.mobilePhone || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null,
-    employeeId: () => showEmployeeId && user.employeeId ? (
+    employeeId: () => showEmployeeId ? (
       <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
         <Icon iconName="Contact" className={styles.icon} style={iconStyle} />
-        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={`ID: ${user.employeeId}`}>
-          ID: {truncateText(user.employeeId, textEllipsisLength)}
+        <Text variant="small" className={styles.userInfo} style={propertiesStyle} title={user.employeeId ? `ID: ${user.employeeId}` : ''}>
+          ID: {truncateText(user.employeeId || '', textEllipsisLength)}
         </Text>
       </Stack>
     ) : null

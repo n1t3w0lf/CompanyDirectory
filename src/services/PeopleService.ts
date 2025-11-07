@@ -135,9 +135,9 @@ export class PeopleService {
     const cacheKey = this.getCacheKey('departments', 'all');
 
     try {
-      // Try cache first
+      // Try cache first (but only if it has data)
       const cached = await cacheHelper.get<string[]>(cacheKey);
-      if (cached) {
+      if (cached && cached.length > 0) {
         return cached;
       }
 
@@ -150,7 +150,11 @@ export class PeopleService {
 
       // Fallback to Graph (expensive for large orgs)
       const graphDepartments = await this.graphService.getDepartments();
-      await cacheHelper.set(cacheKey, graphDepartments, Constants.LIST_CACHE_TTL);
+
+      // Only cache if we have data
+      if (graphDepartments.length > 0) {
+        await cacheHelper.set(cacheKey, graphDepartments, Constants.LIST_CACHE_TTL);
+      }
 
       return graphDepartments;
     } catch (error) {
@@ -166,9 +170,9 @@ export class PeopleService {
     const cacheKey = this.getCacheKey('locations', 'all');
 
     try {
-      // Try cache first
+      // Try cache first (but only if it has data)
       const cached = await cacheHelper.get<string[]>(cacheKey);
-      if (cached) {
+      if (cached && cached.length > 0) {
         return cached;
       }
 
@@ -181,7 +185,11 @@ export class PeopleService {
 
       // Fallback to Graph
       const locations = await this.graphService.getOfficeLocations();
-      await cacheHelper.set(cacheKey, locations, Constants.LIST_CACHE_TTL);
+
+      // Only cache if we have data
+      if (locations.length > 0) {
+        await cacheHelper.set(cacheKey, locations, Constants.LIST_CACHE_TTL);
+      }
 
       return locations;
     } catch (error) {
@@ -333,15 +341,19 @@ export class PeopleService {
     const cacheKey = this.getCacheKey('cities', 'all');
 
     try {
-      // Try cache first
+      // Try cache first (but only if it has data)
       const cached = await cacheHelper.get<string[]>(cacheKey);
-      if (cached) {
+      if (cached && cached.length > 0) {
         return cached;
       }
 
       // Get from list cache
       const cities = await this.listService.getCities();
-      await cacheHelper.set(cacheKey, cities, Constants.LIST_CACHE_TTL);
+
+      // Only cache if we have data
+      if (cities.length > 0) {
+        await cacheHelper.set(cacheKey, cities, Constants.LIST_CACHE_TTL);
+      }
 
       return cities;
     } catch (error) {
