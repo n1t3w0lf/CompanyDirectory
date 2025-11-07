@@ -335,6 +335,33 @@ export class PeopleService {
   }
 
   /**
+   * Search Active Directory (Microsoft Graph) directly
+   * Used as fallback when list search returns no results
+   */
+  public async searchActiveDirectory(searchText: string, pageSize = 50): Promise<IUserProfile[]> {
+    try {
+      if (!searchText || searchText.length < Constants.MIN_SEARCH_LENGTH) {
+        return [];
+      }
+
+      console.log('Searching Active Directory for:', searchText);
+
+      // Search Graph directly without caching
+      const result = await this.graphService.searchUsers(searchText, pageSize);
+
+      // Enrich with photos asynchronously
+      this.enrichUsersWithPhotos(result.users).catch(err =>
+        console.warn('Failed to enrich AD search results with photos:', err)
+      );
+
+      return result.users;
+    } catch (error) {
+      console.error('Error searching Active Directory:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get all unique cities from list
    */
   public async getCities(): Promise<string[]> {

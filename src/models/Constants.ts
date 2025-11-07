@@ -15,7 +15,7 @@ export class Constants {
   public static readonly LIST_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
   // Search Configuration
-  public static readonly SEARCH_DEBOUNCE_MS = 300;
+  public static readonly SEARCH_DEBOUNCE_MS = 3000; // 3 seconds
   public static readonly MIN_SEARCH_LENGTH = 2;
   public static readonly DEFAULT_PAGE_SIZE = 50;
   public static readonly VIRTUAL_SCROLL_ITEM_HEIGHT = 120;
@@ -55,6 +55,7 @@ export class Constants {
   // UI Messages
   public static readonly MSG_NO_RESULTS = 'No people found matching your search criteria.';
   public static readonly MSG_LOADING = 'Loading people directory...';
+  public static readonly MSG_SEARCHING_AD = 'Searching Active Directory...';
   public static readonly MSG_SEARCH_PLACEHOLDER = 'Search by name, email, or department...';
   public static readonly MSG_FILTER_DEPT = 'Filter by department';
   public static readonly MSG_FILTER_LOCATION = 'Filter by location';

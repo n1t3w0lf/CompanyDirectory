@@ -190,7 +190,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   }, []);
 
   /**
-   * Perform search
+   * Perform search with fallback to Active Directory
    */
   const performSearch = async (searchValue: string): Promise<void> => {
     if (searchValue.length < Constants.MIN_SEARCH_LENGTH) {
@@ -206,8 +206,21 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         ...activeFilters
       };
 
-      const result = await props.peopleService.getFilteredUsers(filters, 100);
+      // First, search in the cached list
+      let result = await props.peopleService.getFilteredUsers(filters, 100);
+
+      // If no results found in list, search Active Directory directly
+      if (result.length === 0 && searchValue) {
+        console.log('No results in list, searching Active Directory...');
+        result = await props.peopleService.searchActiveDirectory(searchValue, 100);
+      }
+
       setUsers(result);
+
+      // Only show "no results" message if both list and AD returned nothing
+      if (result.length === 0) {
+        console.log('No results found in both list and Active Directory');
+      }
     } catch (err) {
       console.error('Search error:', err);
       setError('Failed to search users. Please try again.');
