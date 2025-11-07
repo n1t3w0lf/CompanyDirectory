@@ -6,6 +6,7 @@ import '@pnp/sp/fields';
 import { IUserProfile } from '../models/IUserProfile';
 import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
+import { ISharePointList, ISharePointField, ISharePointListItem, IUserCacheListItem } from '../models/SharePointTypes';
 
 /**
  * Service for managing SharePoint list cache
@@ -61,11 +62,11 @@ export class ListService {
   /**
    * Ensure all required fields exist in the list
    */
-  private async ensureFields(list: any): Promise<void> {
+  private async ensureFields(list: ISharePointList): Promise<void> {
     try {
       // Get existing fields
       const existingFields = await list.fields.select('InternalName')();
-      const existingFieldNames = new Set(existingFields.map((f: any) => f.InternalName));
+      const existingFieldNames = new Set(existingFields.map((f: ISharePointField) => f.InternalName));
 
       // Define all required fields
       const requiredFields = [
@@ -346,7 +347,7 @@ export class ListService {
   /**
    * Map user profile to SharePoint list item
    */
-  private mapUserToListItem(user: IUserProfile): any {
+  private mapUserToListItem(user: IUserProfile): Record<string, string | number | Date> {
     return {
       Title: user.displayName,
       UserPrincipalName: user.userPrincipalName,
@@ -451,7 +452,7 @@ export class ListService {
   /**
    * Get sync metadata
    */
-  public async getSyncMetadata(): Promise<any> {
+  public async getSyncMetadata(): Promise<{ lastFullSync: Date | null; totalUsers: number; lastSyncSuccess: boolean } | null> {
     try {
       await this.ensureList();
 
@@ -560,7 +561,7 @@ export class ListService {
   /**
    * Map SharePoint list item to user profile
    */
-  private mapListItemToUser(item: any): IUserProfile {
+  private mapListItemToUser(item: IUserCacheListItem): IUserProfile {
     return {
       id: item.UserId,
       userPrincipalName: item.UserPrincipalName,

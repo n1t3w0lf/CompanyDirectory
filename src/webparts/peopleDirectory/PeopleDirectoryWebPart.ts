@@ -5,8 +5,7 @@ import {
   type IPropertyPaneConfiguration,
   PropertyPaneTextField,
   PropertyPaneToggle,
-  PropertyPaneSlider,
-  PropertyPaneChoiceGroup
+  PropertyPaneSlider
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 // import * as strings from 'PeopleDirectoryWebPartStrings';

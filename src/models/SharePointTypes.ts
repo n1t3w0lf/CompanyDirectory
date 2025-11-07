@@ -57,3 +57,22 @@ export interface IBatchResponse {
     body: IGraphUser;
   }>;
 }
+
+export interface IUserCacheListItem extends ISharePointListItem {
+  UserId: string;
+  UserPrincipalName: string;
+  GivenName?: string;
+  Surname?: string;
+  Email?: string;
+  JobTitle?: string;
+  Department?: string;
+  OfficeLocation?: string;
+  BusinessPhones?: string;
+  MobilePhone?: string;
+  City?: string;
+  Country?: string;
+  CompanyName?: string;
+  PhotoUrl?: string;
+  LastVerified?: string;
+  AccessCount?: number;
+}

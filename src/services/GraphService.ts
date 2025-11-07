@@ -92,7 +92,7 @@ export class GraphService {
       return await this.blobToDataURL(photoBlob);
     } catch (error) {
       // Photo not found is not an error condition
-      if ((error as any).statusCode === 404) {
+      if ((error as { statusCode?: number }).statusCode === 404) {
         return null;
       }
       console.warn('Failed to fetch user photo:', error);

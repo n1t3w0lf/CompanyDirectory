@@ -39,9 +39,10 @@ export class CacheHelper {
    */
   public async get<T>(key: string): Promise<T | null> {
     if (!this.db) await this.initialize();
+    if (!this.db) throw new Error('Failed to initialize IndexedDB');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.db.transaction([this.storeName], 'readonly');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.get(key);
 
@@ -72,9 +73,10 @@ export class CacheHelper {
    */
   public async set<T>(key: string, data: T, ttl: number = Constants.CLIENT_CACHE_TTL): Promise<void> {
     if (!this.db) await this.initialize();
+    if (!this.db) throw new Error('Failed to initialize IndexedDB');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
 
       const cacheEntry: ICacheEntry<T> & { key: string } = {
@@ -96,9 +98,10 @@ export class CacheHelper {
    */
   public async delete(key: string): Promise<void> {
     if (!this.db) await this.initialize();
+    if (!this.db) throw new Error('Failed to initialize IndexedDB');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.delete(key);
 
@@ -112,9 +115,10 @@ export class CacheHelper {
    */
   public async clear(): Promise<void> {
     if (!this.db) await this.initialize();
+    if (!this.db) throw new Error('Failed to initialize IndexedDB');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.clear();
 
@@ -128,9 +132,10 @@ export class CacheHelper {
    */
   public async getStats(): Promise<{ count: number; size: number }> {
     if (!this.db) await this.initialize();
+    if (!this.db) throw new Error('Failed to initialize IndexedDB');
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.db.transaction([this.storeName], 'readonly');
       const objectStore = transaction.objectStore(this.storeName);
       const countRequest = objectStore.count();
 
