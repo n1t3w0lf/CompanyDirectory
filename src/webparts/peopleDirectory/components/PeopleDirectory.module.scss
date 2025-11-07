@@ -9,6 +9,12 @@
     max-width: 600px;
   }
 
+  .syncStatusContainer {
+    padding: 12px;
+    background-color: $ms-color-neutralLighter;
+    border-radius: 4px;
+  }
+
   .userGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

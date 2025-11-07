@@ -12,6 +12,7 @@ import { IPeopleDirectoryProps } from './components/IPeopleDirectoryProps';
 import { GraphService } from '../../services/GraphService';
 import { ListService } from '../../services/ListService';
 import { PeopleService } from '../../services/PeopleService';
+import { SyncService } from '../../services/SyncService';
 import { spfi, SPFx } from '@pnp/sp';
 import '@pnp/sp/webs';
 import '@pnp/sp/lists';
@@ -24,6 +25,7 @@ export interface IPeopleDirectoryWebPartProps {
 
 export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopleDirectoryWebPartProps> {
   private peopleService: PeopleService | undefined;
+  private syncService: SyncService | undefined;
 
   protected async onInit(): Promise<void> {
     await super.onInit();
@@ -39,6 +41,7 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
       const graphService = new GraphService(graphClient);
       const listService = new ListService(sp);
       this.peopleService = new PeopleService(graphService, listService);
+      this.syncService = new SyncService(graphService, listService);
 
       console.log('People Directory WebPart initialized successfully');
     } catch (error) {
@@ -48,7 +51,7 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
   }
 
   public render(): void {
-    if (!this.peopleService) {
+    if (!this.peopleService || !this.syncService) {
       // Show error state
       this.domElement.innerHTML = `
         <div style="padding: 20px; color: #a4262c; background-color: #fde7e9; border: 1px solid #a4262c; border-radius: 4px;">
@@ -64,6 +67,7 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         title: this.properties.title || 'People Directory',
         description: this.properties.description || 'Search and discover people across your organization',
         peopleService: this.peopleService,
+        syncService: this.syncService,
         displayMode: this.displayMode,
         updateProperty: (value: string) => {
           this.properties.title = value;
