@@ -3,10 +3,27 @@ import { SyncService } from '../../../services/SyncService';
 import { DisplayMode } from '@microsoft/sp-core-library';
 
 export interface IPeopleDirectoryProps {
-  title: string;
-  description: string;
   peopleService: PeopleService;
   syncService: SyncService;
   displayMode: DisplayMode;
-  updateProperty: (value: string) => void;
+
+  // User Properties to Display
+  showEmail: boolean;
+  showJobTitle: boolean;
+  showDepartment: boolean;
+  showOfficeLocation: boolean;
+  showBusinessPhones: boolean;
+  showMobilePhone: boolean;
+  showCity: boolean;
+  showCountry: boolean;
+  showCompanyName: boolean;
+  showEmployeeId: boolean;
+
+  // Font Styling
+  fontSize: number;
+  fontColor: string;
+
+  // Icon Styling
+  iconSize: number;
+  iconColor: string;
 }

@@ -283,12 +283,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Header */}
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <Stack.Item grow>
-            <Text variant="xxLarge" block>{props.title}</Text>
-            {props.description && (
-              <Text variant="medium" block style={{ color: '#666' }}>
-                {props.description}
-              </Text>
-            )}
+            <Text variant="xxLarge" block>People Directory</Text>
             {totalUsers > 0 && (
               <Text variant="small" block style={{ color: '#666', marginTop: 4 }}>
                 {totalUsers.toLocaleString()} people in directory
@@ -428,6 +423,20 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       key={user.id}
                       user={user}
                       onClick={() => handleUserClick(user)}
+                      showEmail={props.showEmail}
+                      showJobTitle={props.showJobTitle}
+                      showDepartment={props.showDepartment}
+                      showOfficeLocation={props.showOfficeLocation}
+                      showBusinessPhones={props.showBusinessPhones}
+                      showMobilePhone={props.showMobilePhone}
+                      showCity={props.showCity}
+                      showCountry={props.showCountry}
+                      showCompanyName={props.showCompanyName}
+                      showEmployeeId={props.showEmployeeId}
+                      fontSize={props.fontSize}
+                      fontColor={props.fontColor}
+                      iconSize={props.iconSize}
+                      iconColor={props.iconColor}
                     />
                   ))}
                 </div>

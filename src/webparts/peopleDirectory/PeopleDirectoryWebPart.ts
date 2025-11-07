@@ -3,7 +3,10 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle,
+  PropertyPaneSlider,
+  PropertyPaneChoiceGroup
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import * as strings from 'PeopleDirectoryWebPartStrings';
@@ -19,8 +22,25 @@ import '@pnp/sp/lists';
 import '@pnp/sp/items';
 
 export interface IPeopleDirectoryWebPartProps {
-  title: string;
-  description: string;
+  // User Properties to Display
+  showEmail: boolean;
+  showJobTitle: boolean;
+  showDepartment: boolean;
+  showOfficeLocation: boolean;
+  showBusinessPhones: boolean;
+  showMobilePhone: boolean;
+  showCity: boolean;
+  showCountry: boolean;
+  showCompanyName: boolean;
+  showEmployeeId: boolean;
+
+  // Font Styling
+  fontSize: number;
+  fontColor: string;
+
+  // Icon Styling
+  iconSize: number;
+  iconColor: string;
 }
 
 export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopleDirectoryWebPartProps> {
@@ -64,14 +84,29 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
     const element: React.ReactElement<IPeopleDirectoryProps> = React.createElement(
       PeopleDirectory,
       {
-        title: this.properties.title || 'People Directory',
-        description: this.properties.description || 'Search and discover people across your organization',
         peopleService: this.peopleService,
         syncService: this.syncService,
         displayMode: this.displayMode,
-        updateProperty: (value: string) => {
-          this.properties.title = value;
-        }
+
+        // User Properties
+        showEmail: this.properties.showEmail !== false,
+        showJobTitle: this.properties.showJobTitle !== false,
+        showDepartment: this.properties.showDepartment !== false,
+        showOfficeLocation: this.properties.showOfficeLocation !== false,
+        showBusinessPhones: this.properties.showBusinessPhones !== false,
+        showMobilePhone: this.properties.showMobilePhone !== false,
+        showCity: this.properties.showCity !== false,
+        showCountry: this.properties.showCountry !== false,
+        showCompanyName: this.properties.showCompanyName !== false,
+        showEmployeeId: this.properties.showEmployeeId !== false,
+
+        // Font Styling
+        fontSize: this.properties.fontSize || 14,
+        fontColor: this.properties.fontColor || '#323130',
+
+        // Icon Styling
+        iconSize: this.properties.iconSize || 24,
+        iconColor: this.properties.iconColor || '#0078d4'
       }
     );
 
@@ -91,21 +126,107 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
       pages: [
         {
           header: {
-            description: strings.PropertyPaneDescription
+            description: 'Configure which user properties to display and customize styling'
           },
           groups: [
             {
-              groupName: strings.BasicGroupName,
+              groupName: 'User Properties to Display',
               groupFields: [
-                PropertyPaneTextField('title', {
-                  label: strings.TitleFieldLabel,
-                  description: 'The title displayed at the top of the web part'
+                PropertyPaneToggle('showEmail', {
+                  label: 'Show Email',
+                  onText: 'Visible',
+                  offText: 'Hidden'
                 }),
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel,
-                  description: 'A brief description shown below the title',
-                  multiline: true,
-                  rows: 3
+                PropertyPaneToggle('showJobTitle', {
+                  label: 'Show Job Title',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showDepartment', {
+                  label: 'Show Department',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showOfficeLocation', {
+                  label: 'Show Office Location',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showBusinessPhones', {
+                  label: 'Show Business Phones',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showMobilePhone', {
+                  label: 'Show Mobile Phone',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showCity', {
+                  label: 'Show City',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showCountry', {
+                  label: 'Show Country',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showCompanyName', {
+                  label: 'Show Company Name',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showEmployeeId', {
+                  label: 'Show Employee ID',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                })
+              ]
+            },
+            {
+              groupName: 'Font Styling',
+              groupFields: [
+                PropertyPaneSlider('fontSize', {
+                  label: 'Font Size (px)',
+                  min: 10,
+                  max: 24,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('fontColor', {
+                  label: 'Font Color',
+                  options: [
+                    { key: '#323130', text: 'Dark Gray (Default)', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#000000', text: 'Black', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#605E5C', text: 'Medium Gray', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#0078d4', text: 'Blue', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#004578', text: 'Dark Blue', iconProps: { officeFabricIconFontName: 'CircleFill' } }
+                  ]
+                })
+              ]
+            },
+            {
+              groupName: 'Icon Styling',
+              groupFields: [
+                PropertyPaneSlider('iconSize', {
+                  label: 'Icon Size (px)',
+                  min: 16,
+                  max: 48,
+                  step: 2,
+                  value: 24,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('iconColor', {
+                  label: 'Icon Color',
+                  options: [
+                    { key: '#0078d4', text: 'Blue (Default)', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#323130', text: 'Dark Gray', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#107c10', text: 'Green', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#8764b8', text: 'Purple', iconProps: { officeFabricIconFontName: 'CircleFill' } },
+                    { key: '#d13438', text: 'Red', iconProps: { officeFabricIconFontName: 'CircleFill' } }
+                  ]
                 })
               ]
             }
