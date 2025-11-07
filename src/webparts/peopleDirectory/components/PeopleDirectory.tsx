@@ -11,6 +11,7 @@ import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
 import { IconButton } from '@fluentui/react/lib/Button';
 import { Panel } from '@fluentui/react/lib/Panel';
+import { Dropdown, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
@@ -281,54 +282,103 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     <div className={styles.peopleDirectory}>
       <Stack tokens={{ childrenGap: 20 }}>
         {/* Header */}
-        <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <Stack.Item grow>
-            <Text variant="xxLarge" block>People Directory</Text>
+        <Stack tokens={{ childrenGap: 16 }}>
+          <Stack horizontal horizontalAlign="space-between" verticalAlign="start">
+            <Stack.Item grow>
+              <Text
+                block
+                style={{
+                  fontSize: `${props.headingFontSize}px`,
+                  color: props.headingFontColor,
+                  fontWeight: 600,
+                  marginBottom: props.subtextText ? 8 : 0
+                }}
+              >
+                {props.headingText}
+              </Text>
+              {props.subtextText && (
+                <Text
+                  block
+                  style={{
+                    fontSize: `${props.subtextFontSize}px`,
+                    color: props.subtextFontColor
+                  }}
+                >
+                  {props.subtextText}
+                </Text>
+              )}
+            </Stack.Item>
+            <Stack horizontal tokens={{ childrenGap: 8 }}>
+              <IconButton
+                iconProps={{ iconName: 'Filter' }}
+                title="Advanced filters"
+                ariaLabel="Advanced filters"
+                onClick={() => setIsFilterPanelOpen(true)}
+                text={getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined}
+              />
+              <IconButton
+                iconProps={{ iconName: 'Refresh' }}
+                title="Reload users"
+                ariaLabel="Reload users"
+                onClick={() => loadInitialUsers()}
+              />
+            </Stack>
+          </Stack>
+
+          {/* Filter Dropdowns */}
+          <Stack horizontal tokens={{ childrenGap: 12 }} wrap>
+            <Stack.Item styles={{ root: { minWidth: 200 } }}>
+              <Dropdown
+                placeholder="Filter by Department"
+                options={[
+                  { key: '', text: 'All Departments' },
+                  ...departments.map(d => ({ key: d, text: d }))
+                ]}
+                selectedKey={activeFilters.department || ''}
+                onChange={(_, option) => {
+                  const newFilters = { ...activeFilters, department: option?.key as string || undefined };
+                  handleApplyFilters(newFilters);
+                }}
+                styles={{ dropdown: { width: 200 } }}
+              />
+            </Stack.Item>
+            <Stack.Item styles={{ root: { minWidth: 200 } }}>
+              <Dropdown
+                placeholder="Filter by Office Location"
+                options={[
+                  { key: '', text: 'All Locations' },
+                  ...locations.map(l => ({ key: l, text: l }))
+                ]}
+                selectedKey={activeFilters.officeLocation || ''}
+                onChange={(_, option) => {
+                  const newFilters = { ...activeFilters, officeLocation: option?.key as string || undefined };
+                  handleApplyFilters(newFilters);
+                }}
+                styles={{ dropdown: { width: 200 } }}
+              />
+            </Stack.Item>
+            <Stack.Item styles={{ root: { minWidth: 200 } }}>
+              <Dropdown
+                placeholder="Filter by City"
+                options={[
+                  { key: '', text: 'All Cities' },
+                  ...cities.map(c => ({ key: c, text: c }))
+                ]}
+                selectedKey={activeFilters.city || ''}
+                onChange={(_, option) => {
+                  const newFilters = { ...activeFilters, city: option?.key as string || undefined };
+                  handleApplyFilters(newFilters);
+                }}
+                styles={{ dropdown: { width: 200 } }}
+              />
+            </Stack.Item>
             {totalUsers > 0 && (
-              <Stack horizontal tokens={{ childrenGap: 20 }} style={{ marginTop: 8 }}>
-                <Stack>
-                  <Text variant="small" style={{ color: '#666' }}>
-                    {totalUsers.toLocaleString()} people
-                  </Text>
-                </Stack>
-                {departments.length > 0 && (
-                  <Stack>
-                    <Text variant="small" style={{ color: '#666' }}>
-                      {departments.length} departments
-                    </Text>
-                  </Stack>
-                )}
-                {locations.length > 0 && (
-                  <Stack>
-                    <Text variant="small" style={{ color: '#666' }}>
-                      {locations.length} office locations
-                    </Text>
-                  </Stack>
-                )}
-                {cities.length > 0 && (
-                  <Stack>
-                    <Text variant="small" style={{ color: '#666' }}>
-                      {cities.length} cities
-                    </Text>
-                  </Stack>
-                )}
-              </Stack>
+              <Stack.Item grow verticalAlign="center">
+                <Text variant="small" style={{ color: '#666', paddingTop: 8 }}>
+                  {totalUsers.toLocaleString()} people
+                </Text>
+              </Stack.Item>
             )}
-          </Stack.Item>
-          <Stack horizontal tokens={{ childrenGap: 8 }}>
-            <IconButton
-              iconProps={{ iconName: 'Filter' }}
-              title="Advanced filters"
-              ariaLabel="Advanced filters"
-              onClick={() => setIsFilterPanelOpen(true)}
-              text={getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined}
-            />
-            <IconButton
-              iconProps={{ iconName: 'Refresh' }}
-              title="Reload users"
-              ariaLabel="Reload users"
-              onClick={() => loadInitialUsers()}
-            />
           </Stack>
         </Stack>
 
@@ -458,8 +508,10 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       showCountry={props.showCountry}
                       showCompanyName={props.showCompanyName}
                       showEmployeeId={props.showEmployeeId}
-                      fontSize={props.fontSize}
-                      fontColor={props.fontColor}
+                      profileNameFontSize={props.profileNameFontSize}
+                      profileNameFontColor={props.profileNameFontColor}
+                      profilePropertiesFontSize={props.profilePropertiesFontSize}
+                      profilePropertiesFontColor={props.profilePropertiesFontColor}
                       iconSize={props.iconSize}
                       iconColor={props.iconColor}
                     />

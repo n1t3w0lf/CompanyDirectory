@@ -23,9 +23,13 @@ export interface IUserCardProps {
   showCompanyName?: boolean;
   showEmployeeId?: boolean;
 
-  // Font Styling
-  fontSize?: number;
-  fontColor?: string;
+  // Profile Name Styling
+  profileNameFontSize?: number;
+  profileNameFontColor?: string;
+
+  // Profile Properties Styling
+  profilePropertiesFontSize?: number;
+  profilePropertiesFontColor?: string;
 
   // Icon Styling
   iconSize?: number;
@@ -45,9 +49,11 @@ export const UserCard: React.FC<IUserCardProps> = ({
   showCountry = true,
   showCompanyName = true,
   showEmployeeId = true,
-  fontSize = 14,
-  fontColor = '#323130',
-  iconSize = 24,
+  profileNameFontSize = 18,
+  profileNameFontColor = '#323130',
+  profilePropertiesFontSize = 14,
+  profilePropertiesFontColor = '#605E5C',
+  iconSize = 20,
   iconColor = '#0078d4'
 }) => {
   const getInitials = (): string => {
@@ -56,9 +62,15 @@ export const UserCard: React.FC<IUserCardProps> = ({
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
   };
 
-  const textStyle: React.CSSProperties = {
-    color: fontColor,
-    fontSize: `${fontSize}px`
+  const nameStyle: React.CSSProperties = {
+    color: profileNameFontColor,
+    fontSize: `${profileNameFontSize}px`,
+    fontWeight: 600
+  };
+
+  const propertiesStyle: React.CSSProperties = {
+    color: profilePropertiesFontColor,
+    fontSize: `${profilePropertiesFontSize}px`
   };
 
   const iconStyle: React.CSSProperties = {
@@ -81,12 +93,12 @@ export const UserCard: React.FC<IUserCardProps> = ({
         </Stack.Item>
 
         <Stack tokens={{ childrenGap: 8 }} grow>
-          <Text variant="large" block className={styles.userName} style={textStyle}>
+          <Text variant="large" block className={styles.userName} style={nameStyle}>
             {user.displayName}
           </Text>
 
           {showJobTitle && user.jobTitle && (
-            <Text variant="medium" block className={styles.userJobTitle} style={textStyle}>
+            <Text variant="medium" block className={styles.userJobTitle} style={propertiesStyle}>
               {user.jobTitle}
             </Text>
           )}
@@ -94,7 +106,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showDepartment && user.department && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Org" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 {user.department}
               </Text>
             </Stack>
@@ -103,7 +115,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showOfficeLocation && user.officeLocation && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="POI" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 {user.officeLocation}
               </Text>
             </Stack>
@@ -112,7 +124,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCity && user.city && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="CityNext" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 {user.city}
               </Text>
             </Stack>
@@ -121,7 +133,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCountry && user.country && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Globe" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 {user.country}
               </Text>
             </Stack>
@@ -130,7 +142,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showCompanyName && user.companyName && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="CompanyDirectory" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 {user.companyName}
               </Text>
             </Stack>
@@ -139,7 +151,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
           {showEmployeeId && user.employeeId && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Contact" className={styles.icon} style={iconStyle} />
-              <Text variant="small" className={styles.userInfo} style={textStyle}>
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
                 ID: {user.employeeId}
               </Text>
             </Stack>

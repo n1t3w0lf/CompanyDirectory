@@ -22,6 +22,14 @@ import '@pnp/sp/lists';
 import '@pnp/sp/items';
 
 export interface IPeopleDirectoryWebPartProps {
+  // Header Configuration
+  headingText: string;
+  headingFontSize: number;
+  headingFontColor: string;
+  subtextText: string;
+  subtextFontSize: number;
+  subtextFontColor: string;
+
   // User Properties to Display
   showEmail: boolean;
   showJobTitle: boolean;
@@ -34,9 +42,13 @@ export interface IPeopleDirectoryWebPartProps {
   showCompanyName: boolean;
   showEmployeeId: boolean;
 
-  // Font Styling
-  fontSize: number;
-  fontColor: string;
+  // Profile Name Styling
+  profileNameFontSize: number;
+  profileNameFontColor: string;
+
+  // Profile Properties Styling
+  profilePropertiesFontSize: number;
+  profilePropertiesFontColor: string;
 
   // Icon Styling
   iconSize: number;
@@ -88,6 +100,14 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         syncService: this.syncService,
         displayMode: this.displayMode,
 
+        // Header Configuration
+        headingText: this.properties.headingText || 'People Directory',
+        headingFontSize: this.properties.headingFontSize || 28,
+        headingFontColor: this.properties.headingFontColor || '#323130',
+        subtextText: this.properties.subtextText || '',
+        subtextFontSize: this.properties.subtextFontSize || 14,
+        subtextFontColor: this.properties.subtextFontColor || '#666666',
+
         // User Properties
         showEmail: this.properties.showEmail !== false,
         showJobTitle: this.properties.showJobTitle !== false,
@@ -100,12 +120,16 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         showCompanyName: this.properties.showCompanyName !== false,
         showEmployeeId: this.properties.showEmployeeId !== false,
 
-        // Font Styling
-        fontSize: this.properties.fontSize || 14,
-        fontColor: this.properties.fontColor || '#323130',
+        // Profile Name Styling
+        profileNameFontSize: this.properties.profileNameFontSize || 18,
+        profileNameFontColor: this.properties.profileNameFontColor || '#323130',
+
+        // Profile Properties Styling
+        profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
+        profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
 
         // Icon Styling
-        iconSize: this.properties.iconSize || 24,
+        iconSize: this.properties.iconSize || 20,
         iconColor: this.properties.iconColor || '#0078d4'
       }
     );
@@ -126,9 +150,126 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
       pages: [
         {
           header: {
-            description: 'Configure which user properties to display and customize styling'
+            description: 'Configure header, styling, and user properties'
           },
           groups: [
+            {
+              groupName: 'Header Configuration',
+              groupFields: [
+                PropertyPaneTextField('headingText', {
+                  label: 'Heading Text',
+                  placeholder: 'People Directory'
+                }),
+                PropertyPaneSlider('headingFontSize', {
+                  label: 'Heading Font Size (px)',
+                  min: 20,
+                  max: 40,
+                  step: 2,
+                  value: 28,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('headingFontColor', {
+                  label: 'Heading Color',
+                  options: [
+                    { key: '#323130', text: 'Dark Gray (Default)' },
+                    { key: '#000000', text: 'Black' },
+                    { key: '#0078d4', text: 'Blue' },
+                    { key: '#004578', text: 'Dark Blue' },
+                    { key: '#107c10', text: 'Green' }
+                  ]
+                }),
+                PropertyPaneTextField('subtextText', {
+                  label: 'Subtext',
+                  placeholder: 'Optional description text',
+                  multiline: true,
+                  rows: 2
+                }),
+                PropertyPaneSlider('subtextFontSize', {
+                  label: 'Subtext Font Size (px)',
+                  min: 10,
+                  max: 20,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('subtextFontColor', {
+                  label: 'Subtext Color',
+                  options: [
+                    { key: '#666666', text: 'Gray (Default)' },
+                    { key: '#605E5C', text: 'Medium Gray' },
+                    { key: '#323130', text: 'Dark Gray' },
+                    { key: '#000000', text: 'Black' }
+                  ]
+                })
+              ]
+            },
+            {
+              groupName: 'Profile Name Styling',
+              groupFields: [
+                PropertyPaneSlider('profileNameFontSize', {
+                  label: 'Name Font Size (px)',
+                  min: 14,
+                  max: 28,
+                  step: 1,
+                  value: 18,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('profileNameFontColor', {
+                  label: 'Name Color',
+                  options: [
+                    { key: '#323130', text: 'Dark Gray (Default)' },
+                    { key: '#000000', text: 'Black' },
+                    { key: '#0078d4', text: 'Blue' },
+                    { key: '#004578', text: 'Dark Blue' }
+                  ]
+                })
+              ]
+            },
+            {
+              groupName: 'Profile Properties Styling',
+              groupFields: [
+                PropertyPaneSlider('profilePropertiesFontSize', {
+                  label: 'Properties Font Size (px)',
+                  min: 10,
+                  max: 20,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('profilePropertiesFontColor', {
+                  label: 'Properties Color',
+                  options: [
+                    { key: '#605E5C', text: 'Medium Gray (Default)' },
+                    { key: '#323130', text: 'Dark Gray' },
+                    { key: '#000000', text: 'Black' },
+                    { key: '#0078d4', text: 'Blue' }
+                  ]
+                })
+              ]
+            },
+            {
+              groupName: 'Icon Styling',
+              groupFields: [
+                PropertyPaneSlider('iconSize', {
+                  label: 'Icon Size (px)',
+                  min: 16,
+                  max: 32,
+                  step: 2,
+                  value: 20,
+                  showValue: true
+                }),
+                PropertyPaneChoiceGroup('iconColor', {
+                  label: 'Icon Color',
+                  options: [
+                    { key: '#0078d4', text: 'Blue (Default)' },
+                    { key: '#323130', text: 'Dark Gray' },
+                    { key: '#107c10', text: 'Green' },
+                    { key: '#8764b8', text: 'Purple' },
+                    { key: '#d13438', text: 'Red' }
+                  ]
+                })
+              ]
+            },
             {
               groupName: 'User Properties to Display',
               groupFields: [
@@ -181,52 +322,6 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   label: 'Show Employee ID',
                   onText: 'Visible',
                   offText: 'Hidden'
-                })
-              ]
-            },
-            {
-              groupName: 'Font Styling',
-              groupFields: [
-                PropertyPaneSlider('fontSize', {
-                  label: 'Font Size (px)',
-                  min: 10,
-                  max: 24,
-                  step: 1,
-                  value: 14,
-                  showValue: true
-                }),
-                PropertyPaneChoiceGroup('fontColor', {
-                  label: 'Font Color',
-                  options: [
-                    { key: '#323130', text: 'Dark Gray (Default)', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#000000', text: 'Black', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#605E5C', text: 'Medium Gray', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#0078d4', text: 'Blue', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#004578', text: 'Dark Blue', iconProps: { officeFabricIconFontName: 'CircleFill' } }
-                  ]
-                })
-              ]
-            },
-            {
-              groupName: 'Icon Styling',
-              groupFields: [
-                PropertyPaneSlider('iconSize', {
-                  label: 'Icon Size (px)',
-                  min: 16,
-                  max: 48,
-                  step: 2,
-                  value: 24,
-                  showValue: true
-                }),
-                PropertyPaneChoiceGroup('iconColor', {
-                  label: 'Icon Color',
-                  options: [
-                    { key: '#0078d4', text: 'Blue (Default)', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#323130', text: 'Dark Gray', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#107c10', text: 'Green', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#8764b8', text: 'Purple', iconProps: { officeFabricIconFontName: 'CircleFill' } },
-                    { key: '#d13438', text: 'Red', iconProps: { officeFabricIconFontName: 'CircleFill' } }
-                  ]
                 })
               ]
             }

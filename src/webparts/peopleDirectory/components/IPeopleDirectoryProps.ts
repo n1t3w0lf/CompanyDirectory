@@ -7,6 +7,14 @@ export interface IPeopleDirectoryProps {
   syncService: SyncService;
   displayMode: DisplayMode;
 
+  // Header Configuration
+  headingText: string;
+  headingFontSize: number;
+  headingFontColor: string;
+  subtextText: string;
+  subtextFontSize: number;
+  subtextFontColor: string;
+
   // User Properties to Display
   showEmail: boolean;
   showJobTitle: boolean;
@@ -19,9 +27,13 @@ export interface IPeopleDirectoryProps {
   showCompanyName: boolean;
   showEmployeeId: boolean;
 
-  // Font Styling
-  fontSize: number;
-  fontColor: string;
+  // Profile Name Styling
+  profileNameFontSize: number;
+  profileNameFontColor: string;
+
+  // Profile Properties Styling
+  profilePropertiesFontSize: number;
+  profilePropertiesFontColor: string;
 
   // Icon Styling
   iconSize: number;
