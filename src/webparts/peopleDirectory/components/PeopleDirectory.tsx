@@ -30,7 +30,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [hasSearched, setHasSearched] = useState<boolean>(false);
 
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   // Initialize service and load filters
   useEffect(() => {

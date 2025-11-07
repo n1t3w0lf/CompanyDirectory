@@ -13,7 +13,7 @@ import { ErrorHandler } from '../utils/ErrorHandler';
 export class ListService {
   private sp: SPFI;
   private listTitle: string = Constants.LIST_TITLE;
-  private isListReady: boolean = false;
+  private isListReady = false;
 
   constructor(sp: SPFI) {
     this.sp = sp;
@@ -97,7 +97,8 @@ export class ListService {
         await list.items.getById(existingItem.Id).update(itemData);
       } else {
         // Check if we're at capacity, remove least accessed item
-        const itemCount = await list.itemCount();
+        const items = await list.items.select('Id').top(1)();
+        const itemCount = items.length > 0 ? await list.items.select('Id').top(5000)().then(i => i.length) : 0;
         if (itemCount >= Constants.LIST_MAX_ITEMS) {
           await this.evictLeastAccessedItem();
         }
@@ -146,7 +147,7 @@ export class ListService {
   /**
    * Search users in cache list
    */
-  public async searchUsers(searchText: string, top: number = 50): Promise<IUserProfile[]> {
+  public async searchUsers(searchText: string, top = 50): Promise<IUserProfile[]> {
     try {
       await this.ensureList();
 
@@ -229,12 +230,11 @@ export class ListService {
         .items.select('Id')
         .top(5000)();
 
-      // Delete in batches
-      const batch = this.sp.web.createBatch();
-      items.forEach(item => {
-        this.sp.web.lists.getByTitle(this.listTitle).items.getById(item.Id).inBatch(batch).delete();
-      });
-      await batch.execute();
+      // Delete items individually (batch API changed in v3)
+      const deletePromises = items.map(item =>
+        this.sp.web.lists.getByTitle(this.listTitle).items.getById(item.Id).delete()
+      );
+      await Promise.all(deletePromises);
     } catch (error) {
       throw new Error(ErrorHandler.getUserMessage(error, 'ListService.clearCache'));
     }

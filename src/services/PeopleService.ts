@@ -78,7 +78,7 @@ export class PeopleService {
    * Get user by ID with real-time verification
    * Always checks Graph API to ensure data is current
    */
-  public async getUserById(userId: string, forceRefresh: boolean = false): Promise<IUserProfile | null> {
+  public async getUserById(userId: string, forceRefresh = false): Promise<IUserProfile | null> {
     const cacheKey = this.getCacheKey('user', userId);
 
     try {
@@ -124,7 +124,7 @@ export class PeopleService {
   /**
    * Get user by User Principal Name
    */
-  public async getUserByUPN(upn: string, forceRefresh: boolean = false): Promise<IUserProfile | null> {
+  public async getUserByUPN(upn: string, forceRefresh = false): Promise<IUserProfile | null> {
     return this.getUserById(upn, forceRefresh);
   }
 

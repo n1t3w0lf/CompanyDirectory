@@ -5,7 +5,6 @@ import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { IconButton } from '@fluentui/react/lib/Button';
-import { Constants } from '../../../models/Constants';
 import styles from './PeopleDirectory.module.scss';
 
 export interface IUserCardProps {
@@ -20,14 +19,14 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
   };
 
-  const handleEmailClick = (e: React.MouseEvent): void => {
+  const handleEmailClick = (e: React.MouseEvent<HTMLElement>): void => {
     e.stopPropagation();
     if (user.mail) {
       window.location.href = `mailto:${user.mail}`;
     }
   };
 
-  const handlePhoneClick = (e: React.MouseEvent, phone: string): void => {
+  const handlePhoneClick = (e: React.MouseEvent<HTMLElement>, phone: string): void => {
     e.stopPropagation();
     window.location.href = `tel:${phone}`;
   };
