@@ -71,6 +71,12 @@ export interface IPeopleDirectoryWebPartProps {
   // Webpart Background
   webpartBackgroundColor: string;
   webpartBackgroundImage: string;
+
+  // Letter Index
+  showLetterIndex: boolean;
+
+  // Profile Picture
+  showProfilePicture: boolean;
 }
 
 export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopleDirectoryWebPartProps> {
@@ -167,7 +173,13 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
 
         // Webpart Background
         webpartBackgroundColor: this.properties.webpartBackgroundColor || '',
-        webpartBackgroundImage: this.properties.webpartBackgroundImage || ''
+        webpartBackgroundImage: this.properties.webpartBackgroundImage || '',
+
+        // Letter Index
+        showLetterIndex: this.properties.showLetterIndex !== false,
+
+        // Profile Picture
+        showProfilePicture: this.properties.showProfilePicture !== false
       }
     );
 
@@ -413,6 +425,21 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                 }),
                 PropertyPaneToggle('showEmployeeId', {
                   label: 'Show Employee ID',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                })
+              ]
+            },
+            {
+              groupName: 'Display Options',
+              groupFields: [
+                PropertyPaneToggle('showLetterIndex', {
+                  label: 'Show Letter Index',
+                  onText: 'Visible',
+                  offText: 'Hidden'
+                }),
+                PropertyPaneToggle('showProfilePicture', {
+                  label: 'Show Profile Pictures',
                   onText: 'Visible',
                   offText: 'Hidden'
                 })

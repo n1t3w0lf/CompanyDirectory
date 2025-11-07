@@ -48,6 +48,9 @@ export interface IUserCardProps {
   // Profile Card Background
   profileCardBackgroundColor?: string;
   profileCardBackgroundImage?: string;
+
+  // Profile Picture Visibility
+  showProfilePicture?: boolean;
 }
 
 export const UserCard: React.FC<IUserCardProps> = ({
@@ -75,7 +78,8 @@ export const UserCard: React.FC<IUserCardProps> = ({
   iconSize = 20,
   iconColor = '#0078d4',
   profileCardBackgroundColor = '',
-  profileCardBackgroundImage = ''
+  profileCardBackgroundImage = '',
+  showProfilePicture = true
 }) => {
   const getInitials = (): string => {
     const firstName = user.givenName || '';
@@ -210,16 +214,18 @@ export const UserCard: React.FC<IUserCardProps> = ({
   return (
     <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0} style={cardBackgroundStyle}>
       <Stack tokens={{ childrenGap: 12 }} horizontal>
-        <Stack.Item>
-          <Persona
-            imageUrl={user.photoUrl || undefined}
-            imageInitials={getInitials()}
-            size={PersonaSize.size72}
-            hidePersonaDetails
-            imageShouldFadeIn
-            imageShouldStartVisible={!!user.photoUrl}
-          />
-        </Stack.Item>
+        {showProfilePicture && (
+          <Stack.Item>
+            <Persona
+              imageUrl={user.photoUrl || undefined}
+              imageInitials={getInitials()}
+              size={PersonaSize.size72}
+              hidePersonaDetails
+              imageShouldFadeIn
+              imageShouldStartVisible={!!user.photoUrl}
+            />
+          </Stack.Item>
+        )}
 
         <Stack tokens={{ childrenGap: 8 }} grow>
           <Text variant="large" block className={styles.userName} style={nameStyle} title={user.displayName}>

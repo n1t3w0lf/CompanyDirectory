@@ -37,6 +37,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   // Active filters
   const [activeFilters, setActiveFilters] = useState<IAdvancedFilters>({});
 
+  // Letter index
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+
   // Sync status
   const [syncStatus, setSyncStatus] = useState<ISyncStatus | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
@@ -244,8 +247,39 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const handleClearFilters = async (): Promise<void> => {
     setActiveFilters({});
     setSearchText('');
+    setSelectedLetter(null);
     setIsFilterPanelOpen(false);
     await loadInitialUsers();
+  };
+
+  /**
+   * Handle letter index click
+   */
+  const handleLetterClick = async (letter: string): Promise<void> => {
+    // Toggle letter selection
+    const newLetter = selectedLetter === letter ? null : letter;
+    setSelectedLetter(newLetter);
+
+    if (!newLetter) {
+      // If letter is deselected, reload initial users
+      await loadInitialUsers();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Filter users by letter
+      const allUsers = await props.peopleService.getFilteredUsers(activeFilters, 1000);
+      const filteredUsers = allUsers.filter(user =>
+        user.displayName.toUpperCase().startsWith(newLetter)
+      );
+      setUsers(filteredUsers);
+    } catch (err) {
+      console.error('Letter filter error:', err);
+      setError('Failed to filter by letter. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -396,6 +430,30 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           className={styles.searchBox}
         />
 
+        {/* Letter Index */}
+        {props.showLetterIndex && (
+          <div className={styles.letterIndex}>
+            <Stack horizontal tokens={{ childrenGap: 8 }} wrap>
+              {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
+                <div
+                  key={letter}
+                  className={`${styles.letterButton} ${selectedLetter === letter ? styles.letterButtonActive : ''}`}
+                  onClick={() => handleLetterClick(letter)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleLetterClick(letter);
+                    }
+                  }}
+                >
+                  {letter}
+                </div>
+              ))}
+            </Stack>
+          </div>
+        )}
+
         {/* Active Filters Display */}
         {getActiveFilterCount() > 0 && (
           <Stack horizontal tokens={{ childrenGap: 8 }} wrap>
@@ -516,6 +574,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                       iconColor={props.iconColor}
                       profileCardBackgroundColor={props.profileCardBackgroundColor}
                       profileCardBackgroundImage={props.profileCardBackgroundImage}
+                      showProfilePicture={props.showProfilePicture}
                     />
                   ))}
                 </div>

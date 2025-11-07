@@ -57,4 +57,10 @@ export interface IPeopleDirectoryProps {
   // Webpart Background
   webpartBackgroundColor: string;
   webpartBackgroundImage: string;
+
+  // Letter Index
+  showLetterIndex: boolean;
+
+  // Profile Picture
+  showProfilePicture: boolean;
 }

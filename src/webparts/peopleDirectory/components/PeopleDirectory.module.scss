@@ -9,6 +9,47 @@
     max-width: 600px;
   }
 
+  .letterIndex {
+    padding: 12px 0;
+    border-top: 1px solid $ms-color-neutralLight;
+    border-bottom: 1px solid $ms-color-neutralLight;
+
+    .letterButton {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background-color: $ms-color-white;
+      border: 1px solid $ms-color-neutralLight;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: $ms-color-neutralPrimary;
+      transition: all 0.2s ease-in-out;
+      user-select: none;
+
+      &:hover {
+        background-color: $ms-color-themeLight;
+        color: $ms-color-themePrimary;
+        border-color: $ms-color-themePrimary;
+      }
+
+      &:focus {
+        outline: 2px solid $ms-color-themePrimary;
+        outline-offset: 2px;
+      }
+
+      &.letterButtonActive {
+        background-color: $ms-color-themePrimary;
+        color: $ms-color-white;
+        border-color: $ms-color-themePrimary;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+
   .syncStatusContainer {
     padding: 12px;
     background-color: $ms-color-neutralLighter;
@@ -157,6 +198,16 @@
 
     .searchBox {
       max-width: 100%;
+    }
+
+    .letterIndex {
+      padding: 8px 0;
+
+      .letterButton {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
     }
 
     .userCard {
