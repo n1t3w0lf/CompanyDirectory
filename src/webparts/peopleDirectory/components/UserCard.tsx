@@ -4,7 +4,6 @@ import { Persona, PersonaSize } from '@fluentui/react/lib/Persona';
 import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Icon } from '@fluentui/react/lib/Icon';
-import { IconButton } from '@fluentui/react/lib/Button';
 import styles from './PeopleDirectory.module.scss';
 
 export interface IUserCardProps {
@@ -120,6 +119,15 @@ export const UserCard: React.FC<IUserCardProps> = ({
             </Text>
           )}
 
+          {showEmail && user.mail && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon iconName="Mail" className={styles.icon} style={iconStyle} />
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
+                {user.mail}
+              </Text>
+            </Stack>
+          )}
+
           {showDepartment && user.department && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Org" className={styles.icon} style={iconStyle} />
@@ -165,6 +173,24 @@ export const UserCard: React.FC<IUserCardProps> = ({
             </Stack>
           )}
 
+          {showBusinessPhones && (user.businessPhones && user.businessPhones.length > 0) && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon iconName="Phone" className={styles.icon} style={iconStyle} />
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
+                {user.businessPhones[0]}
+              </Text>
+            </Stack>
+          )}
+
+          {showMobilePhone && user.mobilePhone && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon iconName="CellPhone" className={styles.icon} style={iconStyle} />
+              <Text variant="small" className={styles.userInfo} style={propertiesStyle}>
+                {user.mobilePhone}
+              </Text>
+            </Stack>
+          )}
+
           {showEmployeeId && user.employeeId && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon iconName="Contact" className={styles.icon} style={iconStyle} />
@@ -173,48 +199,6 @@ export const UserCard: React.FC<IUserCardProps> = ({
               </Text>
             </Stack>
           )}
-          {/* Action Buttons */}
-          <Stack horizontal tokens={{ childrenGap: 8 }} style={{ marginTop: 8 }}>
-            {showEmail && user.mail && (
-              <IconButton
-                iconProps={{ iconName: 'Mail' }}
-                title={`Email ${user.displayName}`}
-                ariaLabel="Send email"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.location.href = `mailto:${user.mail}`;
-                }}
-                className={styles.actionButton}
-                style={{ color: iconColor }}
-              />
-            )}
-            {showBusinessPhones && (user.businessPhones && user.businessPhones.length > 0) && (
-              <IconButton
-                iconProps={{ iconName: 'Phone' }}
-                title={`Call ${user.displayName}`}
-                ariaLabel="Call"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.location.href = `tel:${user.businessPhones[0]}`;
-                }}
-                className={styles.actionButton}
-                style={{ color: iconColor }}
-              />
-            )}
-            {showMobilePhone && user.mobilePhone && (
-              <IconButton
-                iconProps={{ iconName: 'CellPhone' }}
-                title={`Call mobile ${user.displayName}`}
-                ariaLabel="Call mobile"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.location.href = `tel:${user.mobilePhone}`;
-                }}
-                className={styles.actionButton}
-                style={{ color: iconColor }}
-              />
-            )}
-          </Stack>
         </Stack>
       </Stack>
     </div>
