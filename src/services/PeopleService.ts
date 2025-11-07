@@ -337,6 +337,7 @@ export class PeopleService {
   /**
    * Search Active Directory (Microsoft Graph) directly
    * Used as fallback when list search returns no results
+   * Automatically saves found users to the list cache for future searches
    */
   public async searchActiveDirectory(searchText: string, pageSize = 50): Promise<IUserProfile[]> {
     try {
@@ -348,6 +349,18 @@ export class PeopleService {
 
       // Search Graph directly without caching
       const result = await this.graphService.searchUsers(searchText, pageSize);
+
+      // Save found users to list cache for future searches
+      if (result.users.length > 0) {
+        console.log(`Saving ${result.users.length} users from AD to list cache`);
+
+        // Save users asynchronously to not block the search results
+        result.users.forEach(user => {
+          this.listService.upsertUser(user).catch(err =>
+            console.warn(`Failed to save user ${user.userPrincipalName} to list:`, err)
+          );
+        });
+      }
 
       // Enrich with photos asynchronously
       this.enrichUsersWithPhotos(result.users).catch(err =>
