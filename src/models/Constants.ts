@@ -5,7 +5,7 @@
 export class Constants {
   // SharePoint List Configuration
   public static readonly LIST_TITLE = 'PeopleDirectoryCache';
-  public static readonly LIST_MAX_ITEMS = 5000;
+  public static readonly LIST_MAX_ITEMS = 65000; // Increased to support large organizations (60K+ users)
 
   // Cache Configuration
   public static readonly INDEXEDDB_NAME = 'PeopleDirectoryDB';

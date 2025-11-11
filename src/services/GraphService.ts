@@ -122,22 +122,29 @@ export class GraphService {
   /**
    * Get all departments (aggregated from users)
    * Note: This is expensive for large orgs. Consider caching or using a separate API
+   * Updated to paginate through ALL users to support 60K+ organizations
    */
   public async getDepartments(): Promise<string[]> {
     try {
-      // Get unique departments - limit to first 1000 users for performance
-      const response = await this.graphClient
-        .api('/users')
-        .select('department')
-        .top(1000)
-        .get();
-
       const departments = new Set<string>();
-      response.value.forEach((user: any) => {
-        if (user.department) {
-          departments.add(user.department);
-        }
-      });
+      let nextLink: string | undefined;
+
+      // Paginate through all users to get complete department list
+      do {
+        const endpoint = nextLink || '/users?$select=id,department&$top=999';
+        const response: IGraphResponse = await this.graphClient
+          .api(endpoint)
+          .header('ConsistencyLevel', 'eventual')
+          .get();
+
+        response.value.forEach((user: IGraphUser) => {
+          if (user.department) {
+            departments.add(user.department);
+          }
+        });
+
+        nextLink = response['@odata.nextLink'];
+      } while (nextLink);
 
       return Array.from(departments).sort();
     } catch (error) {
@@ -147,21 +154,29 @@ export class GraphService {
 
   /**
    * Get all office locations
+   * Updated to paginate through ALL users to support 60K+ organizations
    */
   public async getOfficeLocations(): Promise<string[]> {
     try {
-      const response = await this.graphClient
-        .api('/users')
-        .select('officeLocation')
-        .top(1000)
-        .get();
-
       const locations = new Set<string>();
-      response.value.forEach((user: any) => {
-        if (user.officeLocation) {
-          locations.add(user.officeLocation);
-        }
-      });
+      let nextLink: string | undefined;
+
+      // Paginate through all users to get complete location list
+      do {
+        const endpoint = nextLink || '/users?$select=id,officeLocation&$top=999';
+        const response: IGraphResponse = await this.graphClient
+          .api(endpoint)
+          .header('ConsistencyLevel', 'eventual')
+          .get();
+
+        response.value.forEach((user: IGraphUser) => {
+          if (user.officeLocation) {
+            locations.add(user.officeLocation);
+          }
+        });
+
+        nextLink = response['@odata.nextLink'];
+      } while (nextLink);
 
       return Array.from(locations).sort();
     } catch (error) {
