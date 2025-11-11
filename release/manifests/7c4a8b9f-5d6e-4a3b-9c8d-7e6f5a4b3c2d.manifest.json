@@ -38,7 +38,7 @@
     "scriptResources": {
       "people-directory-web-part": {
         "type": "path",
-        "path": "people-directory-web-part.js"
+        "path": "people-directory-web-part_dbd8a11abe8b09932024.js"
       },
       "@microsoft/sp-property-pane": {
         "type": "component",

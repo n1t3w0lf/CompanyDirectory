@@ -9,12 +9,12 @@ import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
-import { IconButton, PrimaryButton } from '@fluentui/react/lib/Button';
-import { Panel } from '@fluentui/react/lib/Panel';
+import { PrimaryButton } from '@fluentui/react/lib/Button';
+import { Dropdown, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
-import { AdvancedFilterPanel, IAdvancedFilters } from './AdvancedFilterPanel';
+import { IAdvancedFilters } from './AdvancedFilterPanel';
 import styles from './PeopleDirectory.module.scss';
 
 export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
@@ -25,13 +25,11 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const [error, setError] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<IUserProfile | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
 
   // Filter options
   const [departments, setDepartments] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
-  const [countries, setCountries] = useState<string[]>([]);
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<IAdvancedFilters>({});
@@ -105,17 +103,15 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
    */
   const loadFilterOptions = useCallback(async (): Promise<void> => {
     try {
-      const [depts, locs, citiesData, countriesData] = await Promise.all([
+      const [depts, locs, citiesData] = await Promise.all([
         props.peopleService.getDepartments(),
         props.peopleService.getOfficeLocations(),
-        props.peopleService.getCities(),
-        props.peopleService.getCountries()
+        props.peopleService.getCities()
       ]);
 
       setDepartments(depts);
       setLocations(locs);
       setCities(citiesData);
-      setCountries(countriesData);
     } catch (err) {
       console.error('Error loading filter options:', err);
     }
@@ -207,7 +203,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
    */
   const handleApplyFilters = useCallback(async (filters: IAdvancedFilters): Promise<void> => {
     setActiveFilters(filters);
-    setIsFilterPanelOpen(false);
     setLoading(true);
 
     try {
@@ -232,7 +227,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const handleClearFilters = useCallback(async (): Promise<void> => {
     setActiveFilters({});
     setSearchText('');
-    setIsFilterPanelOpen(false);
     await loadInitialUsers();
   }, [loadInitialUsers]);
 
@@ -266,43 +260,26 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   };
 
   /**
-   * IconButton handlers
+   * Inline filter change handlers
    */
-  const handleOpenFilterPanel = useCallback((): void => {
-    setIsFilterPanelOpen(true);
-  }, []);
-
-  const handleRefreshUsers = useCallback((): void => {
-    loadInitialUsers();
-  }, [loadInitialUsers]);
-
-  /**
-   * Filter removal handlers for MessageBar components
-   */
-  const handleRemoveDepartmentFilter = useCallback(async (): Promise<void> => {
-    const newFilters = { ...activeFilters, department: undefined };
-    await handleApplyFilters(newFilters);
+  const handleDepartmentChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    const newFilters = { ...activeFilters, department: option?.key ? String(option.key) : undefined };
+    handleApplyFilters(newFilters);
   }, [activeFilters, handleApplyFilters]);
 
-  const handleRemoveOfficeLocationFilter = useCallback(async (): Promise<void> => {
-    const newFilters = { ...activeFilters, officeLocation: undefined };
-    await handleApplyFilters(newFilters);
+  const handleOfficeLocationChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    const newFilters = { ...activeFilters, officeLocation: option?.key ? String(option.key) : undefined };
+    handleApplyFilters(newFilters);
   }, [activeFilters, handleApplyFilters]);
 
-  const handleRemoveCityFilter = useCallback(async (): Promise<void> => {
-    const newFilters = { ...activeFilters, city: undefined };
-    await handleApplyFilters(newFilters);
+  const handleCityChange = useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    const newFilters = { ...activeFilters, city: option?.key ? String(option.key) : undefined };
+    handleApplyFilters(newFilters);
   }, [activeFilters, handleApplyFilters]);
 
-  const handleRemoveCountryFilter = useCallback(async (): Promise<void> => {
-    const newFilters = { ...activeFilters, country: undefined };
-    await handleApplyFilters(newFilters);
-  }, [activeFilters, handleApplyFilters]);
-
-  const handleRemoveJobTitleFilter = useCallback(async (): Promise<void> => {
-    const newFilters = { ...activeFilters, jobTitle: undefined };
-    await handleApplyFilters(newFilters);
-  }, [activeFilters, handleApplyFilters]);
+  const handleClearAllFilters = useCallback(async (): Promise<void> => {
+    await handleClearFilters();
+  }, [handleClearFilters]);
 
   /**
    * SearchBox handlers
@@ -316,12 +293,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   }, [handleSearchChange]);
 
   /**
-   * Panel dismiss handlers
+   * Panel dismiss handler
    */
-  const handleFilterPanelDismiss = useCallback((): void => {
-    setIsFilterPanelOpen(false);
-  }, []);
-
   const handleDetailsPanelDismiss = useCallback((): void => {
     setIsPanelOpen(false);
     setSelectedUser(null);
@@ -368,21 +341,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
               </Text>
             )}
           </Stack.Item>
-          <Stack horizontal tokens={{ childrenGap: 8 }}>
-            <IconButton
-              iconProps={{ iconName: 'Filter' }}
-              title="Advanced filters"
-              ariaLabel="Advanced filters"
-              onClick={handleOpenFilterPanel}
-              text={getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined}
-            />
-            <IconButton
-              iconProps={{ iconName: 'Refresh' }}
-              title="Reload users"
-              ariaLabel="Reload users"
-              onClick={handleRefreshUsers}
-            />
-          </Stack>
         </Stack>
 
         {/* Sync Status Banner */}
@@ -415,61 +373,58 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           />
         </Stack>
 
-        {/* Active Filters Display */}
-        {getActiveFilterCount() > 0 && (
-          <Stack horizontal tokens={{ childrenGap: 8 }} wrap>
-            {activeFilters.department && (
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                onDismiss={handleRemoveDepartmentFilter}
-                dismissButtonAriaLabel="Remove filter"
-                styles={{ root: { marginBottom: 0 } }}
-              >
-                Department: {activeFilters.department}
-              </MessageBar>
-            )}
-            {activeFilters.officeLocation && (
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                onDismiss={handleRemoveOfficeLocationFilter}
-                dismissButtonAriaLabel="Remove filter"
-                styles={{ root: { marginBottom: 0 } }}
-              >
-                Location: {activeFilters.officeLocation}
-              </MessageBar>
-            )}
-            {activeFilters.city && (
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                onDismiss={handleRemoveCityFilter}
-                dismissButtonAriaLabel="Remove filter"
-                styles={{ root: { marginBottom: 0 } }}
-              >
-                City: {activeFilters.city}
-              </MessageBar>
-            )}
-            {activeFilters.country && (
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                onDismiss={handleRemoveCountryFilter}
-                dismissButtonAriaLabel="Remove filter"
-                styles={{ root: { marginBottom: 0 } }}
-              >
-                Country: {activeFilters.country}
-              </MessageBar>
-            )}
-            {activeFilters.jobTitle && (
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                onDismiss={handleRemoveJobTitleFilter}
-                dismissButtonAriaLabel="Remove filter"
-                styles={{ root: { marginBottom: 0 } }}
-              >
-                Job Title: {activeFilters.jobTitle}
-              </MessageBar>
-            )}
+        {/* Inline Filters */}
+        <Stack tokens={{ childrenGap: 12 }}>
+          <Stack horizontal tokens={{ childrenGap: 12 }} wrap>
+            <Stack.Item styles={{ root: { width: '200px' } }}>
+              <Dropdown
+                placeholder="All Departments"
+                label="Department"
+                options={[
+                  { key: '', text: 'All Departments' },
+                  ...departments.map(d => ({ key: d, text: d }))
+                ]}
+                selectedKey={activeFilters.department || ''}
+                onChange={handleDepartmentChange}
+                disabled={loading}
+              />
+            </Stack.Item>
+            <Stack.Item styles={{ root: { width: '200px' } }}>
+              <Dropdown
+                placeholder="All Locations"
+                label="Office Location"
+                options={[
+                  { key: '', text: 'All Locations' },
+                  ...locations.map(l => ({ key: l, text: l }))
+                ]}
+                selectedKey={activeFilters.officeLocation || ''}
+                onChange={handleOfficeLocationChange}
+                disabled={loading}
+              />
+            </Stack.Item>
+            <Stack.Item styles={{ root: { width: '200px' } }}>
+              <Dropdown
+                placeholder="All Cities"
+                label="City"
+                options={[
+                  { key: '', text: 'All Cities' },
+                  ...cities.map(c => ({ key: c, text: c }))
+                ]}
+                selectedKey={activeFilters.city || ''}
+                onChange={handleCityChange}
+                disabled={loading}
+              />
+            </Stack.Item>
           </Stack>
-        )}
+          {getActiveFilterCount() > 0 && (
+            <PrimaryButton
+              text="Clear All Filters"
+              onClick={handleClearAllFilters}
+              iconProps={{ iconName: 'ClearFilter' }}
+              styles={{ root: { width: 'fit-content' } }}
+            />
+          )}
+        </Stack>
 
         {/* Error Message */}
         {error && (
@@ -520,25 +475,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           </>
         )}
       </Stack>
-
-      {/* Advanced Filter Panel */}
-      <Panel
-        isOpen={isFilterPanelOpen}
-        onDismiss={handleFilterPanelDismiss}
-        headerText="Advanced Filters"
-        closeButtonAriaLabel="Close"
-        isLightDismiss
-      >
-        <AdvancedFilterPanel
-          departments={departments}
-          locations={locations}
-          cities={cities}
-          countries={countries}
-          currentFilters={activeFilters}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-        />
-      </Panel>
 
       {/* User Details Panel */}
       {selectedUser && (
