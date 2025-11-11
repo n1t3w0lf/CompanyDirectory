@@ -9656,12 +9656,13 @@ var getStyles = function (props) {
 /* harmony import */ var _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @fluentui/react/lib/MessageBar */ "2HwJ");
 /* harmony import */ var _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @fluentui/react/lib/MessageBar */ "e8ns");
 /* harmony import */ var _fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @fluentui/react/lib/Button */ "ZwJW");
-/* harmony import */ var _fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @fluentui/react/lib/Panel */ "aPh5");
-/* harmony import */ var _UserCard__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./UserCard */ "k6d+");
-/* harmony import */ var _UserDetailsPanel__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./UserDetailsPanel */ "EGA/");
-/* harmony import */ var _SyncStatusBanner__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./SyncStatusBanner */ "G758");
-/* harmony import */ var _AdvancedFilterPanel__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./AdvancedFilterPanel */ "As+n");
-/* harmony import */ var _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./PeopleDirectory.module.scss */ "I/xV");
+/* harmony import */ var _fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @fluentui/react/lib/Button */ "JLNM");
+/* harmony import */ var _fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @fluentui/react/lib/Panel */ "aPh5");
+/* harmony import */ var _UserCard__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./UserCard */ "k6d+");
+/* harmony import */ var _UserDetailsPanel__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./UserDetailsPanel */ "EGA/");
+/* harmony import */ var _SyncStatusBanner__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./SyncStatusBanner */ "G758");
+/* harmony import */ var _AdvancedFilterPanel__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./AdvancedFilterPanel */ "As+n");
+/* harmony import */ var _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./PeopleDirectory.module.scss */ "I/xV");
 
 
 
@@ -9696,7 +9697,6 @@ const PeopleDirectory = (props) => {
     // Sync status
     const [syncStatus, setSyncStatus] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
     const [totalUsers, setTotalUsers] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(0);
-    const searchTimeoutRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
     // Initialize: Check sync status and load initial users
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
         initializeData();
@@ -9807,49 +9807,43 @@ const PeopleDirectory = (props) => {
         setSyncStatus(props.syncService.getSyncStatus());
     }, [props.syncService]);
     /**
-     * Perform search
+     * Manual search: Check list first, then Entra ID
      */
-    const performSearch = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(async (searchValue) => {
-        if (searchValue.length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH) {
+    const handleManualSearch = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(async () => {
+        if (!searchText || searchText.trim().length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH) {
+            setError('Please enter at least 3 characters to search');
             return;
         }
         setLoading(true);
         setError('');
         try {
-            const filters = {
-                searchText: searchValue,
-                ...activeFilters
-            };
-            const result = await props.peopleService.getFilteredUsers(filters, 100);
-            setUsers(result);
+            const result = await props.peopleService.manualSearch(searchText.trim());
+            setUsers(result.users);
+            if (!result.success) {
+                setError(result.message);
+            }
         }
         catch (err) {
             console.error('Search error:', err);
-            setError('Failed to search users. Please try again.');
+            setError('An error occurred while searching. Please try again.');
             setUsers([]);
         }
         finally {
             setLoading(false);
         }
-    }, [activeFilters, props.peopleService]);
+    }, [searchText, props.peopleService]);
     /**
-     * Debounced search
+     * Handle search text change (no auto-search)
      */
     const handleSearchChange = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((newValue) => {
         const value = newValue || '';
         setSearchText(value);
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
-        }
-        if (value.length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH) {
-            // Reload initial users when search is cleared
+        setError('');
+        // If search is cleared, reload initial users
+        if (value.length === 0) {
             loadInitialUsers();
-            return;
         }
-        searchTimeoutRef.current = setTimeout(() => {
-            performSearch(value);
-        }, _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].SEARCH_DEBOUNCE_MS);
-    }, [loadInitialUsers, performSearch]);
+    }, [loadInitialUsers]);
     /**
      * Apply advanced filters
      */
@@ -9964,7 +9958,7 @@ const PeopleDirectory = (props) => {
     const handleErrorDismiss = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
         setError('');
     }, []);
-    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].peopleDirectory },
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_16__[/* default */ "e"].peopleDirectory },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 20 } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, horizontalAlign: "space-between", verticalAlign: "center" },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { grow: true },
@@ -9982,8 +9976,11 @@ const PeopleDirectory = (props) => {
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 8 } },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* IconButton */ "e"], { iconProps: { iconName: 'Filter' }, title: "Advanced filters", ariaLabel: "Advanced filters", onClick: handleOpenFilterPanel, text: getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* IconButton */ "e"], { iconProps: { iconName: 'Refresh' }, title: "Reload users", ariaLabel: "Reload users", onClick: handleRefreshUsers }))),
-            syncStatus && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_SyncStatusBanner__WEBPACK_IMPORTED_MODULE_13__[/* SyncStatusBanner */ "e"], { syncStatus: syncStatus, onStartSync: handleStartSync, onCancelSync: handleCancelSync })),
-            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_SearchBox__WEBPACK_IMPORTED_MODULE_2__[/* SearchBox */ "e"], { placeholder: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_SEARCH_PLACEHOLDER, onChange: handleSearchBoxChange, onClear: handleSearchBoxClear, value: searchText, disabled: loading, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].searchBox }),
+            syncStatus && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_SyncStatusBanner__WEBPACK_IMPORTED_MODULE_14__[/* SyncStatusBanner */ "e"], { syncStatus: syncStatus, onStartSync: handleStartSync, onCancelSync: handleCancelSync })),
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 8 }, verticalAlign: "end" },
+                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { grow: true },
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_SearchBox__WEBPACK_IMPORTED_MODULE_2__[/* SearchBox */ "e"], { placeholder: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_SEARCH_PLACEHOLDER, onChange: handleSearchBoxChange, onClear: handleSearchBoxClear, onSearch: handleManualSearch, value: searchText, disabled: loading, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_16__[/* default */ "e"].searchBox })),
+                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_10__[/* PrimaryButton */ "e"], { text: "Search", onClick: handleManualSearch, disabled: loading || !searchText || searchText.trim().length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH, iconProps: { iconName: 'Search' } })),
             getActiveFilterCount() > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 8 }, wrap: true },
                 activeFilters.department && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_7__[/* MessageBar */ "e"], { messageBarType: _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_8__[/* MessageBarType */ "e"].info, onDismiss: handleRemoveDepartmentFilter, dismissButtonAriaLabel: "Remove filter", styles: { root: { marginBottom: 0 } } },
                     "Department: ",
@@ -10012,10 +10009,10 @@ const PeopleDirectory = (props) => {
                     users.length,
                     " ",
                     users.length === 1 ? 'person' : 'people'),
-                react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].userGrid }, users.map(user => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserCard__WEBPACK_IMPORTED_MODULE_11__[/* UserCard */ "e"], { key: user.id, user: user, onUserClick: handleUserClick }))))))))),
-        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_10__[/* Panel */ "e"], { isOpen: isFilterPanelOpen, onDismiss: handleFilterPanelDismiss, headerText: "Advanced Filters", closeButtonAriaLabel: "Close", isLightDismiss: true },
-            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_AdvancedFilterPanel__WEBPACK_IMPORTED_MODULE_14__[/* AdvancedFilterPanel */ "e"], { departments: departments, locations: locations, cities: cities, countries: countries, currentFilters: activeFilters, onApplyFilters: handleApplyFilters, onClearFilters: handleClearFilters })),
-        selectedUser && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserDetailsPanel__WEBPACK_IMPORTED_MODULE_12__[/* UserDetailsPanel */ "e"], { user: selectedUser, isOpen: isPanelOpen, onDismiss: handleDetailsPanelDismiss }))));
+                react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_16__[/* default */ "e"].userGrid }, users.map(user => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserCard__WEBPACK_IMPORTED_MODULE_12__[/* UserCard */ "e"], { key: user.id, user: user, onUserClick: handleUserClick }))))))))),
+        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_11__[/* Panel */ "e"], { isOpen: isFilterPanelOpen, onDismiss: handleFilterPanelDismiss, headerText: "Advanced Filters", closeButtonAriaLabel: "Close", isLightDismiss: true },
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_AdvancedFilterPanel__WEBPACK_IMPORTED_MODULE_15__[/* AdvancedFilterPanel */ "e"], { departments: departments, locations: locations, cities: cities, countries: countries, currentFilters: activeFilters, onApplyFilters: handleApplyFilters, onClearFilters: handleClearFilters })),
+        selectedUser && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserDetailsPanel__WEBPACK_IMPORTED_MODULE_13__[/* UserDetailsPanel */ "e"], { user: selectedUser, isOpen: isPanelOpen, onDismiss: handleDetailsPanelDismiss }))));
 };
 
 
@@ -19938,6 +19935,60 @@ class PeopleService {
         catch (error) {
             console.error('Error getting cache stats:', error);
             return { clientCache: 0, listCache: 0 };
+        }
+    }
+    /**
+     * Manual search: Check list first, then Entra ID, then add to list if found
+     * @param searchTerm - Search term (email, display name, UPN)
+     * @returns Object with users array and status message
+     */
+    async manualSearch(searchTerm) {
+        try {
+            // Step 1: Search in SharePoint list first
+            const listResults = await this.listService.searchUsers(searchTerm, 100);
+            if (listResults.length > 0) {
+                return {
+                    users: listResults,
+                    message: `Found ${listResults.length} user(s) in directory`,
+                    success: true
+                };
+            }
+            // Step 2: Not found in list, search Entra ID (Graph API)
+            console.log('User not found in list, searching Entra ID...');
+            const graphResults = await this.graphService.searchUsers(searchTerm, 100);
+            if (!graphResults || graphResults.users.length === 0) {
+                return {
+                    users: [],
+                    message: 'User not found',
+                    success: false
+                };
+            }
+            // Step 3: Found in Entra ID, add to list
+            console.log(`Found ${graphResults.users.length} user(s) in Entra ID, adding to list...`);
+            // Get photos for users asynchronously
+            await this.enrichUsersWithPhotos(graphResults.users);
+            // Add all found users to the list
+            const addPromises = graphResults.users.map(user => this.listService.addOrUpdateUser(user));
+            await Promise.allSettled(addPromises);
+            // Update client cache
+            const updateCachePromises = graphResults.users.map(user => {
+                const cacheKey = this.getCacheKey('user', user.id);
+                return _utils_CacheHelper__WEBPACK_IMPORTED_MODULE_0__[/* cacheHelper */ "e"].set(cacheKey, user);
+            });
+            await Promise.allSettled(updateCachePromises);
+            return {
+                users: graphResults.users,
+                message: `Found ${graphResults.users.length} user(s) in Entra ID and added to directory`,
+                success: true
+            };
+        }
+        catch (error) {
+            console.error('Error in manual search:', error);
+            return {
+                users: [],
+                message: 'An error occurred while searching. Please try again.',
+                success: false
+            };
         }
     }
 }

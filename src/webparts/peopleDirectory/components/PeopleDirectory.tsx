@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { IPeopleDirectoryProps } from './IPeopleDirectoryProps';
 import { IUserProfile } from '../../../models/IUserProfile';
 import { ISyncStatus } from '../../../services/SyncService';
@@ -9,7 +9,7 @@ import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
-import { IconButton } from '@fluentui/react/lib/Button';
+import { IconButton, PrimaryButton } from '@fluentui/react/lib/Button';
 import { Panel } from '@fluentui/react/lib/Panel';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
@@ -39,8 +39,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   // Sync status
   const [syncStatus, setSyncStatus] = useState<ISyncStatus | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
-
-  const searchTimeoutRef = useRef<number | null>(null);
 
   // Initialize: Check sync status and load initial users
   useEffect(() => {
@@ -162,10 +160,11 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   }, [props.syncService]);
 
   /**
-   * Perform search
+   * Manual search: Check list first, then Entra ID
    */
-  const performSearch = useCallback(async (searchValue: string): Promise<void> => {
-    if (searchValue.length < Constants.MIN_SEARCH_LENGTH) {
+  const handleManualSearch = useCallback(async (): Promise<void> => {
+    if (!searchText || searchText.trim().length < Constants.MIN_SEARCH_LENGTH) {
+      setError('Please enter at least 3 characters to search');
       return;
     }
 
@@ -173,43 +172,35 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     setError('');
 
     try {
-      const filters = {
-        searchText: searchValue,
-        ...activeFilters
-      };
+      const result = await props.peopleService.manualSearch(searchText.trim());
 
-      const result = await props.peopleService.getFilteredUsers(filters, 100);
-      setUsers(result);
+      setUsers(result.users);
+
+      if (!result.success) {
+        setError(result.message);
+      }
     } catch (err) {
       console.error('Search error:', err);
-      setError('Failed to search users. Please try again.');
+      setError('An error occurred while searching. Please try again.');
       setUsers([]);
     } finally {
       setLoading(false);
     }
-  }, [activeFilters, props.peopleService]);
+  }, [searchText, props.peopleService]);
 
   /**
-   * Debounced search
+   * Handle search text change (no auto-search)
    */
   const handleSearchChange = useCallback((newValue?: string): void => {
     const value = newValue || '';
     setSearchText(value);
+    setError('');
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.length < Constants.MIN_SEARCH_LENGTH) {
-      // Reload initial users when search is cleared
+    // If search is cleared, reload initial users
+    if (value.length === 0) {
       loadInitialUsers();
-      return;
     }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(value);
-    }, Constants.SEARCH_DEBOUNCE_MS) as unknown as number;
-  }, [loadInitialUsers, performSearch]);
+  }, [loadInitialUsers]);
 
   /**
    * Apply advanced filters
@@ -403,15 +394,26 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           />
         )}
 
-        {/* Search Box */}
-        <SearchBox
-          placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
-          onChange={handleSearchBoxChange}
-          onClear={handleSearchBoxClear}
-          value={searchText}
-          disabled={loading}
-          className={styles.searchBox}
-        />
+        {/* Search Box with Search Button */}
+        <Stack horizontal tokens={{ childrenGap: 8 }} verticalAlign="end">
+          <Stack.Item grow>
+            <SearchBox
+              placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
+              onChange={handleSearchBoxChange}
+              onClear={handleSearchBoxClear}
+              onSearch={handleManualSearch}
+              value={searchText}
+              disabled={loading}
+              className={styles.searchBox}
+            />
+          </Stack.Item>
+          <PrimaryButton
+            text="Search"
+            onClick={handleManualSearch}
+            disabled={loading || !searchText || searchText.trim().length < Constants.MIN_SEARCH_LENGTH}
+            iconProps={{ iconName: 'Search' }}
+          />
+        </Stack>
 
         {/* Active Filters Display */}
         {getActiveFilterCount() > 0 && (

@@ -422,4 +422,66 @@ export class PeopleService {
       return { clientCache: 0, listCache: 0 };
     }
   }
+
+  /**
+   * Manual search: Check list first, then Entra ID, then add to list if found
+   * @param searchTerm - Search term (email, display name, UPN)
+   * @returns Object with users array and status message
+   */
+  public async manualSearch(searchTerm: string): Promise<{ users: IUserProfile[]; message: string; success: boolean }> {
+    try {
+      // Step 1: Search in SharePoint list first
+      const listResults = await this.listService.searchUsers(searchTerm, 100);
+
+      if (listResults.length > 0) {
+        return {
+          users: listResults,
+          message: `Found ${listResults.length} user(s) in directory`,
+          success: true
+        };
+      }
+
+      // Step 2: Not found in list, search Entra ID (Graph API)
+      console.log('User not found in list, searching Entra ID...');
+      const graphResults = await this.graphService.searchUsers(searchTerm, 100);
+
+      if (!graphResults || graphResults.users.length === 0) {
+        return {
+          users: [],
+          message: 'User not found',
+          success: false
+        };
+      }
+
+      // Step 3: Found in Entra ID, add to list
+      console.log(`Found ${graphResults.users.length} user(s) in Entra ID, adding to list...`);
+
+      // Get photos for users asynchronously
+      await this.enrichUsersWithPhotos(graphResults.users);
+
+      // Add all found users to the list
+      const addPromises = graphResults.users.map(user => this.listService.addOrUpdateUser(user));
+      await Promise.allSettled(addPromises);
+
+      // Update client cache
+      const updateCachePromises = graphResults.users.map(user => {
+        const cacheKey = this.getCacheKey('user', user.id);
+        return cacheHelper.set(cacheKey, user);
+      });
+      await Promise.allSettled(updateCachePromises);
+
+      return {
+        users: graphResults.users,
+        message: `Found ${graphResults.users.length} user(s) in Entra ID and added to directory`,
+        success: true
+      };
+    } catch (error) {
+      console.error('Error in manual search:', error);
+      return {
+        users: [],
+        message: 'An error occurred while searching. Please try again.',
+        success: false
+      };
+    }
+  }
 }
