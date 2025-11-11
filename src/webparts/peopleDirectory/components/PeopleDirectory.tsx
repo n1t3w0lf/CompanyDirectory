@@ -346,12 +346,28 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   }, []);
 
   // Build webpart container style
-  const webpartContainerStyle: React.CSSProperties = {
-    backgroundColor: props.webpartBackgroundColor || undefined,
-    backgroundImage: props.webpartBackgroundImage ? `url(${props.webpartBackgroundImage})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center'
-  };
+  const webpartContainerStyle: React.CSSProperties = React.useMemo(() => {
+    const style: React.CSSProperties = {
+      ...(props.webpartBackgroundColor && { backgroundColor: props.webpartBackgroundColor }),
+      ...(props.webpartBackgroundImage && {
+        backgroundImage: `url("${props.webpartBackgroundImage}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      })
+    };
+
+    // Debug logging
+    if (props.webpartBackgroundImage || props.webpartBackgroundColor) {
+      console.log('Webpart background config:', {
+        backgroundColor: props.webpartBackgroundColor,
+        backgroundImage: props.webpartBackgroundImage,
+        styleApplied: style
+      });
+    }
+
+    return style;
+  }, [props.webpartBackgroundColor, props.webpartBackgroundImage]);
 
   return (
     <div className={styles.peopleDirectory} style={webpartContainerStyle}>

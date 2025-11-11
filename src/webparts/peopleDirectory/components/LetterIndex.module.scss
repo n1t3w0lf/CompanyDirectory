@@ -4,12 +4,11 @@
   padding: 12px 0;
 
   .letterButton {
-    min-width: 32px;
-    height: 32px;
-    padding: 4px 8px;
-    border: 1px solid $ms-color-neutralLight;
-    background-color: $ms-color-white;
-    border-radius: 16px;
+    min-width: auto;
+    height: auto;
+    padding: 4px 6px;
+    border: none;
+    background-color: transparent;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     display: inline-flex;
@@ -17,19 +16,17 @@
     justify-content: center;
 
     &:hover:not(:disabled) {
-      background-color: $ms-color-themeLight;
-      border-color: $ms-color-themePrimary;
+      text-decoration: underline;
       transform: scale(1.1);
     }
 
     &.active {
-      background-color: $ms-color-themePrimary;
-      border-color: $ms-color-themePrimary;
-      color: $ms-color-white;
+      color: $ms-color-themePrimary;
 
       span {
-        color: $ms-color-white;
-        font-weight: 600;
+        color: $ms-color-themePrimary;
+        font-weight: 700;
+        text-decoration: underline;
       }
     }
 
@@ -39,8 +36,7 @@
 
       &:hover {
         transform: none;
-        background-color: $ms-color-white;
-        border-color: $ms-color-neutralLight;
+        text-decoration: none;
       }
     }
 
@@ -61,9 +57,7 @@
 @media (max-width: 640px) {
   .letterIndex {
     .letterButton {
-      min-width: 28px;
-      height: 28px;
-      padding: 4px 6px;
+      padding: 3px 4px;
 
       span {
         font-size: 11px;

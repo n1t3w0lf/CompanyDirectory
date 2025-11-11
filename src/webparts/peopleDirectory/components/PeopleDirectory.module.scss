@@ -2,8 +2,8 @@
 
 .peopleDirectory {
   padding: 20px;
-  background-color: $ms-color-white;
   min-height: 400px;
+  background-color: #ffffff;
 
   .searchBox {
     max-width: 600px;
@@ -35,7 +35,7 @@
   }
 
   .userCard {
-    background-color: $ms-color-white;
+    background-color: #ffffff;
     border: 1px solid $ms-color-neutralLight;
     border-radius: 8px;
     padding: 20px;

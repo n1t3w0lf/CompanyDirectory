@@ -3010,7 +3010,7 @@ var Depths;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "JPst");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".peopleDirectory_4d4353ce{background-color:#fff;min-height:400px;padding:20px}.peopleDirectory_4d4353ce .searchBox_4d4353ce{max-width:600px}.peopleDirectory_4d4353ce .syncStatusContainer_4d4353ce{background-color:#f3f2f1;border-radius:4px;padding:12px}.peopleDirectory_4d4353ce .userGrid_4d4353ce{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:16px}@media (max-width:640px){.peopleDirectory_4d4353ce .userGrid_4d4353ce{grid-template-columns:1fr}}@media (min-width:641px) and (max-width:1024px){.peopleDirectory_4d4353ce .userGrid_4d4353ce{grid-template-columns:repeat(2,1fr)}}@media (min-width:1025px){.peopleDirectory_4d4353ce .userGrid_4d4353ce{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}.peopleDirectory_4d4353ce .userCard_4d4353ce{background-color:#fff;border:1px solid #edebe9;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;padding:20px;transition:all .2s ease-in-out}.peopleDirectory_4d4353ce .userCard_4d4353ce:hover{border-color:#0078d4;box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}.peopleDirectory_4d4353ce .userCard_4d4353ce:focus{outline:2px solid #0078d4;outline-offset:2px}.peopleDirectory_4d4353ce .userCard_4d4353ce .userName_4d4353ce{color:#323130;font-weight:600;text-align:left;word-break:break-word}.peopleDirectory_4d4353ce .userCard_4d4353ce .userJobTitle_4d4353ce{color:#605e5c;font-size:14px;text-align:left}.peopleDirectory_4d4353ce .userCard_4d4353ce .userInfo_4d4353ce{color:#605e5c;font-size:13px}.peopleDirectory_4d4353ce .userCard_4d4353ce .icon_4d4353ce{color:#0078d4;font-size:14px}.peopleDirectory_4d4353ce .userCard_4d4353ce .actionButton_4d4353ce{color:#0078d4}.peopleDirectory_4d4353ce .userCard_4d4353ce .actionButton_4d4353ce:hover{background-color:#c7e0f4}.peopleDirectory_4d4353ce .detailIcon_4d4353ce{color:#0078d4;font-size:18px;margin-top:2px}.peopleDirectory_4d4353ce .detailLabel_4d4353ce{color:#605e5c;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}.peopleDirectory_4d4353ce .detailValue_4d4353ce{color:#323130;word-break:break-word}.peopleDirectory_4d4353ce .detailsName_4d4353ce{color:#323130;font-weight:600;text-align:center}.peopleDirectory_4d4353ce .detailsJobTitle_4d4353ce{color:#605e5c;text-align:center}.peopleDirectory_4d4353ce .sectionTitle_4d4353ce{color:#323130;font-weight:600;margin-bottom:8px}.peopleDirectory_4d4353ce .metadata_4d4353ce{color:#a19f9d;font-style:italic}.peopleDirectory_4d4353ce .emptyState_4d4353ce{color:#605e5c;padding:60px 20px;text-align:center}.peopleDirectory_4d4353ce .emptyState_4d4353ce .emptyStateIcon_4d4353ce{color:#c8c6c4;font-size:64px;margin-bottom:16px}.peopleDirectory_4d4353ce .emptyState_4d4353ce .emptyStateText_4d4353ce{font-size:18px;margin-bottom:8px}.peopleDirectory_4d4353ce .emptyState_4d4353ce .emptyStateSubtext_4d4353ce{color:#a19f9d;font-size:14px}@media (max-width:640px){.peopleDirectory_4d4353ce{padding:12px}.peopleDirectory_4d4353ce .searchBox_4d4353ce{max-width:100%}.peopleDirectory_4d4353ce .userCard_4d4353ce{padding:16px}}.peopleDirectory_4d4353ce :focus-visible{outline:2px solid #0078d4;outline-offset:2px}@media print{.peopleDirectory_4d4353ce .actionButton_4d4353ce,.peopleDirectory_4d4353ce .searchBox_4d4353ce{display:none}.peopleDirectory_4d4353ce .userCard_4d4353ce{border:1px solid #ccc;box-shadow:none;break-inside:avoid}}@media (prefers-color-scheme:dark){.peopleDirectory_4d4353ce{background-color:#f3f2f1}.peopleDirectory_4d4353ce .userCard_4d4353ce{background-color:#edebe9;border-color:#d2d0ce}.peopleDirectory_4d4353ce .userCard_4d4353ce:hover{border-color:#0078d4}}", ""]);
+exports.push([module.i, ".peopleDirectory_7af76711{background-color:#fff;min-height:400px;padding:20px}.peopleDirectory_7af76711 .searchBox_7af76711{max-width:600px}.peopleDirectory_7af76711 .syncStatusContainer_7af76711{background-color:#f3f2f1;border-radius:4px;padding:12px}.peopleDirectory_7af76711 .userGrid_7af76711{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:16px}@media (max-width:640px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:1fr}}@media (min-width:641px) and (max-width:1024px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:repeat(2,1fr)}}@media (min-width:1025px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}.peopleDirectory_7af76711 .userCard_7af76711{background-color:#fff;border:1px solid #edebe9;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;padding:20px;transition:all .2s ease-in-out}.peopleDirectory_7af76711 .userCard_7af76711:hover{border-color:#0078d4;box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}.peopleDirectory_7af76711 .userCard_7af76711:focus{outline:2px solid #0078d4;outline-offset:2px}.peopleDirectory_7af76711 .userCard_7af76711 .userName_7af76711{color:#323130;font-weight:600;text-align:left;word-break:break-word}.peopleDirectory_7af76711 .userCard_7af76711 .userJobTitle_7af76711{color:#605e5c;font-size:14px;text-align:left}.peopleDirectory_7af76711 .userCard_7af76711 .userInfo_7af76711{color:#605e5c;font-size:13px}.peopleDirectory_7af76711 .userCard_7af76711 .icon_7af76711{color:#0078d4;font-size:14px}.peopleDirectory_7af76711 .userCard_7af76711 .actionButton_7af76711{color:#0078d4}.peopleDirectory_7af76711 .userCard_7af76711 .actionButton_7af76711:hover{background-color:#c7e0f4}.peopleDirectory_7af76711 .detailIcon_7af76711{color:#0078d4;font-size:18px;margin-top:2px}.peopleDirectory_7af76711 .detailLabel_7af76711{color:#605e5c;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}.peopleDirectory_7af76711 .detailValue_7af76711{color:#323130;word-break:break-word}.peopleDirectory_7af76711 .detailsName_7af76711{color:#323130;font-weight:600;text-align:center}.peopleDirectory_7af76711 .detailsJobTitle_7af76711{color:#605e5c;text-align:center}.peopleDirectory_7af76711 .sectionTitle_7af76711{color:#323130;font-weight:600;margin-bottom:8px}.peopleDirectory_7af76711 .metadata_7af76711{color:#a19f9d;font-style:italic}.peopleDirectory_7af76711 .emptyState_7af76711{color:#605e5c;padding:60px 20px;text-align:center}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateIcon_7af76711{color:#c8c6c4;font-size:64px;margin-bottom:16px}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateText_7af76711{font-size:18px;margin-bottom:8px}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateSubtext_7af76711{color:#a19f9d;font-size:14px}@media (max-width:640px){.peopleDirectory_7af76711{padding:12px}.peopleDirectory_7af76711 .searchBox_7af76711{max-width:100%}.peopleDirectory_7af76711 .userCard_7af76711{padding:16px}}.peopleDirectory_7af76711 :focus-visible{outline:2px solid #0078d4;outline-offset:2px}@media print{.peopleDirectory_7af76711 .actionButton_7af76711,.peopleDirectory_7af76711 .searchBox_7af76711{display:none}.peopleDirectory_7af76711 .userCard_7af76711{border:1px solid #ccc;box-shadow:none;break-inside:avoid}}@media (prefers-color-scheme:dark){.peopleDirectory_7af76711{background-color:#f3f2f1}.peopleDirectory_7af76711 .userCard_7af76711{background-color:#edebe9;border-color:#d2d0ce}.peopleDirectory_7af76711 .userCard_7af76711:hover{border-color:#0078d4}}", ""]);
 // Exports
 module.exports = exports;
 
@@ -9876,12 +9876,26 @@ const PeopleDirectory = (props) => {
         setError('');
     }, []);
     // Build webpart container style
-    const webpartContainerStyle = {
-        backgroundColor: props.webpartBackgroundColor || undefined,
-        backgroundImage: props.webpartBackgroundImage ? `url(${props.webpartBackgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-    };
+    const webpartContainerStyle = react__WEBPACK_IMPORTED_MODULE_0__["useMemo"](() => {
+        const style = {
+            ...(props.webpartBackgroundColor && { backgroundColor: props.webpartBackgroundColor }),
+            ...(props.webpartBackgroundImage && {
+                backgroundImage: `url("${props.webpartBackgroundImage}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+            })
+        };
+        // Debug logging
+        if (props.webpartBackgroundImage || props.webpartBackgroundColor) {
+            console.log('Webpart background config:', {
+                backgroundColor: props.webpartBackgroundColor,
+                backgroundImage: props.webpartBackgroundImage,
+                styleApplied: style
+            });
+        }
+        return style;
+    }, [props.webpartBackgroundColor, props.webpartBackgroundImage]);
     return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].peopleDirectory, style: webpartContainerStyle },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 20 } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, horizontalAlign: "space-between", verticalAlign: "center" },
@@ -12033,27 +12047,27 @@ Popup.displayName = 'Popup';
 /* tslint:disable */
 __webpack_require__(/*! ./PeopleDirectory.module.css */ "8vGm");
 const styles = {
-    peopleDirectory: 'peopleDirectory_4d4353ce',
-    searchBox: 'searchBox_4d4353ce',
-    syncStatusContainer: 'syncStatusContainer_4d4353ce',
-    userGrid: 'userGrid_4d4353ce',
-    userCard: 'userCard_4d4353ce',
-    userName: 'userName_4d4353ce',
-    userJobTitle: 'userJobTitle_4d4353ce',
-    userInfo: 'userInfo_4d4353ce',
-    icon: 'icon_4d4353ce',
-    actionButton: 'actionButton_4d4353ce',
-    detailIcon: 'detailIcon_4d4353ce',
-    detailLabel: 'detailLabel_4d4353ce',
-    detailValue: 'detailValue_4d4353ce',
-    detailsName: 'detailsName_4d4353ce',
-    detailsJobTitle: 'detailsJobTitle_4d4353ce',
-    sectionTitle: 'sectionTitle_4d4353ce',
-    metadata: 'metadata_4d4353ce',
-    emptyState: 'emptyState_4d4353ce',
-    emptyStateIcon: 'emptyStateIcon_4d4353ce',
-    emptyStateText: 'emptyStateText_4d4353ce',
-    emptyStateSubtext: 'emptyStateSubtext_4d4353ce'
+    peopleDirectory: 'peopleDirectory_7af76711',
+    searchBox: 'searchBox_7af76711',
+    syncStatusContainer: 'syncStatusContainer_7af76711',
+    userGrid: 'userGrid_7af76711',
+    userCard: 'userCard_7af76711',
+    userName: 'userName_7af76711',
+    userJobTitle: 'userJobTitle_7af76711',
+    userInfo: 'userInfo_7af76711',
+    icon: 'icon_7af76711',
+    actionButton: 'actionButton_7af76711',
+    detailIcon: 'detailIcon_7af76711',
+    detailLabel: 'detailLabel_7af76711',
+    detailValue: 'detailValue_7af76711',
+    detailsName: 'detailsName_7af76711',
+    detailsJobTitle: 'detailsJobTitle_7af76711',
+    sectionTitle: 'sectionTitle_7af76711',
+    metadata: 'metadata_7af76711',
+    emptyState: 'emptyState_7af76711',
+    emptyStateIcon: 'emptyStateIcon_7af76711',
+    emptyStateText: 'emptyStateText_7af76711',
+    emptyStateSubtext: 'emptyStateSubtext_7af76711'
 };
 /* harmony default export */ __webpack_exports__["e"] = (styles);
 /* tslint:enable */ 
@@ -22265,10 +22279,10 @@ function getStyleOptions() {
 /* tslint:disable */
 __webpack_require__(/*! ./LetterIndex.module.css */ "SXXe");
 const styles = {
-    letterIndex: 'letterIndex_afcde537',
-    letterButton: 'letterButton_afcde537',
-    active: 'active_afcde537',
-    disabled: 'disabled_afcde537'
+    letterIndex: 'letterIndex_60630ef3',
+    letterButton: 'letterButton_60630ef3',
+    active: 'active_60630ef3',
+    disabled: 'disabled_60630ef3'
 };
 /* harmony default export */ __webpack_exports__["e"] = (styles);
 /* tslint:enable */ 
@@ -29230,6 +29244,7 @@ var DropdownInternal = /** @class */ (function (_super) {
 
 
 const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFontColor = '#323130', jobTitleFontSize = 16, jobTitleFontColor = '#323130', jobTitleBold = true, profilePropertiesFontSize = 14, profilePropertiesFontColor = '#605E5C', iconSize = 20, iconColor = '#0078d4', profileCardBackgroundColor, profileCardBackgroundImage, showProfilePicture = true, textEllipsisLength = 50, showJobTitle = true, showDepartment = true, showOfficeLocation = true, showEmail = true, showBusinessPhones = true, showMobilePhone = true, showCity = true, showCountry = true, showCompanyName = true, showEmployeeId = true }) => {
+    var _a, _b;
     const handleClick = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"](() => {
         onUserClick(user);
     }, [user, onUserClick]);
@@ -29247,12 +29262,26 @@ const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFont
         return text.substring(0, textEllipsisLength) + '...';
     };
     // Build card style
-    const cardStyle = {
-        backgroundColor: profileCardBackgroundColor || undefined,
-        backgroundImage: profileCardBackgroundImage ? `url(${profileCardBackgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-    };
+    const cardStyle = react__WEBPACK_IMPORTED_MODULE_0__["useMemo"](() => {
+        const style = {
+            ...(profileCardBackgroundColor && { backgroundColor: profileCardBackgroundColor }),
+            ...(profileCardBackgroundImage && {
+                backgroundImage: `url("${profileCardBackgroundImage}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+            })
+        };
+        // Debug logging (only first card)
+        if ((profileCardBackgroundImage || profileCardBackgroundColor) && user.displayName) {
+            console.log('Card background config for', user.displayName, {
+                backgroundColor: profileCardBackgroundColor,
+                backgroundImage: profileCardBackgroundImage,
+                styleApplied: style
+            });
+        }
+        return style;
+    }, [profileCardBackgroundColor, profileCardBackgroundImage, user.displayName]);
     return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userCard, onClick: handleClick, role: "button", tabIndex: 0, style: cardStyle },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 12 } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 12 }, verticalAlign: "center" },
@@ -29268,60 +29297,60 @@ const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFont
                             fontWeight: jobTitleBold ? 'bold' : 'normal'
                         }, title: user.jobTitle }, truncateText(user.jobTitle))))),
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 4 } },
-                showEmail && user.mail && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                showEmail && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "Mail", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.mail }, truncateText(user.mail)))),
-                showBusinessPhones && user.businessPhones && user.businessPhones.length > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.mail || '' }, truncateText(user.mail || '')))),
+                showBusinessPhones && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "Phone", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.businessPhones[0] }, truncateText(user.businessPhones[0])))),
-                showMobilePhone && user.mobilePhone && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: ((_a = user.businessPhones) === null || _a === void 0 ? void 0 : _a[0]) || '' }, truncateText(((_b = user.businessPhones) === null || _b === void 0 ? void 0 : _b[0]) || '')))),
+                showMobilePhone && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "CellPhone", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.mobilePhone }, truncateText(user.mobilePhone)))),
-                showDepartment && user.department && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.mobilePhone || '' }, truncateText(user.mobilePhone || '')))),
+                showDepartment && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "Org", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.department }, truncateText(user.department)))),
-                showOfficeLocation && user.officeLocation && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.department || '' }, truncateText(user.department || '')))),
+                showOfficeLocation && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "POI", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.officeLocation }, truncateText(user.officeLocation)))),
-                showCity && user.city && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.officeLocation || '' }, truncateText(user.officeLocation || '')))),
+                showCity && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "CityNext", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.city }, truncateText(user.city)))),
-                showCountry && user.country && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.city || '' }, truncateText(user.city || '')))),
+                showCountry && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "Globe", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.country }, truncateText(user.country)))),
-                showCompanyName && user.companyName && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.country || '' }, truncateText(user.country || '')))),
+                showCompanyName && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "CompanyDirectory", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.companyName }, truncateText(user.companyName)))),
-                showEmployeeId && user.employeeId && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+                        }, title: user.companyName || '' }, truncateText(user.companyName || '')))),
+                showEmployeeId && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_5__[/* Icon */ "e"], { iconName: "Contact", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].icon, style: { fontSize: `${iconSize}px`, color: iconColor } }),
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userInfo, style: {
                             fontSize: `${profilePropertiesFontSize}px`,
                             color: profilePropertiesFontColor
-                        }, title: user.employeeId }, truncateText(user.employeeId))))))));
+                        }, title: user.employeeId || '' }, truncateText(user.employeeId || ''))))))));
 };
 
 
@@ -29339,7 +29368,7 @@ const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFont
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "JPst");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".letterIndex_afcde537{padding:12px 0}.letterIndex_afcde537 .letterButton_afcde537{-ms-flex-align:center;-ms-flex-pack:center;align-items:center;background-color:#fff;border:1px solid #edebe9;border-radius:16px;cursor:pointer;display:-ms-inline-flexbox;display:inline-flex;height:32px;justify-content:center;min-width:32px;padding:4px 8px;transition:all .2s ease-in-out}.letterIndex_afcde537 .letterButton_afcde537:hover:not(:disabled){background-color:#c7e0f4;border-color:#0078d4;transform:scale(1.1)}.letterIndex_afcde537 .letterButton_afcde537.active_afcde537{background-color:#0078d4;border-color:#0078d4;color:#fff}.letterIndex_afcde537 .letterButton_afcde537.active_afcde537 span{color:#fff;font-weight:600}.letterIndex_afcde537 .letterButton_afcde537.disabled_afcde537{cursor:not-allowed;opacity:.3}.letterIndex_afcde537 .letterButton_afcde537.disabled_afcde537:hover{background-color:#fff;border-color:#edebe9;transform:none}.letterIndex_afcde537 .letterButton_afcde537:focus-visible{outline:2px solid #0078d4;outline-offset:2px}.letterIndex_afcde537 .letterButton_afcde537 span{color:#323130;font-weight:500;line-height:1}@media (max-width:640px){.letterIndex_afcde537 .letterButton_afcde537{height:28px;min-width:28px;padding:4px 6px}.letterIndex_afcde537 .letterButton_afcde537 span{font-size:11px}}", ""]);
+exports.push([module.i, ".letterIndex_60630ef3{padding:12px 0}.letterIndex_60630ef3 .letterButton_60630ef3{-ms-flex-align:center;-ms-flex-pack:center;align-items:center;background-color:transparent;border:none;cursor:pointer;display:-ms-inline-flexbox;display:inline-flex;height:auto;justify-content:center;min-width:auto;padding:4px 6px;transition:all .2s ease-in-out}.letterIndex_60630ef3 .letterButton_60630ef3:hover:not(:disabled){text-decoration:underline;transform:scale(1.1)}.letterIndex_60630ef3 .letterButton_60630ef3.active_60630ef3{color:#0078d4}.letterIndex_60630ef3 .letterButton_60630ef3.active_60630ef3 span{color:#0078d4;font-weight:700;text-decoration:underline}.letterIndex_60630ef3 .letterButton_60630ef3.disabled_60630ef3{cursor:not-allowed;opacity:.3}.letterIndex_60630ef3 .letterButton_60630ef3.disabled_60630ef3:hover{text-decoration:none;transform:none}.letterIndex_60630ef3 .letterButton_60630ef3:focus-visible{outline:2px solid #0078d4;outline-offset:2px}.letterIndex_60630ef3 .letterButton_60630ef3 span{color:#323130;font-weight:500;line-height:1}@media (max-width:640px){.letterIndex_60630ef3 .letterButton_60630ef3{padding:3px 4px}.letterIndex_60630ef3 .letterButton_60630ef3 span{font-size:11px}}", ""]);
 // Exports
 module.exports = exports;
 

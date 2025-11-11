@@ -84,12 +84,28 @@ export const UserCard: React.FC<IUserCardProps> = ({
   };
 
   // Build card style
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: profileCardBackgroundColor || undefined,
-    backgroundImage: profileCardBackgroundImage ? `url(${profileCardBackgroundImage})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center'
-  };
+  const cardStyle: React.CSSProperties = React.useMemo(() => {
+    const style: React.CSSProperties = {
+      ...(profileCardBackgroundColor && { backgroundColor: profileCardBackgroundColor }),
+      ...(profileCardBackgroundImage && {
+        backgroundImage: `url("${profileCardBackgroundImage}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      })
+    };
+
+    // Debug logging (only first card)
+    if ((profileCardBackgroundImage || profileCardBackgroundColor) && user.displayName) {
+      console.log('Card background config for', user.displayName, {
+        backgroundColor: profileCardBackgroundColor,
+        backgroundImage: profileCardBackgroundImage,
+        styleApplied: style
+      });
+    }
+
+    return style;
+  }, [profileCardBackgroundColor, profileCardBackgroundImage, user.displayName]);
 
   return (
     <div className={styles.userCard} onClick={handleClick} role="button" tabIndex={0} style={cardStyle}>
@@ -141,7 +157,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
         {/* User Properties */}
         <Stack tokens={{ childrenGap: 4 }}>
 
-          {showEmail && user.mail && (
+          {showEmail && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="Mail"
@@ -155,14 +171,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.mail}
+                title={user.mail || ''}
               >
-                {truncateText(user.mail)}
+                {truncateText(user.mail || '')}
               </Text>
             </Stack>
           )}
 
-          {showBusinessPhones && user.businessPhones && user.businessPhones.length > 0 && (
+          {showBusinessPhones && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="Phone"
@@ -176,14 +192,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.businessPhones[0]}
+                title={user.businessPhones?.[0] || ''}
               >
-                {truncateText(user.businessPhones[0])}
+                {truncateText(user.businessPhones?.[0] || '')}
               </Text>
             </Stack>
           )}
 
-          {showMobilePhone && user.mobilePhone && (
+          {showMobilePhone && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="CellPhone"
@@ -197,14 +213,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.mobilePhone}
+                title={user.mobilePhone || ''}
               >
-                {truncateText(user.mobilePhone)}
+                {truncateText(user.mobilePhone || '')}
               </Text>
             </Stack>
           )}
 
-          {showDepartment && user.department && (
+          {showDepartment && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="Org"
@@ -218,14 +234,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.department}
+                title={user.department || ''}
               >
-                {truncateText(user.department)}
+                {truncateText(user.department || '')}
               </Text>
             </Stack>
           )}
 
-          {showOfficeLocation && user.officeLocation && (
+          {showOfficeLocation && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="POI"
@@ -239,14 +255,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.officeLocation}
+                title={user.officeLocation || ''}
               >
-                {truncateText(user.officeLocation)}
+                {truncateText(user.officeLocation || '')}
               </Text>
             </Stack>
           )}
 
-          {showCity && user.city && (
+          {showCity && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="CityNext"
@@ -260,14 +276,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.city}
+                title={user.city || ''}
               >
-                {truncateText(user.city)}
+                {truncateText(user.city || '')}
               </Text>
             </Stack>
           )}
 
-          {showCountry && user.country && (
+          {showCountry && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="Globe"
@@ -281,14 +297,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.country}
+                title={user.country || ''}
               >
-                {truncateText(user.country)}
+                {truncateText(user.country || '')}
               </Text>
             </Stack>
           )}
 
-          {showCompanyName && user.companyName && (
+          {showCompanyName && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="CompanyDirectory"
@@ -302,14 +318,14 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.companyName}
+                title={user.companyName || ''}
               >
-                {truncateText(user.companyName)}
+                {truncateText(user.companyName || '')}
               </Text>
             </Stack>
           )}
 
-          {showEmployeeId && user.employeeId && (
+          {showEmployeeId && (
             <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
               <Icon
                 iconName="Contact"
@@ -323,9 +339,9 @@ export const UserCard: React.FC<IUserCardProps> = ({
                   fontSize: `${profilePropertiesFontSize}px`,
                   color: profilePropertiesFontColor
                 }}
-                title={user.employeeId}
+                title={user.employeeId || ''}
               >
-                {truncateText(user.employeeId)}
+                {truncateText(user.employeeId || '')}
               </Text>
             </Stack>
           )}
