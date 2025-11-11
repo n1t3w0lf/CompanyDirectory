@@ -56,3 +56,4 @@ obj
 connect.lock
 typings
 .nyc_output
+/release
