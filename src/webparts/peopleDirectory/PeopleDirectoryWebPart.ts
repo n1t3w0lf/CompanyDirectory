@@ -10,7 +10,7 @@ import {
 } from '@microsoft/sp-property-pane';
 import { PropertyPaneSyncButton } from './propertyPaneControls/PropertyPaneSyncButton';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import * as strings from 'PeopleDirectoryWebPartStrings';
+// import * as strings from 'PeopleDirectoryWebPartStrings';
 import { PeopleDirectory } from './components/PeopleDirectory';
 import { IPeopleDirectoryProps } from './components/IPeopleDirectoryProps';
 import { GraphService } from '../../services/GraphService';
@@ -132,14 +132,72 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
     const element: React.ReactElement<IPeopleDirectoryProps> = React.createElement(
       PeopleDirectory,
       {
-        title: this.properties.title || 'People Directory',
-        description: this.properties.description || 'Search and discover people across your organization',
         peopleService: this.peopleService,
         syncService: this.syncService,
         displayMode: this.displayMode,
-        updateProperty: (value: string) => {
-          this.properties.title = value;
-        }
+
+        // Header Configuration
+        headingText: this.properties.headingText || 'People Directory',
+        headingFontSize: this.properties.headingFontSize || 28,
+        headingFontColor: this.properties.headingFontColor || '#323130',
+        subtextText: this.properties.subtextText || '',
+        subtextFontSize: this.properties.subtextFontSize || 14,
+        subtextFontColor: this.properties.subtextFontColor || '#666666',
+
+        // User Properties
+        showEmail: this.properties.showEmail !== false,
+        showJobTitle: this.properties.showJobTitle !== false,
+        showDepartment: this.properties.showDepartment !== false,
+        showOfficeLocation: this.properties.showOfficeLocation !== false,
+        showBusinessPhones: this.properties.showBusinessPhones !== false,
+        showMobilePhone: this.properties.showMobilePhone !== false,
+        showCity: this.properties.showCity !== false,
+        showCountry: this.properties.showCountry !== false,
+        showCompanyName: this.properties.showCompanyName !== false,
+        showEmployeeId: this.properties.showEmployeeId !== false,
+
+        // Profile Name Styling
+        profileNameFontSize: this.properties.profileNameFontSize || 18,
+        profileNameFontColor: this.properties.profileNameFontColor || '#323130',
+
+        // Job Title Styling
+        jobTitleFontSize: this.properties.jobTitleFontSize || 16,
+        jobTitleFontColor: this.properties.jobTitleFontColor || '#323130',
+        jobTitleBold: this.properties.jobTitleBold !== false,
+
+        // Profile Properties Styling
+        profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
+        profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
+
+        // Property Display Order
+        propertyDisplayOrder: this.properties.propertyDisplayOrder || 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
+
+        // Text Truncation
+        textEllipsisLength: this.properties.textEllipsisLength || 50,
+
+        // Icon Styling
+        iconSize: this.properties.iconSize || 20,
+        iconColor: this.properties.iconColor || '#0078d4',
+
+        // Profile Card Background
+        profileCardBackgroundColor: this.properties.profileCardBackgroundColor || '',
+        profileCardBackgroundImage: this.properties.profileCardBackgroundImage || '',
+
+        // Webpart Background
+        webpartBackgroundColor: this.properties.webpartBackgroundColor || '',
+        webpartBackgroundImage: this.properties.webpartBackgroundImage || '',
+
+        // Letter Index
+        showLetterIndex: this.properties.showLetterIndex !== false,
+
+        // Profile Picture
+        showProfilePicture: this.properties.showProfilePicture !== false,
+
+        // Search Button Configuration
+        searchButtonText: this.properties.searchButtonText || 'Search',
+        searchButtonColor: this.properties.searchButtonColor || '#0078d4',
+        searchButtonTextSize: this.properties.searchButtonTextSize || 14,
+        searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe'
       }
     );
 
@@ -193,19 +251,116 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
       pages: [
         {
           header: {
-            description: strings.PropertyPaneDescription
+            description: 'Configure header, styling, and user properties'
           },
           groups: [
             {
-              groupName: strings.BasicGroupName,
+              groupName: 'Header Configuration',
               groupFields: [
-                PropertyPaneTextField('title', {
-                  label: strings.TitleFieldLabel,
-                  description: 'The title displayed at the top of the web part'
+                PropertyPaneTextField('headingText', {
+                  label: 'Heading Text',
+                  placeholder: 'People Directory'
                 }),
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel,
-                  description: 'A brief description shown below the title',
+                PropertyPaneSlider('headingFontSize', {
+                  label: 'Heading Font Size (px)',
+                  min: 20,
+                  max: 40,
+                  step: 2,
+                  value: 28,
+                  showValue: true
+                }),
+                PropertyPaneTextField('headingFontColor', {
+                  label: 'Heading Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #0078d4, rgba(0,120,212,0.8), hsla(206,100%,42%,0.8)'
+                }),
+                PropertyPaneTextField('subtextText', {
+                  label: 'Subtext',
+                  placeholder: 'Optional description text',
+                  multiline: true,
+                  rows: 2
+                }),
+                PropertyPaneSlider('subtextFontSize', {
+                  label: 'Subtext Font Size (px)',
+                  min: 10,
+                  max: 20,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneTextField('subtextFontColor', {
+                  label: 'Subtext Color (hex, rgba, or hsla)',
+                  placeholder: '#666666 or rgba(102,102,102,1)',
+                  description: 'Examples: #666666, rgba(102,102,102,0.9), hsla(0,0%,40%,0.9)'
+                })
+              ]
+            },
+            {
+              groupName: 'Profile Name Styling',
+              groupFields: [
+                PropertyPaneSlider('profileNameFontSize', {
+                  label: 'Name Font Size (px)',
+                  min: 14,
+                  max: 28,
+                  step: 1,
+                  value: 18,
+                  showValue: true
+                }),
+                PropertyPaneTextField('profileNameFontColor', {
+                  label: 'Name Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #000000, rgba(0,0,0,0.9), hsla(0,0%,0%,0.9)'
+                })
+              ]
+            },
+            {
+              groupName: 'Job Title Styling',
+              groupFields: [
+                PropertyPaneSlider('jobTitleFontSize', {
+                  label: 'Job Title Font Size (px)',
+                  min: 12,
+                  max: 24,
+                  step: 1,
+                  value: 16,
+                  showValue: true
+                }),
+                PropertyPaneTextField('jobTitleFontColor', {
+                  label: 'Job Title Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Examples: #323130, rgba(50,49,48,0.9), hsla(0,0%,20%,0.9)'
+                }),
+                PropertyPaneToggle('jobTitleBold', {
+                  label: 'Bold Job Title',
+                  onText: 'Bold',
+                  offText: 'Normal'
+                })
+              ]
+            },
+            {
+              groupName: 'Profile Properties Styling',
+              groupFields: [
+                PropertyPaneSlider('profilePropertiesFontSize', {
+                  label: 'Properties Font Size (px)',
+                  min: 10,
+                  max: 20,
+                  step: 1,
+                  value: 14,
+                  showValue: true
+                }),
+                PropertyPaneTextField('profilePropertiesFontColor', {
+                  label: 'Properties Color (hex, rgba, or hsla)',
+                  placeholder: '#605E5C or rgba(96,94,92,1)',
+                  description: 'Examples: #605E5C, rgba(96,94,92,0.9), hsla(20,3%,37%,0.9)'
+                })
+              ]
+            },
+            {
+              groupName: 'Property Display Order',
+              groupFields: [
+                PropertyPaneTextField('propertyDisplayOrder', {
+                  label: 'Field Display Order (comma-separated)',
+                  placeholder: 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
+                  description: 'Specify the order of fields. Available: jobTitle, email, department, officeLocation, city, country, companyName, businessPhones, mobilePhone, employeeId',
                   multiline: true,
                   rows: 3
                 })

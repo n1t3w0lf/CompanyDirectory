@@ -4,6 +4,34 @@ import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
 
 /**
+ * Graph API Response Types
+ */
+interface IGraphResponse {
+  value: IGraphUser[];
+  '@odata.count'?: number;
+  '@odata.nextLink'?: string;
+}
+
+interface IGraphUser {
+  id: string;
+  userPrincipalName: string;
+  displayName: string;
+  givenName: string;
+  surname: string;
+  mail: string;
+  jobTitle: string;
+  department: string;
+  officeLocation: string;
+  businessPhones: string[];
+  mobilePhone: string;
+  city: string;
+  country: string;
+  companyName: string;
+  preferredLanguage: string;
+  employeeId: string;
+}
+
+/**
  * Service for interacting with Microsoft Graph API
  */
 export class GraphService {

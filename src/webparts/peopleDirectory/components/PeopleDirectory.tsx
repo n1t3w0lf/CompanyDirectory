@@ -283,10 +283,26 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Header */}
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <Stack.Item grow>
-            <Text variant="xxLarge" block>{props.title}</Text>
-            {props.description && (
-              <Text variant="medium" block style={{ color: '#666' }}>
-                {props.description}
+            <Text
+              variant="xxLarge"
+              block
+              style={{
+                fontSize: props.headingFontSize,
+                color: props.headingFontColor
+              }}
+            >
+              {props.headingText}
+            </Text>
+            {props.subtextText && (
+              <Text
+                variant="medium"
+                block
+                style={{
+                  fontSize: props.subtextFontSize,
+                  color: props.subtextFontColor
+                }}
+              >
+                {props.subtextText}
               </Text>
             )}
             {totalUsers > 0 && (
