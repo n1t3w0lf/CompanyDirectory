@@ -18,7 +18,6 @@ export interface IAdvancedFilterPanelProps {
   locations: string[];
   cities: string[];
   countries: string[];
-  jobTitles: string[];
   currentFilters: IAdvancedFilters;
   onApplyFilters: (filters: IAdvancedFilters) => void;
   onClearFilters: () => void;
@@ -29,7 +28,6 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
   locations,
   cities,
   countries,
-  jobTitles,
   currentFilters,
   onApplyFilters,
   onClearFilters
@@ -56,15 +54,35 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
     ...countries.map(c => ({ key: c, text: c }))
   ];
 
-  const handleApply = (): void => {
-    onApplyFilters(filters);
-  };
+  const handleDepartmentChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    setFilters({ ...filters, department: option?.key as string || undefined });
+  }, [filters]);
 
-  const handleClear = (): void => {
+  const handleLocationChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    setFilters({ ...filters, officeLocation: option?.key as string || undefined });
+  }, [filters]);
+
+  const handleCityChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    setFilters({ ...filters, city: option?.key as string || undefined });
+  }, [filters]);
+
+  const handleCountryChange = React.useCallback((_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    setFilters({ ...filters, country: option?.key as string || undefined });
+  }, [filters]);
+
+  const handleJobTitleChange = React.useCallback((_: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+    setFilters({ ...filters, jobTitle: newValue || undefined });
+  }, [filters]);
+
+  const handleApply = React.useCallback((): void => {
+    onApplyFilters(filters);
+  }, [filters, onApplyFilters]);
+
+  const handleClear = React.useCallback((): void => {
     const emptyFilters: IAdvancedFilters = {};
     setFilters(emptyFilters);
     onClearFilters();
-  };
+  }, [onClearFilters]);
 
   return (
     <Stack tokens={{ childrenGap: 16 }} styles={{ root: { padding: '20px 0' } }}>
@@ -72,7 +90,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Department"
         options={departmentOptions}
         selectedKey={filters.department || ''}
-        onChange={(_, option) => setFilters({ ...filters, department: option?.key as string || undefined })}
+        onChange={handleDepartmentChange}
         placeholder="Select a department"
       />
 
@@ -80,7 +98,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Office Location"
         options={locationOptions}
         selectedKey={filters.officeLocation || ''}
-        onChange={(_, option) => setFilters({ ...filters, officeLocation: option?.key as string || undefined })}
+        onChange={handleLocationChange}
         placeholder="Select a location"
       />
 
@@ -88,7 +106,7 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="City"
         options={cityOptions}
         selectedKey={filters.city || ''}
-        onChange={(_, option) => setFilters({ ...filters, city: option?.key as string || undefined })}
+        onChange={handleCityChange}
         placeholder="Select a city"
       />
 
@@ -96,14 +114,14 @@ export const AdvancedFilterPanel: React.FC<IAdvancedFilterPanelProps> = ({
         label="Country"
         options={countryOptions}
         selectedKey={filters.country || ''}
-        onChange={(_, option) => setFilters({ ...filters, country: option?.key as string || undefined })}
+        onChange={handleCountryChange}
         placeholder="Select a country"
       />
 
       <TextField
         label="Job Title (search)"
         value={filters.jobTitle || ''}
-        onChange={(_, newValue) => setFilters({ ...filters, jobTitle: newValue || undefined })}
+        onChange={handleJobTitleChange}
         placeholder="Enter job title keywords"
       />
 

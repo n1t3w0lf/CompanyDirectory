@@ -13,7 +13,7 @@ export class ErrorHandler {
 
     // Handle Graph API errors
     if (this.isGraphError(error)) {
-      const graphError = error as any;
+      const graphError = error as { statusCode?: number; code?: string | number };
       const statusCode = graphError.statusCode || graphError.code;
 
       switch (statusCode) {

@@ -9,10 +9,35 @@ import styles from './PeopleDirectory.module.scss';
 
 export interface IUserCardProps {
   user: IUserProfile;
-  onClick: () => void;
+  onUserClick: (user: IUserProfile) => void;
 }
 
-export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
+export const UserCard: React.FC<IUserCardProps> = ({ user, onUserClick }) => {
+  const handleClick = React.useCallback((): void => {
+    onUserClick(user);
+  }, [user, onUserClick]);
+
+  const handleEmailClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
+    e.stopPropagation();
+    if (user.mail) {
+      window.location.href = `mailto:${user.mail}`;
+    }
+  }, [user.mail]);
+
+  const handleBusinessPhoneClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
+    e.stopPropagation();
+    if (user.businessPhones && user.businessPhones.length > 0) {
+      window.location.href = `tel:${user.businessPhones[0]}`;
+    }
+  }, [user.businessPhones]);
+
+  const handleMobilePhoneClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
+    e.stopPropagation();
+    if (user.mobilePhone) {
+      window.location.href = `tel:${user.mobilePhone}`;
+    }
+  }, [user.mobilePhone]);
+
   const getInitials = (): string => {
     const firstName = user.givenName || '';
     const lastName = user.surname || '';
@@ -20,7 +45,7 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
   };
 
   return (
-    <div className={styles.userCard} onClick={onClick} role="button" tabIndex={0}>
+    <div className={styles.userCard} onClick={handleClick} role="button" tabIndex={0}>
       <Stack tokens={{ childrenGap: 12 }}>
         <Stack horizontal horizontalAlign="center">
           <Persona
@@ -69,10 +94,7 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'Mail' }}
               title={`Email ${user.displayName}`}
               ariaLabel="Send email"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `mailto:${user.mail}`;
-              }}
+              onClick={handleEmailClick}
               className={styles.actionButton}
             />
           )}
@@ -81,10 +103,7 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'Phone' }}
               title={`Call ${user.displayName}`}
               ariaLabel="Call"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `tel:${user.businessPhones[0]}`;
-              }}
+              onClick={handleBusinessPhoneClick}
               className={styles.actionButton}
             />
           )}
@@ -93,10 +112,7 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onClick }) => {
               iconProps={{ iconName: 'CellPhone' }}
               title={`Call mobile ${user.displayName}`}
               ariaLabel="Call mobile"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `tel:${user.mobilePhone}`;
-              }}
+              onClick={handleMobilePhoneClick}
               className={styles.actionButton}
             />
           )}

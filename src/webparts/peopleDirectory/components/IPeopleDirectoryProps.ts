@@ -1,6 +1,6 @@
-import { PeopleService } from '../../../services/PeopleService';
-import { SyncService } from '../../../services/SyncService';
-import { DisplayMode } from '@microsoft/sp-core-library';
+import { PeopleService } from "../../../services/PeopleService";
+import { SyncService } from "../../../services/SyncService";
+import { DisplayMode } from "@microsoft/sp-core-library";
 
 export interface IPeopleDirectoryProps {
   // Services

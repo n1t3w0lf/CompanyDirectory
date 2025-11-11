@@ -32,7 +32,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const [locations, setLocations] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
-  const [jobTitles, setJobTitles] = useState<string[]>([]);
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<IAdvancedFilters>({});
@@ -85,7 +84,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   /**
    * Load first 30 users
    */
-  const loadInitialUsers = async (): Promise<void> => {
+  const loadInitialUsers = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       const initialUsers = await props.peopleService.getInitialUsers(30);
@@ -101,35 +100,33 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       setError('Failed to load users. Please try again.');
       setLoading(false);
     }
-  };
+  }, [props.peopleService]);
 
   /**
    * Load filter options
    */
-  const loadFilterOptions = async (): Promise<void> => {
+  const loadFilterOptions = useCallback(async (): Promise<void> => {
     try {
-      const [depts, locs, citiesData, countriesData, titlesData] = await Promise.all([
+      const [depts, locs, citiesData, countriesData] = await Promise.all([
         props.peopleService.getDepartments(),
         props.peopleService.getOfficeLocations(),
         props.peopleService.getCities(),
-        props.peopleService.getCountries(),
-        props.peopleService.getJobTitles()
+        props.peopleService.getCountries()
       ]);
 
       setDepartments(depts);
       setLocations(locs);
       setCities(citiesData);
       setCountries(countriesData);
-      setJobTitles(titlesData);
     } catch (err) {
       console.error('Error loading filter options:', err);
     }
-  };
+  }, [props.peopleService]);
 
   /**
    * Handle initial sync start
    */
-  const handleStartSync = async (): Promise<void> => {
+  const handleStartSync = useCallback(async (): Promise<void> => {
     try {
       setSyncStatus({
         isRunning: true,
@@ -154,42 +151,20 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       setError('Sync failed. Please try again.');
       setSyncStatus(props.syncService.getSyncStatus());
     }
-  };
+  }, [props.syncService, loadInitialUsers, loadFilterOptions]);
 
   /**
    * Handle sync cancellation
    */
-  const handleCancelSync = (): void => {
+  const handleCancelSync = useCallback((): void => {
     props.syncService.cancelSync();
     setSyncStatus(props.syncService.getSyncStatus());
-  };
-
-  /**
-   * Debounced search
-   */
-  const handleSearchChange = useCallback((newValue?: string): void => {
-    const value = newValue || '';
-    setSearchText(value);
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.length < Constants.MIN_SEARCH_LENGTH) {
-      // Reload initial users when search is cleared
-      loadInitialUsers();
-      return;
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(value);
-    }, Constants.SEARCH_DEBOUNCE_MS) as unknown as number;
-  }, []);
+  }, [props.syncService]);
 
   /**
    * Perform search
    */
-  const performSearch = async (searchValue: string): Promise<void> => {
+  const performSearch = useCallback(async (searchValue: string): Promise<void> => {
     if (searchValue.length < Constants.MIN_SEARCH_LENGTH) {
       return;
     }
@@ -212,12 +187,34 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeFilters, props.peopleService]);
+
+  /**
+   * Debounced search
+   */
+  const handleSearchChange = useCallback((newValue?: string): void => {
+    const value = newValue || '';
+    setSearchText(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (value.length < Constants.MIN_SEARCH_LENGTH) {
+      // Reload initial users when search is cleared
+      loadInitialUsers();
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(value);
+    }, Constants.SEARCH_DEBOUNCE_MS) as unknown as number;
+  }, [loadInitialUsers, performSearch]);
 
   /**
    * Apply advanced filters
    */
-  const handleApplyFilters = async (filters: IAdvancedFilters): Promise<void> => {
+  const handleApplyFilters = useCallback(async (filters: IAdvancedFilters): Promise<void> => {
     setActiveFilters(filters);
     setIsFilterPanelOpen(false);
     setLoading(true);
@@ -236,22 +233,22 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchText, props.peopleService]);
 
   /**
    * Clear all filters
    */
-  const handleClearFilters = async (): Promise<void> => {
+  const handleClearFilters = useCallback(async (): Promise<void> => {
     setActiveFilters({});
     setSearchText('');
     setIsFilterPanelOpen(false);
     await loadInitialUsers();
-  };
+  }, [loadInitialUsers]);
 
   /**
    * Handle user card click
    */
-  const handleUserClick = async (user: IUserProfile): Promise<void> => {
+  const handleUserClick = useCallback(async (user: IUserProfile): Promise<void> => {
     setSelectedUser(user);
     setIsPanelOpen(true);
 
@@ -268,7 +265,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     } catch (err) {
       console.error('Error refreshing user:', err);
     }
-  };
+  }, [props.peopleService]);
 
   /**
    * Count active filters
@@ -276,6 +273,75 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const getActiveFilterCount = (): number => {
     return Object.values(activeFilters).filter(v => v).length;
   };
+
+  /**
+   * IconButton handlers
+   */
+  const handleOpenFilterPanel = useCallback((): void => {
+    setIsFilterPanelOpen(true);
+  }, []);
+
+  const handleRefreshUsers = useCallback((): void => {
+    loadInitialUsers();
+  }, [loadInitialUsers]);
+
+  /**
+   * Filter removal handlers for MessageBar components
+   */
+  const handleRemoveDepartmentFilter = useCallback(async (): Promise<void> => {
+    const newFilters = { ...activeFilters, department: undefined };
+    await handleApplyFilters(newFilters);
+  }, [activeFilters, handleApplyFilters]);
+
+  const handleRemoveOfficeLocationFilter = useCallback(async (): Promise<void> => {
+    const newFilters = { ...activeFilters, officeLocation: undefined };
+    await handleApplyFilters(newFilters);
+  }, [activeFilters, handleApplyFilters]);
+
+  const handleRemoveCityFilter = useCallback(async (): Promise<void> => {
+    const newFilters = { ...activeFilters, city: undefined };
+    await handleApplyFilters(newFilters);
+  }, [activeFilters, handleApplyFilters]);
+
+  const handleRemoveCountryFilter = useCallback(async (): Promise<void> => {
+    const newFilters = { ...activeFilters, country: undefined };
+    await handleApplyFilters(newFilters);
+  }, [activeFilters, handleApplyFilters]);
+
+  const handleRemoveJobTitleFilter = useCallback(async (): Promise<void> => {
+    const newFilters = { ...activeFilters, jobTitle: undefined };
+    await handleApplyFilters(newFilters);
+  }, [activeFilters, handleApplyFilters]);
+
+  /**
+   * SearchBox handlers
+   */
+  const handleSearchBoxChange = useCallback((_: React.ChangeEvent<HTMLInputElement> | undefined, newValue?: string): void => {
+    handleSearchChange(newValue);
+  }, [handleSearchChange]);
+
+  const handleSearchBoxClear = useCallback((): void => {
+    handleSearchChange('');
+  }, [handleSearchChange]);
+
+  /**
+   * Panel dismiss handlers
+   */
+  const handleFilterPanelDismiss = useCallback((): void => {
+    setIsFilterPanelOpen(false);
+  }, []);
+
+  const handleDetailsPanelDismiss = useCallback((): void => {
+    setIsPanelOpen(false);
+    setSelectedUser(null);
+  }, []);
+
+  /**
+   * Error dismiss handler
+   */
+  const handleErrorDismiss = useCallback((): void => {
+    setError('');
+  }, []);
 
   return (
     <div className={styles.peopleDirectory}>
@@ -316,14 +382,14 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
               iconProps={{ iconName: 'Filter' }}
               title="Advanced filters"
               ariaLabel="Advanced filters"
-              onClick={() => setIsFilterPanelOpen(true)}
+              onClick={handleOpenFilterPanel}
               text={getActiveFilterCount() > 0 ? `${getActiveFilterCount()} active` : undefined}
             />
             <IconButton
               iconProps={{ iconName: 'Refresh' }}
               title="Reload users"
               ariaLabel="Reload users"
-              onClick={() => loadInitialUsers()}
+              onClick={handleRefreshUsers}
             />
           </Stack>
         </Stack>
@@ -340,8 +406,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Search Box */}
         <SearchBox
           placeholder={Constants.MSG_SEARCH_PLACEHOLDER}
-          onChange={(_, newValue) => handleSearchChange(newValue)}
-          onClear={() => handleSearchChange('')}
+          onChange={handleSearchBoxChange}
+          onClear={handleSearchBoxClear}
           value={searchText}
           disabled={loading}
           className={styles.searchBox}
@@ -353,7 +419,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.department && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, department: undefined })}
+                onDismiss={handleRemoveDepartmentFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -363,7 +429,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.officeLocation && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, officeLocation: undefined })}
+                onDismiss={handleRemoveOfficeLocationFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -373,7 +439,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.city && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, city: undefined })}
+                onDismiss={handleRemoveCityFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -383,7 +449,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.country && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, country: undefined })}
+                onDismiss={handleRemoveCountryFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -393,7 +459,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             {activeFilters.jobTitle && (
               <MessageBar
                 messageBarType={MessageBarType.info}
-                onDismiss={() => handleApplyFilters({ ...activeFilters, jobTitle: undefined })}
+                onDismiss={handleRemoveJobTitleFilter}
                 dismissButtonAriaLabel="Remove filter"
                 styles={{ root: { marginBottom: 0 } }}
               >
@@ -405,7 +471,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
         {/* Error Message */}
         {error && (
-          <MessageBar messageBarType={MessageBarType.error} onDismiss={() => setError('')}>
+          <MessageBar messageBarType={MessageBarType.error} onDismiss={handleErrorDismiss}>
             {error}
           </MessageBar>
         )}
@@ -443,7 +509,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                     <UserCard
                       key={user.id}
                       user={user}
-                      onClick={() => handleUserClick(user)}
+                      onUserClick={handleUserClick}
                     />
                   ))}
                 </div>
@@ -456,7 +522,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       {/* Advanced Filter Panel */}
       <Panel
         isOpen={isFilterPanelOpen}
-        onDismiss={() => setIsFilterPanelOpen(false)}
+        onDismiss={handleFilterPanelDismiss}
         headerText="Advanced Filters"
         closeButtonAriaLabel="Close"
         isLightDismiss
@@ -466,7 +532,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           locations={locations}
           cities={cities}
           countries={countries}
-          jobTitles={jobTitles}
           currentFilters={activeFilters}
           onApplyFilters={handleApplyFilters}
           onClearFilters={handleClearFilters}
@@ -478,10 +543,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         <UserDetailsPanel
           user={selectedUser}
           isOpen={isPanelOpen}
-          onDismiss={() => {
-            setIsPanelOpen(false);
-            setSelectedUser(null);
-          }}
+          onDismiss={handleDetailsPanelDismiss}
         />
       )}
     </div>

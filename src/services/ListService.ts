@@ -8,6 +8,40 @@ import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
 
 /**
+ * SharePoint list item structure for cached user data
+ * Note: All custom fields use PD_ prefix to avoid SharePoint reserved name conflicts
+ */
+interface ISharePointListItem {
+  Id: number;
+  Title: string;
+  PD_UserPrincipalName: string;
+  PD_Email?: string;
+  PD_Department?: string;
+  PD_JobTitle?: string;
+  PD_OfficeLocation?: string;
+  PD_BusinessPhones?: string;
+  PD_MobilePhone?: string;
+  PD_City?: string;
+  PD_Country?: string;
+  PD_CompanyName?: string;
+  PD_PhotoUrl?: string;
+  PD_GivenName?: string;
+  PD_Surname?: string;
+  PD_UserId?: string;
+  PD_LastVerified?: string | Date;
+  PD_AccessCount?: number;
+}
+
+/**
+ * Sync metadata structure
+ */
+interface ISyncMetadata {
+  lastFullSync: Date | null;
+  totalUsers: number;
+  lastSyncSuccess: boolean;
+}
+
+/**
  * Service for managing SharePoint list cache
  */
 export class ListService {
@@ -44,28 +78,28 @@ export class ListService {
 
       const list = listAddResult.list;
 
-      // Add custom fields
-      await list.fields.addText('UserPrincipalName', { MaxLength: 255, Required: true });
-      await list.fields.addText('Email', { MaxLength: 255 });
-      await list.fields.addText('Department', { MaxLength: 255 });
-      await list.fields.addText('JobTitle', { MaxLength: 255 });
-      await list.fields.addText('OfficeLocation', { MaxLength: 255 });
-      await list.fields.addText('BusinessPhones', { MaxLength: 500 });
-      await list.fields.addText('MobilePhone', { MaxLength: 50 });
-      await list.fields.addText('City', { MaxLength: 100 });
-      await list.fields.addText('Country', { MaxLength: 100 });
-      await list.fields.addText('CompanyName', { MaxLength: 255 });
-      await list.fields.addText('PhotoUrl', { MaxLength: 1000 });
-      await list.fields.addText('GivenName', { MaxLength: 255 });
-      await list.fields.addText('Surname', { MaxLength: 255 });
-      await list.fields.addText('UserId', { MaxLength: 100 });
-      await list.fields.addDateTime('LastVerified', { DisplayFormat: 1 });
-      await list.fields.addNumber('AccessCount', { MinimumValue: 0 });
+      // Add custom fields with PD_ prefix to avoid SharePoint reserved name conflicts
+      await list.fields.addText('PD_UserPrincipalName', { MaxLength: 255, Required: true });
+      await list.fields.addText('PD_Email', { MaxLength: 255 });
+      await list.fields.addText('PD_Department', { MaxLength: 255 });
+      await list.fields.addText('PD_JobTitle', { MaxLength: 255 });
+      await list.fields.addText('PD_OfficeLocation', { MaxLength: 255 });
+      await list.fields.addMultilineText('PD_BusinessPhones', { NumberOfLines: 2, RichText: false });
+      await list.fields.addText('PD_MobilePhone', { MaxLength: 50 });
+      await list.fields.addText('PD_City', { MaxLength: 100 });
+      await list.fields.addText('PD_Country', { MaxLength: 100 });
+      await list.fields.addText('PD_CompanyName', { MaxLength: 255 });
+      await list.fields.addMultilineText('PD_PhotoUrl', { NumberOfLines: 2, RichText: false });
+      await list.fields.addText('PD_GivenName', { MaxLength: 255 });
+      await list.fields.addText('PD_Surname', { MaxLength: 255 });
+      await list.fields.addText('PD_UserId', { MaxLength: 100 });
+      await list.fields.addDateTime('PD_LastVerified', { DisplayFormat: 1 });
+      await list.fields.addNumber('PD_AccessCount', { MinimumValue: 0 });
 
       // Create indexes for performance
-      await list.fields.getByInternalNameOrTitle('UserPrincipalName').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('Department').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('LastVerified').update({ Indexed: true });
+      await list.fields.getByInternalNameOrTitle('PD_UserPrincipalName').update({ Indexed: true });
+      await list.fields.getByInternalNameOrTitle('PD_Department').update({ Indexed: true });
+      await list.fields.getByInternalNameOrTitle('PD_LastVerified').update({ Indexed: true });
 
       this.isListReady = true;
     } catch (error) {
@@ -84,16 +118,16 @@ export class ListService {
 
       // Check if user already exists
       const existingItems = await list.items
-        .filter(`UserPrincipalName eq '${user.userPrincipalName.replace(/'/g, "''")}'`)
+        .filter(`PD_UserPrincipalName eq '${user.userPrincipalName.replace(/'/g, "''")}'`)
         .top(1)
-        .select('Id', 'AccessCount')();
+        .select('Id', 'PD_AccessCount')();
 
       const itemData = this.mapUserToListItem(user);
 
       if (existingItems.length > 0) {
         // Update existing item
-        const existingItem = existingItems[0];
-        itemData.AccessCount = (existingItem.AccessCount || 0) + 1;
+        const existingItem = existingItems[0] as { Id: number; PD_AccessCount?: number };
+        itemData.PD_AccessCount = (existingItem.PD_AccessCount || 0) + 1;
         await list.items.getById(existingItem.Id).update(itemData);
       } else {
         // Check if we're at capacity, remove least accessed item
@@ -104,7 +138,7 @@ export class ListService {
         }
 
         // Add new item
-        itemData.AccessCount = 1;
+        itemData.PD_AccessCount = 1;
         await list.items.add(itemData);
       }
     } catch (error) {
@@ -122,7 +156,7 @@ export class ListService {
 
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
-        .items.filter(`UserPrincipalName eq '${userPrincipalName.replace(/'/g, "''")}'`)
+        .items.filter(`PD_UserPrincipalName eq '${userPrincipalName.replace(/'/g, "''")}'`)
         .top(1)();
 
       if (items.length === 0) {
@@ -132,7 +166,7 @@ export class ListService {
       const item = items[0];
 
       // Check if cache entry is expired
-      const lastVerified = item.LastVerified ? new Date(item.LastVerified) : null;
+      const lastVerified = item.PD_LastVerified ? new Date(item.PD_LastVerified) : null;
       if (lastVerified && Date.now() - lastVerified.getTime() > Constants.LIST_CACHE_TTL) {
         return null;
       }
@@ -153,15 +187,15 @@ export class ListService {
 
       const escapedSearch = searchText.replace(/'/g, "''");
       const filter = `(substringof('${escapedSearch}', Title) or ` +
-                    `substringof('${escapedSearch}', Email) or ` +
-                    `substringof('${escapedSearch}', Department) or ` +
-                    `substringof('${escapedSearch}', JobTitle))`;
+                    `substringof('${escapedSearch}', PD_Email) or ` +
+                    `substringof('${escapedSearch}', PD_Department) or ` +
+                    `substringof('${escapedSearch}', PD_JobTitle))`;
 
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
         .items.filter(filter)
         .top(top)
-        .orderBy('AccessCount', false)();
+        .orderBy('PD_AccessCount', false)();
 
       return items.map(item => this.mapListItemToUser(item));
     } catch (error) {
@@ -179,13 +213,13 @@ export class ListService {
 
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
-        .items.select('Department')
+        .items.select('PD_Department')
         .top(5000)();
 
       const departments = new Set<string>();
       items.forEach(item => {
-        if (item.Department) {
-          departments.add(item.Department);
+        if (item.PD_Department) {
+          departments.add(item.PD_Department);
         }
       });
 
@@ -204,7 +238,7 @@ export class ListService {
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
         .items.select('Id')
-        .orderBy('AccessCount', true)
+        .orderBy('PD_AccessCount', true)
         .top(1)();
 
       if (items.length > 0) {
@@ -243,24 +277,24 @@ export class ListService {
   /**
    * Map user profile to SharePoint list item
    */
-  private mapUserToListItem(user: IUserProfile): any {
+  private mapUserToListItem(user: IUserProfile): Partial<ISharePointListItem> {
     return {
       Title: user.displayName,
-      UserPrincipalName: user.userPrincipalName,
-      Email: user.mail || '',
-      Department: user.department || '',
-      JobTitle: user.jobTitle || '',
-      OfficeLocation: user.officeLocation || '',
-      BusinessPhones: user.businessPhones ? JSON.stringify(user.businessPhones) : '',
-      MobilePhone: user.mobilePhone || '',
-      City: user.city || '',
-      Country: user.country || '',
-      CompanyName: user.companyName || '',
-      PhotoUrl: user.photoUrl || '',
-      GivenName: user.givenName || '',
-      Surname: user.surname || '',
-      UserId: user.id,
-      LastVerified: user.lastVerified || new Date()
+      PD_UserPrincipalName: user.userPrincipalName,
+      PD_Email: user.mail || '',
+      PD_Department: user.department || '',
+      PD_JobTitle: user.jobTitle || '',
+      PD_OfficeLocation: user.officeLocation || '',
+      PD_BusinessPhones: user.businessPhones ? JSON.stringify(user.businessPhones) : '',
+      PD_MobilePhone: user.mobilePhone || '',
+      PD_City: user.city || '',
+      PD_Country: user.country || '',
+      PD_CompanyName: user.companyName || '',
+      PD_PhotoUrl: user.photoUrl || '',
+      PD_GivenName: user.givenName || '',
+      PD_Surname: user.surname || '',
+      PD_UserId: user.id,
+      PD_LastVerified: user.lastVerified || new Date()
     };
   }
 
@@ -275,9 +309,9 @@ export class ListService {
 
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
-        .items.select('Id', 'UserId', 'UserPrincipalName', 'Title', 'Email', 'Department', 'JobTitle',
-          'OfficeLocation', 'BusinessPhones', 'MobilePhone', 'City', 'Country', 'CompanyName',
-          'PhotoUrl', 'GivenName', 'Surname', 'LastVerified', 'AccessCount')
+        .items.select('Id', 'PD_UserId', 'PD_UserPrincipalName', 'Title', 'PD_Email', 'PD_Department', 'PD_JobTitle',
+          'PD_OfficeLocation', 'PD_BusinessPhones', 'PD_MobilePhone', 'PD_City', 'PD_Country', 'PD_CompanyName',
+          'PD_PhotoUrl', 'PD_GivenName', 'PD_Surname', 'PD_LastVerified', 'PD_AccessCount')
         .orderBy(orderBy, true)
         .skip(skipCount)
         .top(pageSize)();
@@ -295,12 +329,6 @@ export class ListService {
   public async getTotalUserCount(): Promise<number> {
     try {
       await this.ensureList();
-
-      // Use a simple count query
-      const items = await this.sp.web.lists
-        .getByTitle(this.listTitle)
-        .items.select('Id')
-        .top(1)();
 
       // For large lists, we need to estimate
       // This is a limitation of SharePoint - getting exact count > 5000 is expensive
@@ -328,7 +356,7 @@ export class ListService {
 
       // Check if user exists
       const existingItems = await list.items
-        .filter(`UserPrincipalName eq '${user.userPrincipalName.replace(/'/g, "''")}'`)
+        .filter(`PD_UserPrincipalName eq '${user.userPrincipalName.replace(/'/g, "''")}'`)
         .top(1)
         .select('Id')();
 
@@ -348,7 +376,7 @@ export class ListService {
   /**
    * Get sync metadata
    */
-  public async getSyncMetadata(): Promise<any> {
+  public async getSyncMetadata(): Promise<ISyncMetadata | null> {
     try {
       await this.ensureList();
 
@@ -363,9 +391,9 @@ export class ListService {
       }
 
       return {
-        lastFullSync: items[0].LastVerified ? new Date(items[0].LastVerified) : null,
-        totalUsers: items[0].AccessCount || 0,
-        lastSyncSuccess: items[0].Department === 'Success'
+        lastFullSync: items[0].PD_LastVerified ? new Date(items[0].PD_LastVerified) : null,
+        totalUsers: items[0].PD_AccessCount || 0,
+        lastSyncSuccess: items[0].PD_Department === 'Success'
       };
     } catch (error) {
       console.error('Error getting sync metadata:', error);
@@ -390,11 +418,11 @@ export class ListService {
 
       const metadataItem = {
         Title: '_SyncMetadata',
-        UserPrincipalName: 'system',
-        LastVerified: metadata.lastFullSync,
-        AccessCount: metadata.totalUsers,
-        Department: metadata.lastSyncSuccess ? 'Success' : 'Failed',
-        Email: 'Sync Metadata - Do Not Delete'
+        PD_UserPrincipalName: 'system',
+        PD_LastVerified: metadata.lastFullSync,
+        PD_AccessCount: metadata.totalUsers,
+        PD_Department: metadata.lastSyncSuccess ? 'Success' : 'Failed',
+        PD_Email: 'Sync Metadata - Do Not Delete'
       };
 
       if (existingItems.length > 0) {
@@ -426,19 +454,19 @@ export class ListService {
       let filterQuery = "Title ne '_SyncMetadata'"; // Exclude metadata item
 
       if (filters.department) {
-        filterQuery += ` and Department eq '${filters.department.replace(/'/g, "''")}'`;
+        filterQuery += ` and PD_Department eq '${filters.department.replace(/'/g, "''")}'`;
       }
       if (filters.officeLocation) {
-        filterQuery += ` and OfficeLocation eq '${filters.officeLocation.replace(/'/g, "''")}'`;
+        filterQuery += ` and PD_OfficeLocation eq '${filters.officeLocation.replace(/'/g, "''")}'`;
       }
       if (filters.city) {
-        filterQuery += ` and City eq '${filters.city.replace(/'/g, "''")}'`;
+        filterQuery += ` and PD_City eq '${filters.city.replace(/'/g, "''")}'`;
       }
       if (filters.country) {
-        filterQuery += ` and Country eq '${filters.country.replace(/'/g, "''")}'`;
+        filterQuery += ` and PD_Country eq '${filters.country.replace(/'/g, "''")}'`;
       }
       if (filters.jobTitle) {
-        filterQuery += ` and substringof('${filters.jobTitle.replace(/'/g, "''")}', JobTitle)`;
+        filterQuery += ` and substringof('${filters.jobTitle.replace(/'/g, "''")}', PD_JobTitle)`;
       }
 
       const items = await this.sp.web.lists
@@ -457,25 +485,25 @@ export class ListService {
   /**
    * Map SharePoint list item to user profile
    */
-  private mapListItemToUser(item: any): IUserProfile {
+  private mapListItemToUser(item: ISharePointListItem): IUserProfile {
     return {
-      id: item.UserId,
-      userPrincipalName: item.UserPrincipalName,
+      id: item.PD_UserId,
+      userPrincipalName: item.PD_UserPrincipalName,
       displayName: item.Title,
-      givenName: item.GivenName,
-      surname: item.Surname,
-      mail: item.Email,
-      jobTitle: item.JobTitle,
-      department: item.Department,
-      officeLocation: item.OfficeLocation,
-      businessPhones: item.BusinessPhones ? JSON.parse(item.BusinessPhones) : [],
-      mobilePhone: item.MobilePhone,
-      city: item.City,
-      country: item.Country,
-      companyName: item.CompanyName,
-      photoUrl: item.PhotoUrl,
-      lastVerified: item.LastVerified ? new Date(item.LastVerified) : undefined,
-      accessCount: item.AccessCount || 0
+      givenName: item.PD_GivenName,
+      surname: item.PD_Surname,
+      mail: item.PD_Email,
+      jobTitle: item.PD_JobTitle,
+      department: item.PD_Department,
+      officeLocation: item.PD_OfficeLocation,
+      businessPhones: item.PD_BusinessPhones ? JSON.parse(item.PD_BusinessPhones) : [],
+      mobilePhone: item.PD_MobilePhone,
+      city: item.PD_City,
+      country: item.PD_Country,
+      companyName: item.PD_CompanyName,
+      photoUrl: item.PD_PhotoUrl,
+      lastVerified: item.PD_LastVerified ? new Date(item.PD_LastVerified) : undefined,
+      accessCount: item.PD_AccessCount || 0
     };
   }
 }

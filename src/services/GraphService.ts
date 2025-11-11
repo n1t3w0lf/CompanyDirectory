@@ -32,6 +32,26 @@ interface IGraphUser {
 }
 
 /**
+ * Microsoft Graph API Error Response
+ */
+interface IGraphError {
+  statusCode?: number;
+  code?: string;
+  message?: string;
+}
+
+/**
+ * Microsoft Graph Batch API Response
+ */
+interface IGraphBatchResponse {
+  responses: Array<{
+    id: string;
+    status: number;
+    body: IGraphUser;
+  }>;
+}
+
+/**
  * Service for interacting with Microsoft Graph API
  */
 export class GraphService {
@@ -74,7 +94,7 @@ export class GraphService {
         .header('ConsistencyLevel', 'eventual')
         .get();
 
-      const users: IUserProfile[] = response.value.map((user: any) => this.mapGraphUserToProfile(user));
+      const users: IUserProfile[] = response.value.map((user: IGraphUser) => this.mapGraphUserToProfile(user));
 
       return {
         users,
@@ -99,7 +119,7 @@ export class GraphService {
 
       return this.mapGraphUserToProfile(user);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
+      if ((error as IGraphError).statusCode === 404) {
         return null;
       }
       throw new Error(ErrorHandler.getUserMessage(error, 'GraphService.getUserById'));
@@ -119,7 +139,7 @@ export class GraphService {
       return await this.blobToDataURL(photoBlob);
     } catch (error) {
       // Photo not found is not an error condition
-      if ((error as any).statusCode === 404) {
+      if ((error as IGraphError).statusCode === 404) {
         return null;
       }
       console.warn('Failed to fetch user photo:', error);
@@ -139,7 +159,7 @@ export class GraphService {
 
       return this.mapGraphUserToProfile(manager);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
+      if ((error as IGraphError).statusCode === 404) {
         return null;
       }
       console.warn('Failed to fetch user manager:', error);
@@ -234,11 +254,11 @@ export class GraphService {
           url: `/users/${id}?$select=${Constants.GRAPH_SELECT_FIELDS}`
         }));
 
-        const batchResponse = await this.graphClient
+        const batchResponse: IGraphBatchResponse = await this.graphClient
           .api('/$batch')
           .post({ requests: batchRequests });
 
-        batchResponse.responses.forEach((response: any) => {
+        batchResponse.responses.forEach((response) => {
           if (response.status === 200) {
             allUsers.push(this.mapGraphUserToProfile(response.body));
           }
@@ -254,7 +274,7 @@ export class GraphService {
   /**
    * Map Graph API user object to IUserProfile
    */
-  private mapGraphUserToProfile(graphUser: any): IUserProfile {
+  private mapGraphUserToProfile(graphUser: IGraphUser): IUserProfile {
     return {
       id: graphUser.id,
       userPrincipalName: graphUser.userPrincipalName,

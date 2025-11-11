@@ -35,13 +35,23 @@ export class CacheHelper {
   }
 
   /**
+   * Get database instance with null check
+   */
+  private getDatabase(): IDBDatabase {
+    if (!this.db) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+    return this.db;
+  }
+
+  /**
    * Get item from cache
    */
   public async get<T>(key: string): Promise<T | null> {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.getDatabase().transaction([this.storeName], 'readonly');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.get(key);
 
@@ -74,7 +84,7 @@ export class CacheHelper {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.getDatabase().transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
 
       const cacheEntry: ICacheEntry<T> & { key: string } = {
@@ -98,7 +108,7 @@ export class CacheHelper {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.getDatabase().transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.delete(key);
 
@@ -114,7 +124,7 @@ export class CacheHelper {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.getDatabase().transaction([this.storeName], 'readwrite');
       const objectStore = transaction.objectStore(this.storeName);
       const request = objectStore.clear();
 
@@ -130,7 +140,7 @@ export class CacheHelper {
     if (!this.db) await this.initialize();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.getDatabase().transaction([this.storeName], 'readonly');
       const objectStore = transaction.objectStore(this.storeName);
       const countRequest = objectStore.count();
 
