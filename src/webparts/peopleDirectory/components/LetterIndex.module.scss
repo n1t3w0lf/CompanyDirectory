@@ -1,0 +1,73 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.letterIndex {
+  padding: 12px 0;
+
+  .letterButton {
+    min-width: 32px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid $ms-color-neutralLight;
+    background-color: $ms-color-white;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background-color: $ms-color-themeLight;
+      border-color: $ms-color-themePrimary;
+      transform: scale(1.1);
+    }
+
+    &.active {
+      background-color: $ms-color-themePrimary;
+      border-color: $ms-color-themePrimary;
+      color: $ms-color-white;
+
+      span {
+        color: $ms-color-white;
+        font-weight: 600;
+      }
+    }
+
+    &.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+
+      &:hover {
+        transform: none;
+        background-color: $ms-color-white;
+        border-color: $ms-color-neutralLight;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid $ms-color-themePrimary;
+      outline-offset: 2px;
+    }
+
+    span {
+      color: $ms-color-neutralPrimary;
+      font-weight: 500;
+      line-height: 1;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .letterIndex {
+    .letterButton {
+      min-width: 28px;
+      height: 28px;
+      padding: 4px 6px;
+
+      span {
+        font-size: 11px;
+      }
+    }
+  }
+}

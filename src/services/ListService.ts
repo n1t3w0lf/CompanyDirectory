@@ -65,43 +65,59 @@ export class ListService {
         await this.sp.web.lists.getByTitle(this.listTitle).select('Id')();
         this.isListReady = true;
         return;
-      } catch {
-        // List doesn't exist, create it
+      } catch (checkError) {
+        // List doesn't exist, continue to create it
+        console.log('List does not exist, will create it');
       }
 
       // Create the list
-      const listAddResult = await this.sp.web.lists.add(this.listTitle, '', 100, false, {
-        Hidden: false,
-        OnQuickLaunch: false,
-        AllowContentTypes: false
-      });
+      try {
+        const listAddResult = await this.sp.web.lists.add(this.listTitle, '', 100, false, {
+          Hidden: false,
+          OnQuickLaunch: false,
+          AllowContentTypes: false
+        });
 
-      const list = listAddResult.list;
+        const list = listAddResult.list;
 
-      // Add custom fields with PD_ prefix to avoid SharePoint reserved name conflicts
-      await list.fields.addText('PD_UserPrincipalName', { MaxLength: 255, Required: true });
-      await list.fields.addText('PD_Email', { MaxLength: 255 });
-      await list.fields.addText('PD_Department', { MaxLength: 255 });
-      await list.fields.addText('PD_JobTitle', { MaxLength: 255 });
-      await list.fields.addText('PD_OfficeLocation', { MaxLength: 255 });
-      await list.fields.addMultilineText('PD_BusinessPhones', { NumberOfLines: 2, RichText: false });
-      await list.fields.addText('PD_MobilePhone', { MaxLength: 50 });
-      await list.fields.addText('PD_City', { MaxLength: 100 });
-      await list.fields.addText('PD_Country', { MaxLength: 100 });
-      await list.fields.addText('PD_CompanyName', { MaxLength: 255 });
-      await list.fields.addMultilineText('PD_PhotoUrl', { NumberOfLines: 2, RichText: false });
-      await list.fields.addText('PD_GivenName', { MaxLength: 255 });
-      await list.fields.addText('PD_Surname', { MaxLength: 255 });
-      await list.fields.addText('PD_UserId', { MaxLength: 100 });
-      await list.fields.addDateTime('PD_LastVerified', { DisplayFormat: 1 });
-      await list.fields.addNumber('PD_AccessCount', { MinimumValue: 0 });
+        // Add custom fields with PD_ prefix to avoid SharePoint reserved name conflicts
+        await list.fields.addText('PD_UserPrincipalName', { MaxLength: 255, Required: true });
+        await list.fields.addText('PD_Email', { MaxLength: 255 });
+        await list.fields.addText('PD_Department', { MaxLength: 255 });
+        await list.fields.addText('PD_JobTitle', { MaxLength: 255 });
+        await list.fields.addText('PD_OfficeLocation', { MaxLength: 255 });
+        await list.fields.addMultilineText('PD_BusinessPhones', { NumberOfLines: 2, RichText: false });
+        await list.fields.addText('PD_MobilePhone', { MaxLength: 50 });
+        await list.fields.addText('PD_City', { MaxLength: 100 });
+        await list.fields.addText('PD_Country', { MaxLength: 100 });
+        await list.fields.addText('PD_CompanyName', { MaxLength: 255 });
+        await list.fields.addMultilineText('PD_PhotoUrl', { NumberOfLines: 2, RichText: false });
+        await list.fields.addText('PD_GivenName', { MaxLength: 255 });
+        await list.fields.addText('PD_Surname', { MaxLength: 255 });
+        await list.fields.addText('PD_UserId', { MaxLength: 100 });
+        await list.fields.addDateTime('PD_LastVerified', { DisplayFormat: 1 });
+        await list.fields.addNumber('PD_AccessCount', { MinimumValue: 0 });
 
-      // Create indexes for performance
-      await list.fields.getByInternalNameOrTitle('PD_UserPrincipalName').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('PD_Department').update({ Indexed: true });
-      await list.fields.getByInternalNameOrTitle('PD_LastVerified').update({ Indexed: true });
+        // Create indexes for performance
+        await list.fields.getByInternalNameOrTitle('PD_UserPrincipalName').update({ Indexed: true });
+        await list.fields.getByInternalNameOrTitle('PD_Department').update({ Indexed: true });
+        await list.fields.getByInternalNameOrTitle('PD_LastVerified').update({ Indexed: true });
 
-      this.isListReady = true;
+        this.isListReady = true;
+      } catch (createError: unknown) {
+        // Check if error is "list already exists"
+        const errorMessage = createError instanceof Error
+          ? createError.message
+          : String(createError);
+        if (errorMessage.includes('already exists') || errorMessage.includes('-2130575342')) {
+          console.log('List already exists, will use existing list');
+          // List was created by another process/tab, just mark as ready
+          this.isListReady = true;
+          return;
+        }
+        // Other error, rethrow
+        throw createError;
+      }
     } catch (error) {
       throw new Error(ErrorHandler.getUserMessage(error, 'ListService.ensureList'));
     }

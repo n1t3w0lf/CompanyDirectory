@@ -64,33 +64,41 @@ export class GraphService {
   /**
    * Search users by query string
    * Uses $search query parameter for server-side filtering
+   * @param nextLinkUrl - Full nextLink URL from previous response for pagination
    */
   public async searchUsers(
     searchText: string,
     pageSize: number = Constants.DEFAULT_PAGE_SIZE,
-    skipToken?: string
+    nextLinkUrl?: string
   ): Promise<ISearchResult> {
     try {
-      let endpoint = `/users?$select=${Constants.GRAPH_SELECT_FIELDS}&$top=${pageSize}&$count=true`;
+      let apiRequest;
 
-      // Build filter query
-      if (searchText && searchText.length >= Constants.MIN_SEARCH_LENGTH) {
-        // Use $filter for more precise matching
-        const filter = `startswith(displayName,'${this.escapeODataString(searchText)}') or ` +
-                      `startswith(mail,'${this.escapeODataString(searchText)}') or ` +
-                      `startswith(surname,'${this.escapeODataString(searchText)}') or ` +
-                      `startswith(givenName,'${this.escapeODataString(searchText)}') or ` +
-                      `startswith(department,'${this.escapeODataString(searchText)}')`;
-        endpoint += `&$filter=${filter}`;
+      // If we have a nextLink URL, use it directly for pagination
+      if (nextLinkUrl) {
+        // Extract the path and query from the full nextLink URL
+        // nextLink format: https://graph.microsoft.com/v1.0/users?...&$skiptoken=...
+        const endpoint = this.parseNextLink(nextLinkUrl);
+        apiRequest = this.graphClient.api(endpoint);
+      } else {
+        // Build initial request
+        let endpoint = `/users?$select=${Constants.GRAPH_SELECT_FIELDS}&$top=${pageSize}&$count=true`;
+
+        // Build filter query
+        if (searchText && searchText.length >= Constants.MIN_SEARCH_LENGTH) {
+          // Use $filter for more precise matching
+          const filter = `startswith(displayName,'${this.escapeODataString(searchText)}') or ` +
+                        `startswith(mail,'${this.escapeODataString(searchText)}') or ` +
+                        `startswith(surname,'${this.escapeODataString(searchText)}') or ` +
+                        `startswith(givenName,'${this.escapeODataString(searchText)}') or ` +
+                        `startswith(department,'${this.escapeODataString(searchText)}')`;
+          endpoint += `&$filter=${filter}`;
+        }
+
+        apiRequest = this.graphClient.api(endpoint);
       }
 
-      // Add pagination token if provided
-      if (skipToken) {
-        endpoint += `&$skiptoken=${skipToken}`;
-      }
-
-      const response = await this.graphClient
-        .api(endpoint)
+      const response = await apiRequest
         .header('ConsistencyLevel', 'eventual')
         .get();
 
@@ -103,6 +111,12 @@ export class GraphService {
         nextLink: response['@odata.nextLink']
       };
     } catch (error) {
+      console.error('GraphService.searchUsers error details:', {
+        error,
+        nextLinkUrl,
+        searchText,
+        pageSize
+      });
       throw new Error(ErrorHandler.getUserMessage(error, 'GraphService.searchUsers'));
     }
   }
@@ -179,7 +193,8 @@ export class GraphService {
 
       // Paginate through all users to get complete department list
       do {
-        const endpoint = nextLink || '/users?$select=id,department&$top=999';
+        // Use nextLink if available, otherwise use initial endpoint
+        const endpoint = nextLink ? this.parseNextLink(nextLink) : '/users?$select=id,department&$top=999';
         const response: IGraphResponse = await this.graphClient
           .api(endpoint)
           .header('ConsistencyLevel', 'eventual')
@@ -211,7 +226,8 @@ export class GraphService {
 
       // Paginate through all users to get complete location list
       do {
-        const endpoint = nextLink || '/users?$select=id,officeLocation&$top=999';
+        // Use nextLink if available, otherwise use initial endpoint
+        const endpoint = nextLink ? this.parseNextLink(nextLink) : '/users?$select=id,officeLocation&$top=999';
         const response: IGraphResponse = await this.graphClient
           .api(endpoint)
           .header('ConsistencyLevel', 'eventual')
@@ -269,6 +285,24 @@ export class GraphService {
     } catch (error) {
       throw new Error(ErrorHandler.getUserMessage(error, 'GraphService.getUsersBatch'));
     }
+  }
+
+  /**
+   * Extract API path from nextLink URL
+   * Removes the version prefix (/v1.0 or /beta) that MSGraphClientV3 adds automatically
+   */
+  private parseNextLink(nextLinkUrl: string): string {
+    const url = new URL(nextLinkUrl);
+    let pathname = url.pathname;
+
+    // Remove version prefix since MSGraphClientV3 adds it automatically
+    if (pathname.startsWith('/v1.0/')) {
+      pathname = pathname.substring(5); // Remove '/v1.0'
+    } else if (pathname.startsWith('/beta/')) {
+      pathname = pathname.substring(6); // Remove '/beta'
+    }
+
+    return pathname + url.search;
   }
 
   /**

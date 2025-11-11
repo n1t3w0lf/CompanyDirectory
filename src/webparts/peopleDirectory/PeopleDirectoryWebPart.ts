@@ -332,7 +332,8 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                 PropertyPaneToggle('jobTitleBold', {
                   label: 'Bold Job Title',
                   onText: 'Bold',
-                  offText: 'Normal'
+                  offText: 'Normal',
+                  checked: this.properties.jobTitleBold !== false
                 })
               ]
             },
@@ -433,52 +434,62 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                 PropertyPaneToggle('showEmail', {
                   label: 'Show Email',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showEmail !== false
                 }),
                 PropertyPaneToggle('showJobTitle', {
                   label: 'Show Job Title',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showJobTitle !== false
                 }),
                 PropertyPaneToggle('showDepartment', {
                   label: 'Show Department',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showDepartment !== false
                 }),
                 PropertyPaneToggle('showOfficeLocation', {
                   label: 'Show Office Location',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showOfficeLocation !== false
                 }),
                 PropertyPaneToggle('showBusinessPhones', {
                   label: 'Show Business Phones',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showBusinessPhones !== false
                 }),
                 PropertyPaneToggle('showMobilePhone', {
                   label: 'Show Mobile Phone',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showMobilePhone !== false
                 }),
                 PropertyPaneToggle('showCity', {
                   label: 'Show City',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showCity !== false
                 }),
                 PropertyPaneToggle('showCountry', {
                   label: 'Show Country',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showCountry !== false
                 }),
                 PropertyPaneToggle('showCompanyName', {
                   label: 'Show Company Name',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showCompanyName !== false
                 }),
                 PropertyPaneToggle('showEmployeeId', {
                   label: 'Show Employee ID',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showEmployeeId !== false
                 })
               ]
             },
@@ -488,12 +499,14 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                 PropertyPaneToggle('showLetterIndex', {
                   label: 'Show Letter Index',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showLetterIndex !== false
                 }),
                 PropertyPaneToggle('showProfilePicture', {
                   label: 'Show Profile Pictures',
                   onText: 'Visible',
-                  offText: 'Hidden'
+                  offText: 'Hidden',
+                  checked: this.properties.showProfilePicture !== false
                 })
               ]
             },

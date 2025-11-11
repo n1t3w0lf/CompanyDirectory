@@ -14,6 +14,7 @@ import { Dropdown, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
+import { LetterIndex } from './LetterIndex';
 import { IAdvancedFilters } from './AdvancedFilterPanel';
 import styles from './PeopleDirectory.module.scss';
 
@@ -33,6 +34,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<IAdvancedFilters>({});
+
+  // Letter index filter
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
 
   // Sync status
   const [syncStatus, setSyncStatus] = useState<ISyncStatus | null>(null);
@@ -227,6 +231,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const handleClearFilters = useCallback(async (): Promise<void> => {
     setActiveFilters({});
     setSearchText('');
+    setSelectedLetter(null);
     await loadInitialUsers();
   }, [loadInitialUsers]);
 
@@ -258,6 +263,39 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   const getActiveFilterCount = (): number => {
     return Object.values(activeFilters).filter(v => v).length;
   };
+
+  /**
+   * Get available letters from current users
+   */
+  const getAvailableLetters = (): Set<string> => {
+    const letters = new Set<string>();
+    users.forEach(user => {
+      const firstLetter = user.displayName.charAt(0).toUpperCase();
+      if (/[A-Z]/.test(firstLetter)) {
+        letters.add(firstLetter);
+      }
+    });
+    return letters;
+  };
+
+  /**
+   * Filter users by selected letter
+   */
+  const getFilteredUsersByLetter = (): IUserProfile[] => {
+    if (!selectedLetter) {
+      return users;
+    }
+    return users.filter(user =>
+      user.displayName.charAt(0).toUpperCase() === selectedLetter
+    );
+  };
+
+  /**
+   * Handle letter selection
+   */
+  const handleLetterSelect = useCallback((letter: string | null): void => {
+    setSelectedLetter(letter);
+  }, []);
 
   /**
    * Inline filter change handlers
@@ -307,8 +345,16 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     setError('');
   }, []);
 
+  // Build webpart container style
+  const webpartContainerStyle: React.CSSProperties = {
+    backgroundColor: props.webpartBackgroundColor || undefined,
+    backgroundImage: props.webpartBackgroundImage ? `url(${props.webpartBackgroundImage})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  };
+
   return (
-    <div className={styles.peopleDirectory}>
+    <div className={styles.peopleDirectory} style={webpartContainerStyle}>
       <Stack tokens={{ childrenGap: 20 }}>
         {/* Header */}
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
@@ -366,10 +412,23 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             />
           </Stack.Item>
           <PrimaryButton
-            text="Search"
+            text={props.searchButtonText || 'Search'}
             onClick={handleManualSearch}
             disabled={loading || !searchText || searchText.trim().length < Constants.MIN_SEARCH_LENGTH}
             iconProps={{ iconName: 'Search' }}
+            styles={{
+              root: {
+                backgroundColor: props.searchButtonColor || undefined,
+                borderColor: props.searchButtonColor || undefined
+              },
+              rootHovered: {
+                backgroundColor: props.searchButtonHoverColor || undefined,
+                borderColor: props.searchButtonHoverColor || undefined
+              },
+              label: {
+                fontSize: props.searchButtonTextSize ? `${props.searchButtonTextSize}px` : undefined
+              }
+            }}
           />
         </Stack>
 
@@ -426,6 +485,15 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           )}
         </Stack>
 
+        {/* Letter Index */}
+        {props.showLetterIndex && !loading && users.length > 0 && (
+          <LetterIndex
+            selectedLetter={selectedLetter}
+            onLetterSelect={handleLetterSelect}
+            availableLetters={getAvailableLetters()}
+          />
+        )}
+
         {/* Error Message */}
         {error && (
           <MessageBar messageBarType={MessageBarType.error} onDismiss={handleErrorDismiss}>
@@ -458,18 +526,56 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
               </Stack>
             ) : (
               <>
-                <Text variant="medium">
-                  {searchText || getActiveFilterCount() > 0 ? 'Found' : 'Showing'} {users.length} {users.length === 1 ? 'person' : 'people'}
-                </Text>
-                <div className={styles.userGrid}>
-                  {users.map(user => (
+                {(() => {
+                  const filteredUsers = getFilteredUsersByLetter();
+                  return (
+                    <>
+                      <Text variant="medium">
+                        {`${searchText || getActiveFilterCount() > 0 || selectedLetter ? 'Found' : 'Showing'} ${filteredUsers.length} ${filteredUsers.length === 1 ? 'person' : 'people'}${selectedLetter ? ` starting with "${selectedLetter}"` : ''}`}
+                      </Text>
+                      {filteredUsers.length === 0 ? (
+                        <Stack horizontalAlign="center" tokens={{ padding: 40 }}>
+                          <Text variant="medium" style={{ color: '#666' }}>
+                            {`No people found starting with "${selectedLetter}"`}
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <div className={styles.userGrid}>
+                          {filteredUsers.map(user => (
                     <UserCard
                       key={user.id}
                       user={user}
                       onUserClick={handleUserClick}
+                      profileNameFontSize={props.profileNameFontSize}
+                      profileNameFontColor={props.profileNameFontColor}
+                      jobTitleFontSize={props.jobTitleFontSize}
+                      jobTitleFontColor={props.jobTitleFontColor}
+                      jobTitleBold={props.jobTitleBold}
+                      profilePropertiesFontSize={props.profilePropertiesFontSize}
+                      profilePropertiesFontColor={props.profilePropertiesFontColor}
+                      iconSize={props.iconSize}
+                      iconColor={props.iconColor}
+                      profileCardBackgroundColor={props.profileCardBackgroundColor}
+                      profileCardBackgroundImage={props.profileCardBackgroundImage}
+                      showProfilePicture={props.showProfilePicture}
+                      textEllipsisLength={props.textEllipsisLength}
+                      showJobTitle={props.showJobTitle}
+                      showDepartment={props.showDepartment}
+                      showOfficeLocation={props.showOfficeLocation}
+                      showEmail={props.showEmail}
+                      showBusinessPhones={props.showBusinessPhones}
+                      showMobilePhone={props.showMobilePhone}
+                      showCity={props.showCity}
+                      showCountry={props.showCountry}
+                      showCompanyName={props.showCompanyName}
+                      showEmployeeId={props.showEmployeeId}
                     />
                   ))}
-                </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </>
             )}
           </>
@@ -482,6 +588,26 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           user={selectedUser}
           isOpen={isPanelOpen}
           onDismiss={handleDetailsPanelDismiss}
+          profileNameFontSize={props.profileNameFontSize}
+          profileNameFontColor={props.profileNameFontColor}
+          jobTitleFontSize={props.jobTitleFontSize}
+          jobTitleFontColor={props.jobTitleFontColor}
+          jobTitleBold={props.jobTitleBold}
+          profilePropertiesFontSize={props.profilePropertiesFontSize}
+          profilePropertiesFontColor={props.profilePropertiesFontColor}
+          iconSize={props.iconSize}
+          iconColor={props.iconColor}
+          showProfilePicture={props.showProfilePicture}
+          showEmail={props.showEmail}
+          showJobTitle={props.showJobTitle}
+          showDepartment={props.showDepartment}
+          showOfficeLocation={props.showOfficeLocation}
+          showBusinessPhones={props.showBusinessPhones}
+          showMobilePhone={props.showMobilePhone}
+          showCity={props.showCity}
+          showCountry={props.showCountry}
+          showCompanyName={props.showCompanyName}
+          showEmployeeId={props.showEmployeeId}
         />
       )}
     </div>

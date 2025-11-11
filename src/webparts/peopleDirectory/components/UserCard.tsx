@@ -4,39 +4,70 @@ import { Persona, PersonaSize } from '@fluentui/react/lib/Persona';
 import { Stack } from '@fluentui/react/lib/Stack';
 import { Text } from '@fluentui/react/lib/Text';
 import { Icon } from '@fluentui/react/lib/Icon';
-import { IconButton } from '@fluentui/react/lib/Button';
 import styles from './PeopleDirectory.module.scss';
 
 export interface IUserCardProps {
   user: IUserProfile;
   onUserClick: (user: IUserProfile) => void;
+
+  // Styling props
+  profileNameFontSize?: number;
+  profileNameFontColor?: string;
+  jobTitleFontSize?: number;
+  jobTitleFontColor?: string;
+  jobTitleBold?: boolean;
+  profilePropertiesFontSize?: number;
+  profilePropertiesFontColor?: string;
+  iconSize?: number;
+  iconColor?: string;
+  profileCardBackgroundColor?: string;
+  profileCardBackgroundImage?: string;
+  showProfilePicture?: boolean;
+  textEllipsisLength?: number;
+
+  // Visibility props
+  showJobTitle?: boolean;
+  showDepartment?: boolean;
+  showOfficeLocation?: boolean;
+  showEmail?: boolean;
+  showBusinessPhones?: boolean;
+  showMobilePhone?: boolean;
+  showCity?: boolean;
+  showCountry?: boolean;
+  showCompanyName?: boolean;
+  showEmployeeId?: boolean;
 }
 
-export const UserCard: React.FC<IUserCardProps> = ({ user, onUserClick }) => {
+export const UserCard: React.FC<IUserCardProps> = ({
+  user,
+  onUserClick,
+  profileNameFontSize = 18,
+  profileNameFontColor = '#323130',
+  jobTitleFontSize = 16,
+  jobTitleFontColor = '#323130',
+  jobTitleBold = true,
+  profilePropertiesFontSize = 14,
+  profilePropertiesFontColor = '#605E5C',
+  iconSize = 20,
+  iconColor = '#0078d4',
+  profileCardBackgroundColor,
+  profileCardBackgroundImage,
+  showProfilePicture = true,
+  textEllipsisLength = 50,
+  showJobTitle = true,
+  showDepartment = true,
+  showOfficeLocation = true,
+  showEmail = true,
+  showBusinessPhones = true,
+  showMobilePhone = true,
+  showCity = true,
+  showCountry = true,
+  showCompanyName = true,
+  showEmployeeId = true
+}) => {
   const handleClick = React.useCallback((): void => {
     onUserClick(user);
   }, [user, onUserClick]);
-
-  const handleEmailClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.stopPropagation();
-    if (user.mail) {
-      window.location.href = `mailto:${user.mail}`;
-    }
-  }, [user.mail]);
-
-  const handleBusinessPhoneClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.stopPropagation();
-    if (user.businessPhones && user.businessPhones.length > 0) {
-      window.location.href = `tel:${user.businessPhones[0]}`;
-    }
-  }, [user.businessPhones]);
-
-  const handleMobilePhoneClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.stopPropagation();
-    if (user.mobilePhone) {
-      window.location.href = `tel:${user.mobilePhone}`;
-    }
-  }, [user.mobilePhone]);
 
   const getInitials = (): string => {
     const firstName = user.givenName || '';
@@ -44,77 +75,259 @@ export const UserCard: React.FC<IUserCardProps> = ({ user, onUserClick }) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user.displayName.charAt(0).toUpperCase();
   };
 
+  const truncateText = (text: string | undefined): string => {
+    if (!text) return '';
+    if (textEllipsisLength <= 0 || text.length <= textEllipsisLength) {
+      return text;
+    }
+    return text.substring(0, textEllipsisLength) + '...';
+  };
+
+  // Build card style
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: profileCardBackgroundColor || undefined,
+    backgroundImage: profileCardBackgroundImage ? `url(${profileCardBackgroundImage})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  };
+
   return (
-    <div className={styles.userCard} onClick={handleClick} role="button" tabIndex={0}>
+    <div className={styles.userCard} onClick={handleClick} role="button" tabIndex={0} style={cardStyle}>
       <Stack tokens={{ childrenGap: 12 }}>
-        <Stack horizontal horizontalAlign="center">
-          <Persona
-            imageUrl={user.photoUrl || undefined}
-            imageInitials={getInitials()}
-            size={PersonaSize.size72}
-            hidePersonaDetails
-            imageShouldFadeIn
-            imageShouldStartVisible={!!user.photoUrl}
-          />
-        </Stack>
-
-        <Stack tokens={{ childrenGap: 4 }}>
-          <Text variant="large" block className={styles.userName}>
-            {user.displayName}
-          </Text>
-
-          {user.jobTitle && (
-            <Text variant="medium" block className={styles.userJobTitle}>
-              {user.jobTitle}
+        {/* Profile Header - Picture and Name/Title horizontal */}
+        <Stack horizontal tokens={{ childrenGap: 12 }} verticalAlign="center">
+          {showProfilePicture && (
+            <Persona
+              imageUrl={user.photoUrl || undefined}
+              imageInitials={getInitials()}
+              size={PersonaSize.size72}
+              hidePersonaDetails
+              imageShouldFadeIn
+              imageShouldStartVisible={!!user.photoUrl}
+            />
+          )}
+          <Stack tokens={{ childrenGap: 4 }} grow>
+            <Text
+              variant="large"
+              block
+              className={styles.userName}
+              style={{
+                fontSize: `${profileNameFontSize}px`,
+                color: profileNameFontColor
+              }}
+              title={user.displayName}
+            >
+              {truncateText(user.displayName)}
             </Text>
-          )}
 
-          {user.department && (
-            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
-              <Icon iconName="Org" className={styles.icon} />
-              <Text variant="small" className={styles.userInfo}>
-                {user.department}
+            {showJobTitle && user.jobTitle && (
+              <Text
+                variant="medium"
+                block
+                className={styles.userJobTitle}
+                style={{
+                  fontSize: `${jobTitleFontSize}px`,
+                  color: jobTitleFontColor,
+                  fontWeight: jobTitleBold ? 'bold' : 'normal'
+                }}
+                title={user.jobTitle}
+              >
+                {truncateText(user.jobTitle)}
               </Text>
-            </Stack>
-          )}
-
-          {user.officeLocation && (
-            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
-              <Icon iconName="POI" className={styles.icon} />
-              <Text variant="small" className={styles.userInfo}>
-                {user.officeLocation}
-              </Text>
-            </Stack>
-          )}
+            )}
+          </Stack>
         </Stack>
 
-        <Stack horizontal horizontalAlign="center" tokens={{ childrenGap: 8 }}>
-          {user.mail && (
-            <IconButton
-              iconProps={{ iconName: 'Mail' }}
-              title={`Email ${user.displayName}`}
-              ariaLabel="Send email"
-              onClick={handleEmailClick}
-              className={styles.actionButton}
-            />
+        {/* User Properties */}
+        <Stack tokens={{ childrenGap: 4 }}>
+
+          {showEmail && user.mail && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="Mail"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.mail}
+              >
+                {truncateText(user.mail)}
+              </Text>
+            </Stack>
           )}
-          {(user.businessPhones && user.businessPhones.length > 0) && (
-            <IconButton
-              iconProps={{ iconName: 'Phone' }}
-              title={`Call ${user.displayName}`}
-              ariaLabel="Call"
-              onClick={handleBusinessPhoneClick}
-              className={styles.actionButton}
-            />
+
+          {showBusinessPhones && user.businessPhones && user.businessPhones.length > 0 && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="Phone"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.businessPhones[0]}
+              >
+                {truncateText(user.businessPhones[0])}
+              </Text>
+            </Stack>
           )}
-          {user.mobilePhone && (
-            <IconButton
-              iconProps={{ iconName: 'CellPhone' }}
-              title={`Call mobile ${user.displayName}`}
-              ariaLabel="Call mobile"
-              onClick={handleMobilePhoneClick}
-              className={styles.actionButton}
-            />
+
+          {showMobilePhone && user.mobilePhone && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="CellPhone"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.mobilePhone}
+              >
+                {truncateText(user.mobilePhone)}
+              </Text>
+            </Stack>
+          )}
+
+          {showDepartment && user.department && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="Org"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.department}
+              >
+                {truncateText(user.department)}
+              </Text>
+            </Stack>
+          )}
+
+          {showOfficeLocation && user.officeLocation && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="POI"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.officeLocation}
+              >
+                {truncateText(user.officeLocation)}
+              </Text>
+            </Stack>
+          )}
+
+          {showCity && user.city && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="CityNext"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.city}
+              >
+                {truncateText(user.city)}
+              </Text>
+            </Stack>
+          )}
+
+          {showCountry && user.country && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="Globe"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.country}
+              >
+                {truncateText(user.country)}
+              </Text>
+            </Stack>
+          )}
+
+          {showCompanyName && user.companyName && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="CompanyDirectory"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.companyName}
+              >
+                {truncateText(user.companyName)}
+              </Text>
+            </Stack>
+          )}
+
+          {showEmployeeId && user.employeeId && (
+            <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+              <Icon
+                iconName="Contact"
+                className={styles.icon}
+                style={{ fontSize: `${iconSize}px`, color: iconColor }}
+              />
+              <Text
+                variant="small"
+                className={styles.userInfo}
+                style={{
+                  fontSize: `${profilePropertiesFontSize}px`,
+                  color: profilePropertiesFontColor
+                }}
+                title={user.employeeId}
+              >
+                {truncateText(user.employeeId)}
+              </Text>
+            </Stack>
           )}
         </Stack>
       </Stack>

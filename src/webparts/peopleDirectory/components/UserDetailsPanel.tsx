@@ -13,9 +13,57 @@ export interface IUserDetailsPanelProps {
   user: IUserProfile;
   isOpen: boolean;
   onDismiss: () => void;
+
+  // Styling props
+  profileNameFontSize?: number;
+  profileNameFontColor?: string;
+  jobTitleFontSize?: number;
+  jobTitleFontColor?: string;
+  jobTitleBold?: boolean;
+  profilePropertiesFontSize?: number;
+  profilePropertiesFontColor?: string;
+  iconSize?: number;
+  iconColor?: string;
+  showProfilePicture?: boolean;
+
+  // Visibility props
+  showEmail?: boolean;
+  showJobTitle?: boolean;
+  showDepartment?: boolean;
+  showOfficeLocation?: boolean;
+  showBusinessPhones?: boolean;
+  showMobilePhone?: boolean;
+  showCity?: boolean;
+  showCountry?: boolean;
+  showCompanyName?: boolean;
+  showEmployeeId?: boolean;
 }
 
-export const UserDetailsPanel: React.FC<IUserDetailsPanelProps> = ({ user, isOpen, onDismiss }) => {
+export const UserDetailsPanel: React.FC<IUserDetailsPanelProps> = ({
+  user,
+  isOpen,
+  onDismiss,
+  profileNameFontSize = 24,
+  profileNameFontColor = '#323130',
+  jobTitleFontSize = 16,
+  jobTitleFontColor = '#323130',
+  jobTitleBold = true,
+  profilePropertiesFontSize = 14,
+  profilePropertiesFontColor = '#605E5C',
+  iconSize = 20,
+  iconColor = '#0078d4',
+  showProfilePicture = true,
+  showEmail = true,
+  showJobTitle = true,
+  showDepartment = true,
+  showOfficeLocation = true,
+  showBusinessPhones = true,
+  showMobilePhone = true,
+  showCity = true,
+  showCountry = true,
+  showCompanyName = true,
+  showEmployeeId = true
+}) => {
   const getInitials = (): string => {
     const firstName = user.givenName || '';
     const lastName = user.surname || '';
@@ -27,17 +75,36 @@ export const UserDetailsPanel: React.FC<IUserDetailsPanelProps> = ({ user, isOpe
 
     return (
       <Stack horizontal tokens={{ childrenGap: 12 }} verticalAlign="start">
-        <Icon iconName={icon} className={styles.detailIcon} />
+        <Icon
+          iconName={icon}
+          className={styles.detailIcon}
+          style={{ fontSize: `${iconSize}px`, color: iconColor }}
+        />
         <Stack tokens={{ childrenGap: 2 }} grow>
           <Text variant="small" className={styles.detailLabel}>
             {label}
           </Text>
           {isLink && linkHref ? (
-            <Link href={linkHref} target="_blank" className={styles.detailValue}>
+            <Link
+              href={linkHref}
+              target="_blank"
+              className={styles.detailValue}
+              style={{
+                fontSize: `${profilePropertiesFontSize}px`,
+                color: profilePropertiesFontColor
+              }}
+            >
               {value}
             </Link>
           ) : (
-            <Text variant="medium" className={styles.detailValue}>
+            <Text
+              variant="medium"
+              className={styles.detailValue}
+              style={{
+                fontSize: `${profilePropertiesFontSize}px`,
+                color: profilePropertiesFontColor
+              }}
+            >
               {value}
             </Text>
           )}
@@ -58,58 +125,79 @@ export const UserDetailsPanel: React.FC<IUserDetailsPanelProps> = ({ user, isOpe
       <Stack tokens={{ childrenGap: 24 }} styles={{ root: { marginTop: 20 } }}>
         {/* Profile Header */}
         <Stack horizontalAlign="center" tokens={{ childrenGap: 16 }}>
-          <Persona
-            imageUrl={user.photoUrl || undefined}
-            imageInitials={getInitials()}
-            size={PersonaSize.size120}
-            hidePersonaDetails
-            imageShouldFadeIn
-            imageShouldStartVisible={!!user.photoUrl}
-          />
+          {showProfilePicture && (
+            <Persona
+              imageUrl={user.photoUrl || undefined}
+              imageInitials={getInitials()}
+              size={PersonaSize.size120}
+              hidePersonaDetails
+              imageShouldFadeIn
+              imageShouldStartVisible={!!user.photoUrl}
+            />
+          )}
           <Stack horizontalAlign="center" tokens={{ childrenGap: 4 }}>
-            <Text variant="xLarge" className={styles.detailsName}>
+            <Text
+              variant="xLarge"
+              className={styles.detailsName}
+              style={{
+                fontSize: `${profileNameFontSize}px`,
+                color: profileNameFontColor
+              }}
+            >
               {user.displayName}
             </Text>
-            {user.jobTitle && (
-              <Text variant="medium" className={styles.detailsJobTitle}>
+            {showJobTitle && user.jobTitle && (
+              <Text
+                variant="medium"
+                className={styles.detailsJobTitle}
+                style={{
+                  fontSize: `${jobTitleFontSize}px`,
+                  color: jobTitleFontColor,
+                  fontWeight: jobTitleBold ? 'bold' : 'normal'
+                }}
+              >
                 {user.jobTitle}
               </Text>
             )}
           </Stack>
         </Stack>
 
-        <Separator />
+        {(showEmail || showBusinessPhones || showMobilePhone) && <Separator />}
 
         {/* Contact Information */}
-        <Stack tokens={{ childrenGap: 16 }}>
-          <Text variant="large" className={styles.sectionTitle}>
-            Contact Information
-          </Text>
+        {(showEmail || showBusinessPhones || showMobilePhone) && (
+          <Stack tokens={{ childrenGap: 16 }}>
+            <Text variant="large" className={styles.sectionTitle}>
+              Contact Information
+            </Text>
 
-          {renderDetailRow('Mail', 'Email', user.mail, true, `mailto:${user.mail}`)}
+            {showEmail && renderDetailRow('Mail', 'Email', user.mail, true, `mailto:${user.mail}`)}
 
-          {user.businessPhones && user.businessPhones.length > 0 &&
-            renderDetailRow('Phone', 'Business Phone', user.businessPhones[0], true, `tel:${user.businessPhones[0]}`)}
+            {showBusinessPhones && user.businessPhones && user.businessPhones.length > 0 &&
+              renderDetailRow('Phone', 'Business Phone', user.businessPhones[0], true, `tel:${user.businessPhones[0]}`)}
 
-          {user.mobilePhone &&
-            renderDetailRow('CellPhone', 'Mobile Phone', user.mobilePhone, true, `tel:${user.mobilePhone}`)}
-        </Stack>
+            {showMobilePhone && user.mobilePhone &&
+              renderDetailRow('CellPhone', 'Mobile Phone', user.mobilePhone, true, `tel:${user.mobilePhone}`)}
+          </Stack>
+        )}
 
-        <Separator />
+        {(showDepartment || showCompanyName || showOfficeLocation || showCity || showCountry || showEmployeeId) && <Separator />}
 
         {/* Organization Information */}
-        <Stack tokens={{ childrenGap: 16 }}>
-          <Text variant="large" className={styles.sectionTitle}>
-            Organization
-          </Text>
+        {(showDepartment || showCompanyName || showOfficeLocation || showCity || showCountry || showEmployeeId) && (
+          <Stack tokens={{ childrenGap: 16 }}>
+            <Text variant="large" className={styles.sectionTitle}>
+              Organization
+            </Text>
 
-          {renderDetailRow('Org', 'Department', user.department)}
-          {renderDetailRow('CompanyDirectory', 'Company', user.companyName)}
-          {renderDetailRow('POI', 'Office Location', user.officeLocation)}
-          {renderDetailRow('CityNext', 'City', user.city)}
-          {renderDetailRow('Globe', 'Country', user.country)}
-          {renderDetailRow('Contact', 'Employee ID', user.employeeId)}
-        </Stack>
+            {showDepartment && renderDetailRow('Org', 'Department', user.department)}
+            {showCompanyName && renderDetailRow('CompanyDirectory', 'Company', user.companyName)}
+            {showOfficeLocation && renderDetailRow('POI', 'Office Location', user.officeLocation)}
+            {showCity && renderDetailRow('CityNext', 'City', user.city)}
+            {showCountry && renderDetailRow('Globe', 'Country', user.country)}
+            {showEmployeeId && renderDetailRow('Contact', 'Employee ID', user.employeeId)}
+          </Stack>
+        )}
 
         {user.manager && (
           <>
