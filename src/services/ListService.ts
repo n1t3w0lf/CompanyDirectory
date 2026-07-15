@@ -427,6 +427,32 @@ export class ListService {
   }
 
   /**
+   * Get list users whose display name (Title) starts with the given letter.
+   * `startswith` on the indexed Title column uses the index (efficient/scalable,
+   * unlike substringof). Ordered by Title, capped at pageSize.
+   */
+  public async getUsersByLetter(letter: string, pageSize = Constants.SEARCH_MAX_RESULTS): Promise<IUserProfile[]> {
+    try {
+      await this.ensureList();
+
+      const escaped = letter.replace(/'/g, "''");
+      const items = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('Id', 'PD_UserId', 'PD_UserPrincipalName', 'Title', 'PD_Email', 'PD_Department', 'PD_JobTitle',
+          'PD_OfficeLocation', 'PD_BusinessPhones', 'PD_MobilePhone', 'PD_City', 'PD_Country', 'PD_CompanyName',
+          'PD_PhotoUrl', 'PD_GivenName', 'PD_Surname', 'PD_LastVerified', 'PD_AccessCount')
+        .filter(`startswith(Title, '${escaped}')`)
+        .orderBy('Title', true)
+        .top(pageSize)();
+
+      return items.map(item => this.mapListItemToUser(item));
+    } catch (error) {
+      console.error('Error getting users by letter:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get total user count from list. Uses the list's ItemCount property, which is
    * accurate beyond the 5,000 view threshold and costs a single cheap call.
    * Subtracts the `_SyncMetadata` bookkeeping row.

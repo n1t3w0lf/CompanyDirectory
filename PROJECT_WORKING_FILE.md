@@ -34,6 +34,15 @@ Build: must use **Node 18** (`nvm use 18`) — Node 22 is rejected by SPFx 1.18 
 - **Pager range summary hidden** — removed the "X–Y of Z" text; pager now centred.
 - **Header count**: user removed the "N people in directory" line; cleaned up the now-dead `totalUsers` state + `getTotalUserCount` fetches. Build clean (Node 18).
 
+## Feature set 7 — Rolodex: list-query + configurable colours (2026-07-15)
+- All A–Z letters always active. Clicking a letter → `ListService.getUsersByLetter` (`startswith(Title,'X')`, indexed Title → index-served, ordered by Title, ≤SEARCH_MAX_RESULTS) via list-only `PeopleService.getUsersByLetter` (never Graph). Existing pager pages the result; no match → empty state.
+- Removed client-side letter filtering (`getFilteredUsersByLetter`/`getAvailableLetters`); results block + lazy-photo effect use `users` directly. `handleLetterSelect` is now async (fetches); "All" restores startup view.
+- Rolodex visible when `showLetterIndex && !loading` (so clickable from empty state); hidden ≤640px.
+- New property-pane colours `rolodexActiveColor` (#0078d4) / `rolodexNormalColor` (#323130) → threaded to `LetterIndex`, applied inline.
+- Verified: Node-18 build clean + letter-harness (7 checks: startswith/orderBy query, quote-escape, list-only/no-Graph, empty→[]).
+- Adversarial-review fix: the async letter fetch could race with **"Clear All Filters"** (the only result-set control not gated by `loading`) → stale overwrite. Fixed by `disabled={loading}` on that button; now every result-set trigger is gated during a fetch, so no two overlap. (Other findings — dead inner "starting with X" branch, 5000-cap truncation without a banner — noted as harmless/pre-existing.)
+Files: `services/ListService.ts`, `services/PeopleService.ts`, `components/{LetterIndex,PeopleDirectory,IPeopleDirectoryProps}.tsx/.ts`, `PeopleDirectoryWebPart.ts`.
+
 ## Feature set 6 — Cache-list schema self-heal (2026-07-15)
 Fixed `The property 'PD_Department' does not exist...` 400s during sync. Root cause: `ensureList` short-circuited on an existing list and never added missing columns (interrupted/older creation left the list incomplete); old sync hid it by dropping failures.
 - Added `REQUIRED_FIELDS` (single source of truth) + `ensureFields(list)`: reads existing `InternalName`s, adds only missing columns, best-effort re-indexes `INDEXED_FIELDS`. All `ensureList` paths (create / exists / already-exists) now call it. Idempotent, runs once/session.

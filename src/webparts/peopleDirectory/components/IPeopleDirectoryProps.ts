@@ -56,8 +56,10 @@ export interface IPeopleDirectoryProps {
   webpartBackgroundColor: string;
   webpartBackgroundImage: string;
 
-  // Letter Index
+  // Letter Index (rolodex)
   showLetterIndex: boolean;
+  rolodexActiveColor: string;
+  rolodexNormalColor: string;
 
   // Profile Picture
   showProfilePicture: boolean;

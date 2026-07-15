@@ -27,6 +27,12 @@ Header text/size/colour, subtext, per-field visibility toggles (email, job title
 - **Results per Page** → client-side page size (default 20); centred pager below the grid, resets to page 1 on any search/filter/letter change. No "X–Y of Z" range summary (hidden per request). ⚠️ Search fetches ≤100 hits (`manualSearch`), so paging covers up to that cap.
 - **Header count removed** — the "N people in directory" line was removed (user edit); the `totalUsers` state + its count fetches were cleaned up.
 
+## Rolodex (A–Z letter index) (2026-07-15)
+- **All letters always active**; clicking a letter **queries the SharePoint list** (`startswith(Title, 'X')`, indexed → efficient) — **list only, never Graph** — and shows the batch, paged by the existing pager. No match → "No people found".
+- **"All"** clears the letter and restores the startup view.
+- Colours configurable in the property pane (Display Options): **Rolodex Active Letter Color** (default `#0078d4`) and **Rolodex Letter Color** (default `#323130`).
+- Visible whenever the toggle is on and not loading (so a letter is clickable from the empty/prompt state); hidden ≤640px (mobile).
+
 ## Mobile responsiveness (2026-07-15) — verified 320/360/375px
 Single breakpoint **`@media (max-width: 640px)`** (matches the existing convention). At ≤640px:
 - **Rolodex hidden** (`LetterIndex` → `display:none`) — too small to tap on phones; use search + filters.

@@ -9631,13 +9631,10 @@ const PeopleDirectory = (props) => {
         if (loading || users.length === 0) {
             return;
         }
-        const filtered = selectedLetter
-            ? users.filter(u => u.displayName.charAt(0).toUpperCase() === selectedLetter)
-            : users;
         const pageSize = props.paginationSize;
-        const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+        const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
         const safePage = Math.min(currentPage, pageCount);
-        const pageUsers = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+        const pageUsers = users.slice((safePage - 1) * pageSize, safePage * pageSize);
         const toFetch = pageUsers.filter(u => !u.photoUrl && u.id && !enrichedPhotoIds.current.has(u.id));
         if (toFetch.length === 0) {
             return;
@@ -9658,7 +9655,7 @@ const PeopleDirectory = (props) => {
         })
             .catch(err => console.error('Error enriching photos:', err));
         return () => { cancelled = true; };
-    }, [users, currentPage, selectedLetter, loading, props.paginationSize, props.peopleService]);
+    }, [users, currentPage, loading, props.paginationSize, props.peopleService]);
     const initializeData = async () => {
         try {
             setLoading(true);
@@ -9886,34 +9883,37 @@ const PeopleDirectory = (props) => {
         return Object.values(activeFilters).filter(v => v).length + (selectedLetter ? 1 : 0);
     };
     /**
-     * Get available letters from current users
+     * Handle rolodex letter selection. Queries the SharePoint list (list only —
+     * never Graph) for users whose name starts with the letter; "All" clears the
+     * letter and restores the startup view.
      */
-    const getAvailableLetters = () => {
-        const letters = new Set();
-        users.forEach(user => {
-            const firstLetter = user.displayName.charAt(0).toUpperCase();
-            if (/[A-Z]/.test(firstLetter)) {
-                letters.add(firstLetter);
-            }
-        });
-        return letters;
-    };
-    /**
-     * Filter users by selected letter
-     */
-    const getFilteredUsersByLetter = () => {
-        if (!selectedLetter) {
-            return users;
-        }
-        return users.filter(user => user.displayName.charAt(0).toUpperCase() === selectedLetter);
-    };
-    /**
-     * Handle letter selection
-     */
-    const handleLetterSelect = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((letter) => {
+    const handleLetterSelect = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(async (letter) => {
         setSelectedLetter(letter);
         setCurrentPage(1);
-    }, []);
+        setError('');
+        if (!letter) {
+            if (props.showPeopleOnStart) {
+                await loadInitialUsers();
+            }
+            else {
+                setUsers([]);
+            }
+            return;
+        }
+        setLoading(true);
+        try {
+            const result = await props.peopleService.getUsersByLetter(letter);
+            setUsers(result);
+        }
+        catch (err) {
+            console.error('Error loading users by letter:', err);
+            setError('Failed to load users. Please try again.');
+            setUsers([]);
+        }
+        finally {
+            setLoading(false);
+        }
+    }, [props.peopleService, props.showPeopleOnStart, loadInitialUsers]);
     /**
      * Handle pagination page change
      */
@@ -10027,8 +10027,8 @@ const PeopleDirectory = (props) => {
                                 { key: '', text: 'All Cities' },
                                 ...cities.map(c => ({ key: c, text: c }))
                             ], selectedKey: activeFilters.city || '', onChange: handleCityChange, disabled: loading }))),
-                getActiveFilterCount() > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* PrimaryButton */ "e"], { text: "Clear All Filters", onClick: handleClearAllFilters, iconProps: { iconName: 'ClearFilter' }, styles: { root: { width: 'fit-content' } } }))),
-            props.showLetterIndex && !loading && users.length > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_LetterIndex__WEBPACK_IMPORTED_MODULE_15__[/* LetterIndex */ "e"], { selectedLetter: selectedLetter, onLetterSelect: handleLetterSelect, availableLetters: getAvailableLetters() })),
+                getActiveFilterCount() > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* PrimaryButton */ "e"], { text: "Clear All Filters", onClick: handleClearAllFilters, disabled: loading, iconProps: { iconName: 'ClearFilter' }, styles: { root: { width: 'fit-content' } } }))),
+            props.showLetterIndex && !loading && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_LetterIndex__WEBPACK_IMPORTED_MODULE_15__[/* LetterIndex */ "e"], { selectedLetter: selectedLetter, onLetterSelect: handleLetterSelect, activeColor: props.rolodexActiveColor, normalColor: props.rolodexNormalColor })),
             error && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_7__[/* MessageBar */ "e"], { messageBarType: _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_8__[/* MessageBarType */ "e"].error, onDismiss: handleErrorDismiss }, error)),
             loading && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontalAlign: "center", tokens: { padding: 40 } },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Spinner__WEBPACK_IMPORTED_MODULE_5__[/* Spinner */ "e"], { size: _fluentui_react_lib_Spinner__WEBPACK_IMPORTED_MODULE_6__[/* SpinnerSize */ "e"].large, label: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_LOADING }))),
@@ -10041,7 +10041,7 @@ const PeopleDirectory = (props) => {
                         ? 'Try adjusting your search or filters'
                         : 'Type a name, email, or department, then press Search.')));
             })()) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, (() => {
-                const filteredUsers = getFilteredUsersByLetter();
+                const filteredUsers = users;
                 const pageSize = props.paginationSize;
                 // Clamp against the current result size so a runtime page-size
                 // change (property pane) can never strand us on an empty page.
@@ -19394,6 +19394,21 @@ class PeopleService {
         }
         catch (error) {
             console.error('Error getting initial users:', error);
+            return [];
+        }
+    }
+    /**
+     * Get users whose display name starts with the given letter (rolodex).
+     * List-only by design — the rolodex never queries Graph/Entra ID.
+     */
+    async getUsersByLetter(letter, pageSize) {
+        try {
+            const users = await this.listService.getUsersByLetter(letter, pageSize);
+            // Fill any missing photos lazily via the component (page-aware); no bulk fetch here.
+            return users;
+        }
+        catch (error) {
+            console.error('Error getting users by letter:', error);
             return [];
         }
     }
@@ -29862,6 +29877,28 @@ class ListService {
         }
     }
     /**
+     * Get list users whose display name (Title) starts with the given letter.
+     * `startswith` on the indexed Title column uses the index (efficient/scalable,
+     * unlike substringof). Ordered by Title, capped at pageSize.
+     */
+    async getUsersByLetter(letter, pageSize = _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].SEARCH_MAX_RESULTS) {
+        try {
+            await this.ensureList();
+            const escaped = letter.replace(/'/g, "''");
+            const items = await this.sp.web.lists
+                .getByTitle(this.listTitle)
+                .items.select('Id', 'PD_UserId', 'PD_UserPrincipalName', 'Title', 'PD_Email', 'PD_Department', 'PD_JobTitle', 'PD_OfficeLocation', 'PD_BusinessPhones', 'PD_MobilePhone', 'PD_City', 'PD_Country', 'PD_CompanyName', 'PD_PhotoUrl', 'PD_GivenName', 'PD_Surname', 'PD_LastVerified', 'PD_AccessCount')
+                .filter(`startswith(Title, '${escaped}')`)
+                .orderBy('Title', true)
+                .top(pageSize)();
+            return items.map(item => this.mapListItemToUser(item));
+        }
+        catch (error) {
+            console.error('Error getting users by letter:', error);
+            return [];
+        }
+    }
+    /**
      * Get total user count from list. Uses the list's ItemCount property, which is
      * accurate beyond the 5,000 view threshold and costs a single cheap call.
      * Subtracts the `_SyncMetadata` bookkeeping row.
@@ -32706,7 +32743,7 @@ var VerticalDivider = Object(_Utilities__WEBPACK_IMPORTED_MODULE_2__[/* styled *
 
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const LetterIndex = ({ selectedLetter, onLetterSelect, availableLetters }) => {
+const LetterIndex = ({ selectedLetter, onLetterSelect, availableLetters, activeColor = '#0078d4', normalColor = '#323130' }) => {
     const handleLetterClick = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((event) => {
         const letter = event.currentTarget.dataset.letter;
         if (!letter)
@@ -32725,12 +32762,12 @@ const LetterIndex = ({ selectedLetter, onLetterSelect, availableLetters }) => {
     return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].letterIndex },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, wrap: true },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("button", { className: `${_LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].letterButton} ${selectedLetter === null ? _LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].active : ''}`, onClick: handleAllClick, "aria-label": "Show all users", title: "Show all" },
-                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small" }, "All")),
+                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { color: selectedLetter === null ? activeColor : normalColor } }, "All")),
             ALPHABET.map(letter => {
                 const isAvailable = !availableLetters || availableLetters.has(letter);
                 const isSelected = selectedLetter === letter;
                 return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("button", { key: letter, className: `${_LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].letterButton} ${isSelected ? _LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].active : ''} ${!isAvailable ? _LetterIndex_module_scss__WEBPACK_IMPORTED_MODULE_3__[/* default */ "e"].disabled : ''}`, onClick: handleLetterClick, "data-letter": letter, disabled: !isAvailable, "aria-label": `Filter by ${letter}`, title: `Show names starting with ${letter}` },
-                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small" }, letter)));
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { color: isSelected ? activeColor : normalColor } }, letter)));
             }))));
 };
 
@@ -35541,8 +35578,10 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
             // Webpart Background
             webpartBackgroundColor: this.properties.webpartBackgroundColor || '',
             webpartBackgroundImage: this.properties.webpartBackgroundImage || '',
-            // Letter Index
+            // Letter Index (rolodex)
             showLetterIndex: this.properties.showLetterIndex !== false,
+            rolodexActiveColor: this.properties.rolodexActiveColor || '#0078d4',
+            rolodexNormalColor: this.properties.rolodexNormalColor || '#323130',
             // Profile Picture
             showProfilePicture: this.properties.showProfilePicture !== false,
             // Search Button Configuration
@@ -35802,10 +35841,20 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
                             groupName: 'Display Options',
                             groupFields: [
                                 Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneToggle"])('showLetterIndex', {
-                                    label: 'Show Letter Index',
+                                    label: 'Show Letter Index (Rolodex)',
                                     onText: 'Visible',
                                     offText: 'Hidden',
                                     checked: this.properties.showLetterIndex !== false
+                                }),
+                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneTextField"])('rolodexActiveColor', {
+                                    label: 'Rolodex Active Letter Color (hex, rgba, or hsla)',
+                                    placeholder: '#0078d4 or rgba(0,120,212,1)',
+                                    description: 'Colour of the selected letter'
+                                }),
+                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneTextField"])('rolodexNormalColor', {
+                                    label: 'Rolodex Letter Color (hex, rgba, or hsla)',
+                                    placeholder: '#323130 or rgba(50,49,48,1)',
+                                    description: 'Colour of the unselected letters'
                                 }),
                                 Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneToggle"])('showProfilePicture', {
                                     label: 'Show Profile Pictures',

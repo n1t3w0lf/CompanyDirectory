@@ -61,13 +61,10 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       return;
     }
 
-    const filtered = selectedLetter
-      ? users.filter(u => u.displayName.charAt(0).toUpperCase() === selectedLetter)
-      : users;
     const pageSize = props.paginationSize;
-    const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
     const safePage = Math.min(currentPage, pageCount);
-    const pageUsers = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+    const pageUsers = users.slice((safePage - 1) * pageSize, safePage * pageSize);
 
     const toFetch = pageUsers.filter(u => !u.photoUrl && u.id && !enrichedPhotoIds.current.has(u.id));
     if (toFetch.length === 0) {
@@ -91,7 +88,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       .catch(err => console.error('Error enriching photos:', err));
 
     return () => { cancelled = true; };
-  }, [users, currentPage, selectedLetter, loading, props.paginationSize, props.peopleService]);
+  }, [users, currentPage, loading, props.paginationSize, props.peopleService]);
 
   const initializeData = async (): Promise<void> => {
     try {
@@ -335,38 +332,36 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   };
 
   /**
-   * Get available letters from current users
+   * Handle rolodex letter selection. Queries the SharePoint list (list only —
+   * never Graph) for users whose name starts with the letter; "All" clears the
+   * letter and restores the startup view.
    */
-  const getAvailableLetters = (): Set<string> => {
-    const letters = new Set<string>();
-    users.forEach(user => {
-      const firstLetter = user.displayName.charAt(0).toUpperCase();
-      if (/[A-Z]/.test(firstLetter)) {
-        letters.add(firstLetter);
-      }
-    });
-    return letters;
-  };
-
-  /**
-   * Filter users by selected letter
-   */
-  const getFilteredUsersByLetter = (): IUserProfile[] => {
-    if (!selectedLetter) {
-      return users;
-    }
-    return users.filter(user =>
-      user.displayName.charAt(0).toUpperCase() === selectedLetter
-    );
-  };
-
-  /**
-   * Handle letter selection
-   */
-  const handleLetterSelect = useCallback((letter: string | null): void => {
+  const handleLetterSelect = useCallback(async (letter: string | null): Promise<void> => {
     setSelectedLetter(letter);
     setCurrentPage(1);
-  }, []);
+    setError('');
+
+    if (!letter) {
+      if (props.showPeopleOnStart) {
+        await loadInitialUsers();
+      } else {
+        setUsers([]);
+      }
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await props.peopleService.getUsersByLetter(letter);
+      setUsers(result);
+    } catch (err) {
+      console.error('Error loading users by letter:', err);
+      setError('Failed to load users. Please try again.');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [props.peopleService, props.showPeopleOnStart, loadInitialUsers]);
 
   /**
    * Handle pagination page change
@@ -568,18 +563,20 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             <PrimaryButton
               text="Clear All Filters"
               onClick={handleClearAllFilters}
+              disabled={loading}
               iconProps={{ iconName: 'ClearFilter' }}
               styles={{ root: { width: 'fit-content' } }}
             />
           )}
         </Stack>
 
-        {/* Letter Index */}
-        {props.showLetterIndex && !loading && users.length > 0 && (
+        {/* Letter Index (rolodex) — all letters active; clicking queries the list */}
+        {props.showLetterIndex && !loading && (
           <LetterIndex
             selectedLetter={selectedLetter}
             onLetterSelect={handleLetterSelect}
-            availableLetters={getAvailableLetters()}
+            activeColor={props.rolodexActiveColor}
+            normalColor={props.rolodexNormalColor}
           />
         )}
 
@@ -623,7 +620,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
             ) : (
               <>
                 {(() => {
-                  const filteredUsers = getFilteredUsersByLetter();
+                  const filteredUsers = users;
                   const pageSize = props.paginationSize;
                   // Clamp against the current result size so a runtime page-size
                   // change (property pane) can never strand us on an empty page.

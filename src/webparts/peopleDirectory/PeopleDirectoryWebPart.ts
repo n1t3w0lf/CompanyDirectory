@@ -71,8 +71,10 @@ export interface IPeopleDirectoryWebPartProps {
   webpartBackgroundColor: string;
   webpartBackgroundImage: string;
 
-  // Letter Index
+  // Letter Index (rolodex)
   showLetterIndex: boolean;
+  rolodexActiveColor: string;
+  rolodexNormalColor: string;
 
   // Profile Picture
   showProfilePicture: boolean;
@@ -186,8 +188,10 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         webpartBackgroundColor: this.properties.webpartBackgroundColor || '',
         webpartBackgroundImage: this.properties.webpartBackgroundImage || '',
 
-        // Letter Index
+        // Letter Index (rolodex)
         showLetterIndex: this.properties.showLetterIndex !== false,
+        rolodexActiveColor: this.properties.rolodexActiveColor || '#0078d4',
+        rolodexNormalColor: this.properties.rolodexNormalColor || '#323130',
 
         // Profile Picture
         showProfilePicture: this.properties.showProfilePicture !== false,
@@ -489,10 +493,20 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
               groupName: 'Display Options',
               groupFields: [
                 PropertyPaneToggle('showLetterIndex', {
-                  label: 'Show Letter Index',
+                  label: 'Show Letter Index (Rolodex)',
                   onText: 'Visible',
                   offText: 'Hidden',
                   checked: this.properties.showLetterIndex !== false
+                }),
+                PropertyPaneTextField('rolodexActiveColor', {
+                  label: 'Rolodex Active Letter Color (hex, rgba, or hsla)',
+                  placeholder: '#0078d4 or rgba(0,120,212,1)',
+                  description: 'Colour of the selected letter'
+                }),
+                PropertyPaneTextField('rolodexNormalColor', {
+                  label: 'Rolodex Letter Color (hex, rgba, or hsla)',
+                  placeholder: '#323130 or rgba(50,49,48,1)',
+                  description: 'Colour of the unselected letters'
                 }),
                 PropertyPaneToggle('showProfilePicture', {
                   label: 'Show Profile Pictures',

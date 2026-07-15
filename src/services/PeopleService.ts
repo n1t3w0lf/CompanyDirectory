@@ -274,6 +274,21 @@ export class PeopleService {
   }
 
   /**
+   * Get users whose display name starts with the given letter (rolodex).
+   * List-only by design — the rolodex never queries Graph/Entra ID.
+   */
+  public async getUsersByLetter(letter: string, pageSize?: number): Promise<IUserProfile[]> {
+    try {
+      const users = await this.listService.getUsersByLetter(letter, pageSize);
+      // Fill any missing photos lazily via the component (page-aware); no bulk fetch here.
+      return users;
+    } catch (error) {
+      console.error('Error getting users by letter:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get filtered users with advanced filters
    */
   public async getFilteredUsers(filters: {

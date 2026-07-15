@@ -8,6 +8,10 @@ export interface ILetterIndexProps {
   selectedLetter: string | null;
   onLetterSelect: (letter: string | null) => void;
   availableLetters?: Set<string>;
+  /** Colour of the active/selected letter (from the property pane). */
+  activeColor?: string;
+  /** Colour of the normal/unselected letters (from the property pane). */
+  normalColor?: string;
 }
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -15,7 +19,9 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 export const LetterIndex: React.FC<ILetterIndexProps> = ({
   selectedLetter,
   onLetterSelect,
-  availableLetters
+  availableLetters,
+  activeColor = '#0078d4',
+  normalColor = '#323130'
 }) => {
   const handleLetterClick = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
     const letter = event.currentTarget.dataset.letter;
@@ -42,7 +48,7 @@ export const LetterIndex: React.FC<ILetterIndexProps> = ({
           aria-label="Show all users"
           title="Show all"
         >
-          <Text variant="small">All</Text>
+          <Text variant="small" style={{ color: selectedLetter === null ? activeColor : normalColor }}>All</Text>
         </button>
         {ALPHABET.map(letter => {
           const isAvailable = !availableLetters || availableLetters.has(letter);
@@ -58,7 +64,7 @@ export const LetterIndex: React.FC<ILetterIndexProps> = ({
               aria-label={`Filter by ${letter}`}
               title={`Show names starting with ${letter}`}
             >
-              <Text variant="small">{letter}</Text>
+              <Text variant="small" style={{ color: isSelected ? activeColor : normalColor }}>{letter}</Text>
             </button>
           );
         })}
