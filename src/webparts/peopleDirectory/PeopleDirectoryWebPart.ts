@@ -56,9 +56,6 @@ export interface IPeopleDirectoryWebPartProps {
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
 
-  // Property Display Order
-  propertyDisplayOrder: string;
-
   // Text Truncation
   textEllipsisLength: number;
 
@@ -85,6 +82,11 @@ export interface IPeopleDirectoryWebPartProps {
   searchButtonColor: string;
   searchButtonTextSize: number;
   searchButtonHoverColor: string;
+
+  // People & Pagination
+  showPeopleOnStart: boolean;
+  initialPeopleCount: number;
+  paginationSize: number;
 
   // Sync Configuration
   lastSyncDate: string;
@@ -169,9 +171,6 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
         profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
 
-        // Property Display Order
-        propertyDisplayOrder: this.properties.propertyDisplayOrder || 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
-
         // Text Truncation
         textEllipsisLength: this.properties.textEllipsisLength || 50,
 
@@ -197,7 +196,12 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
         searchButtonText: this.properties.searchButtonText || 'Search',
         searchButtonColor: this.properties.searchButtonColor || '#0078d4',
         searchButtonTextSize: this.properties.searchButtonTextSize || 14,
-        searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe'
+        searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe',
+
+        // People & Pagination
+        showPeopleOnStart: this.properties.showPeopleOnStart !== false,
+        initialPeopleCount: this.properties.initialPeopleCount || 30,
+        paginationSize: this.properties.paginationSize || 20
       }
     );
 
@@ -356,18 +360,6 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
               ]
             },
             {
-              groupName: 'Property Display Order',
-              groupFields: [
-                PropertyPaneTextField('propertyDisplayOrder', {
-                  label: 'Field Display Order (comma-separated)',
-                  placeholder: 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
-                  description: 'Specify the order of fields. Available: jobTitle, email, department, officeLocation, city, country, companyName, businessPhones, mobilePhone, employeeId',
-                  multiline: true,
-                  rows: 3
-                })
-              ]
-            },
-            {
               groupName: 'Text Truncation',
               groupFields: [
                 PropertyPaneSlider('textEllipsisLength', {
@@ -507,6 +499,34 @@ export default class PeopleDirectoryWebPart extends BaseClientSideWebPart<IPeopl
                   onText: 'Visible',
                   offText: 'Hidden',
                   checked: this.properties.showProfilePicture !== false
+                })
+              ]
+            },
+            {
+              groupName: 'People & Pagination',
+              groupFields: [
+                PropertyPaneToggle('showPeopleOnStart', {
+                  label: 'Show People on Start',
+                  onText: 'On',
+                  offText: 'Off',
+                  checked: this.properties.showPeopleOnStart !== false
+                }),
+                PropertyPaneSlider('initialPeopleCount', {
+                  label: 'People to Show on Start',
+                  min: 5,
+                  max: 100,
+                  step: 5,
+                  value: 30,
+                  showValue: true,
+                  disabled: this.properties.showPeopleOnStart === false
+                }),
+                PropertyPaneSlider('paginationSize', {
+                  label: 'Results per Page',
+                  min: 5,
+                  max: 50,
+                  step: 5,
+                  value: 20,
+                  showValue: true
                 })
               ]
             },

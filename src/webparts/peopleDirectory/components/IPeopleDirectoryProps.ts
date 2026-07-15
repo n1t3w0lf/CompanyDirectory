@@ -41,9 +41,6 @@ export interface IPeopleDirectoryProps {
   profilePropertiesFontSize: number;
   profilePropertiesFontColor: string;
 
-  // Property Display Order
-  propertyDisplayOrder: string;
-
   // Text Truncation
   textEllipsisLength: number;
 
@@ -70,4 +67,9 @@ export interface IPeopleDirectoryProps {
   searchButtonColor: string;
   searchButtonTextSize: number;
   searchButtonHoverColor: string;
+
+  // People & Pagination
+  showPeopleOnStart: boolean;
+  initialPeopleCount: number;
+  paginationSize: number;
 }

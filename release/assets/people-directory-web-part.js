@@ -2426,6 +2426,7 @@ function useMergedRefs() {
     }
     var mergedCallback = react__WEBPACK_IMPORTED_MODULE_1__["useCallback"](function (value) {
         // Update the "current" prop hanging on the function.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         mergedCallback.current = value;
         for (var _i = 0, refs_1 = refs; _i < refs_1.length; _i++) {
             var ref = refs_1[_i];
@@ -2434,6 +2435,7 @@ function useMergedRefs() {
             }
             else if (ref) {
                 // work around the immutability of the React.Ref type
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ref.current = value;
             }
         }
@@ -4324,7 +4326,13 @@ function useSubmenuEnterTimer(_a, asyncTracker) {
     };
     return [cancelSubMenuTimer, startSubmenuTimer, enterTimerRef];
 }
-function useMouseHandlers(props, isScrollIdle, subMenuEntryTimer, targetWindow, shouldUpdateFocusOnMouseEvent, gotMouseMove, expandedMenuItemKey, hostElement, startSubmenuTimer, cancelSubMenuTimer, openSubMenu, onSubMenuDismiss, dismiss) {
+function useMouseHandlers(props, 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+isScrollIdle, subMenuEntryTimer, targetWindow, 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+shouldUpdateFocusOnMouseEvent, 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+gotMouseMove, expandedMenuItemKey, hostElement, startSubmenuTimer, cancelSubMenuTimer, openSubMenu, onSubMenuDismiss, dismiss) {
     var menuTarget = props.target;
     var onItemMouseEnterBase = function (item, ev, target) {
         if (shouldUpdateFocusOnMouseEvent.current) {
@@ -9567,11 +9575,15 @@ var getStyles = function (props) {
 /* harmony import */ var _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @fluentui/react/lib/MessageBar */ "e8ns");
 /* harmony import */ var _fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @fluentui/react/lib/Button */ "JLNM");
 /* harmony import */ var _fluentui_react_lib_Dropdown__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @fluentui/react/lib/Dropdown */ "+onJ");
-/* harmony import */ var _UserCard__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./UserCard */ "k6d+");
-/* harmony import */ var _UserDetailsPanel__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./UserDetailsPanel */ "EGA/");
-/* harmony import */ var _SyncStatusBanner__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./SyncStatusBanner */ "G758");
-/* harmony import */ var _LetterIndex__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./LetterIndex */ "pd/t");
-/* harmony import */ var _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./PeopleDirectory.module.scss */ "I/xV");
+/* harmony import */ var _fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @fluentui/react/lib/Icon */ "htj1");
+/* harmony import */ var _UserCard__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./UserCard */ "k6d+");
+/* harmony import */ var _UserDetailsPanel__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./UserDetailsPanel */ "EGA/");
+/* harmony import */ var _SyncStatusBanner__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./SyncStatusBanner */ "G758");
+/* harmony import */ var _LetterIndex__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./LetterIndex */ "pd/t");
+/* harmony import */ var _Pagination__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./Pagination */ "pm1A");
+/* harmony import */ var _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./PeopleDirectory.module.scss */ "I/xV");
+
+
 
 
 
@@ -9605,7 +9617,8 @@ const PeopleDirectory = (props) => {
     const [selectedLetter, setSelectedLetter] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
     // Sync status
     const [syncStatus, setSyncStatus] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
-    const [totalUsers, setTotalUsers] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(0);
+    // Client-side pagination
+    const [currentPage, setCurrentPage] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(1);
     // Initialize: Check sync status and load initial users
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
         initializeData();
@@ -9630,10 +9643,17 @@ const PeopleDirectory = (props) => {
                 setLoading(false);
             }
             else {
-                // Load initial 30 users
-                await loadInitialUsers();
-                // Load filter options in background
+                // Load filter options in background (needed for dropdowns regardless)
                 loadFilterOptions();
+                if (props.showPeopleOnStart) {
+                    // Load the configured number of people
+                    await loadInitialUsers();
+                }
+                else {
+                    // Startup list disabled: show the search prompt instead
+                    setUsers([]);
+                    setLoading(false);
+                }
             }
         }
         catch (err) {
@@ -9643,16 +9663,14 @@ const PeopleDirectory = (props) => {
         }
     };
     /**
-     * Load first 30 users
+     * Load the configured number of people (props.initialPeopleCount) for the startup view
      */
     const loadInitialUsers = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(async () => {
         try {
             setLoading(true);
-            const initialUsers = await props.peopleService.getInitialUsers(30);
+            setCurrentPage(1);
+            const initialUsers = await props.peopleService.getInitialUsers(props.initialPeopleCount);
             setUsers(initialUsers);
-            // Get total count
-            const count = await props.peopleService.getTotalUserCount();
-            setTotalUsers(count);
             setLoading(false);
         }
         catch (err) {
@@ -9660,7 +9678,7 @@ const PeopleDirectory = (props) => {
             setError('Failed to load users. Please try again.');
             setLoading(false);
         }
-    }, [props.peopleService]);
+    }, [props.peopleService, props.initialPeopleCount]);
     /**
      * Load filter options
      */
@@ -9696,16 +9714,21 @@ const PeopleDirectory = (props) => {
             await props.syncService.performInitialSync((status) => {
                 setSyncStatus(status);
             });
-            // Sync complete, load users
-            await loadInitialUsers();
+            // Sync complete: load filter options, then restore the startup view
             loadFilterOptions();
+            if (props.showPeopleOnStart) {
+                await loadInitialUsers();
+            }
+            else {
+                setUsers([]);
+            }
         }
         catch (err) {
             console.error('Sync error:', err);
             setError('Sync failed. Please try again.');
             setSyncStatus(props.syncService.getSyncStatus());
         }
-    }, [props.syncService, loadInitialUsers, loadFilterOptions]);
+    }, [props.syncService, props.showPeopleOnStart, loadInitialUsers, loadFilterOptions]);
     /**
      * Handle sync cancellation
      */
@@ -9726,6 +9749,8 @@ const PeopleDirectory = (props) => {
         try {
             const result = await props.peopleService.manualSearch(searchText.trim());
             setUsers(result.users);
+            setCurrentPage(1);
+            setSelectedLetter(null);
             if (!result.success) {
                 setError(result.message);
             }
@@ -9746,11 +9771,18 @@ const PeopleDirectory = (props) => {
         const value = newValue || '';
         setSearchText(value);
         setError('');
-        // If search is cleared, reload initial users
+        // If search is cleared, restore the startup view
         if (value.length === 0) {
-            loadInitialUsers();
+            setCurrentPage(1);
+            setSelectedLetter(null);
+            if (props.showPeopleOnStart) {
+                loadInitialUsers();
+            }
+            else {
+                setUsers([]);
+            }
         }
-    }, [loadInitialUsers]);
+    }, [loadInitialUsers, props.showPeopleOnStart]);
     /**
      * Apply advanced filters
      */
@@ -9764,6 +9796,8 @@ const PeopleDirectory = (props) => {
             };
             const result = await props.peopleService.getFilteredUsers(combinedFilters, 100);
             setUsers(result);
+            setCurrentPage(1);
+            setSelectedLetter(null);
         }
         catch (err) {
             console.error('Filter error:', err);
@@ -9780,8 +9814,14 @@ const PeopleDirectory = (props) => {
         setActiveFilters({});
         setSearchText('');
         setSelectedLetter(null);
-        await loadInitialUsers();
-    }, [loadInitialUsers]);
+        setCurrentPage(1);
+        if (props.showPeopleOnStart) {
+            await loadInitialUsers();
+        }
+        else {
+            setUsers([]);
+        }
+    }, [loadInitialUsers, props.showPeopleOnStart]);
     /**
      * Handle user card click
      */
@@ -9834,6 +9874,13 @@ const PeopleDirectory = (props) => {
      */
     const handleLetterSelect = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((letter) => {
         setSelectedLetter(letter);
+        setCurrentPage(1);
+    }, []);
+    /**
+     * Handle pagination page change
+     */
+    const handlePageChange = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((page) => {
+        setCurrentPage(page);
     }, []);
     /**
      * Inline filter change handlers
@@ -9896,7 +9943,7 @@ const PeopleDirectory = (props) => {
         }
         return style;
     }, [props.webpartBackgroundColor, props.webpartBackgroundImage]);
-    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].peopleDirectory, style: webpartContainerStyle },
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].peopleDirectory, style: webpartContainerStyle },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 20 } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, horizontalAlign: "space-between", verticalAlign: "center" },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { grow: true },
@@ -9907,14 +9954,11 @@ const PeopleDirectory = (props) => {
                     props.subtextText && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium", block: true, style: {
                             fontSize: props.subtextFontSize,
                             color: props.subtextFontColor
-                        } }, props.subtextText)),
-                    totalUsers > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "small", block: true, style: { color: '#666', marginTop: 4 } },
-                        totalUsers.toLocaleString(),
-                        " people in directory")))),
-            syncStatus && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_SyncStatusBanner__WEBPACK_IMPORTED_MODULE_13__[/* SyncStatusBanner */ "e"], { syncStatus: syncStatus, onStartSync: handleStartSync, onCancelSync: handleCancelSync })),
+                        } }, props.subtextText)))),
+            syncStatus && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_SyncStatusBanner__WEBPACK_IMPORTED_MODULE_14__[/* SyncStatusBanner */ "e"], { syncStatus: syncStatus, onStartSync: handleStartSync, onCancelSync: handleCancelSync })),
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 8 }, verticalAlign: "end" },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { grow: true },
-                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_SearchBox__WEBPACK_IMPORTED_MODULE_2__[/* SearchBox */ "e"], { placeholder: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_SEARCH_PLACEHOLDER, onChange: handleSearchBoxChange, onClear: handleSearchBoxClear, onSearch: handleManualSearch, value: searchText, disabled: loading, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].searchBox })),
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_SearchBox__WEBPACK_IMPORTED_MODULE_2__[/* SearchBox */ "e"], { placeholder: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_SEARCH_PLACEHOLDER, onChange: handleSearchBoxChange, onClear: handleSearchBoxClear, onSearch: handleManualSearch, value: searchText, disabled: loading, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].searchBox })),
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* PrimaryButton */ "e"], { text: props.searchButtonText || 'Search', onClick: handleManualSearch, disabled: loading || !searchText || searchText.trim().length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH, iconProps: { iconName: 'Search' }, styles: {
                         root: {
                             backgroundColor: props.searchButtonColor || undefined,
@@ -9946,20 +9990,34 @@ const PeopleDirectory = (props) => {
                                 ...cities.map(c => ({ key: c, text: c }))
                             ], selectedKey: activeFilters.city || '', onChange: handleCityChange, disabled: loading }))),
                 getActiveFilterCount() > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_9__[/* PrimaryButton */ "e"], { text: "Clear All Filters", onClick: handleClearAllFilters, iconProps: { iconName: 'ClearFilter' }, styles: { root: { width: 'fit-content' } } }))),
-            props.showLetterIndex && !loading && users.length > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_LetterIndex__WEBPACK_IMPORTED_MODULE_14__[/* LetterIndex */ "e"], { selectedLetter: selectedLetter, onLetterSelect: handleLetterSelect, availableLetters: getAvailableLetters() })),
+            props.showLetterIndex && !loading && users.length > 0 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_LetterIndex__WEBPACK_IMPORTED_MODULE_15__[/* LetterIndex */ "e"], { selectedLetter: selectedLetter, onLetterSelect: handleLetterSelect, availableLetters: getAvailableLetters() })),
             error && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_7__[/* MessageBar */ "e"], { messageBarType: _fluentui_react_lib_MessageBar__WEBPACK_IMPORTED_MODULE_8__[/* MessageBarType */ "e"].error, onDismiss: handleErrorDismiss }, error)),
             loading && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontalAlign: "center", tokens: { padding: 40 } },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Spinner__WEBPACK_IMPORTED_MODULE_5__[/* Spinner */ "e"], { size: _fluentui_react_lib_Spinner__WEBPACK_IMPORTED_MODULE_6__[/* SpinnerSize */ "e"].large, label: _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_LOADING }))),
-            !loading && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, users.length === 0 ? (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontalAlign: "center", tokens: { padding: 40 } },
-                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "large" }, _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_NO_RESULTS),
-                searchText || getActiveFilterCount() > 0 ? (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium", style: { marginTop: 8, color: '#666' } }, "Try adjusting your search or filters")) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium", style: { marginTop: 8, color: '#666' } }, "Start typing to search for people")))) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, (() => {
+            !loading && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, users.length === 0 ? ((() => {
+                const hasQuery = !!searchText || getActiveFilterCount() > 0;
+                return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].emptyState },
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Icon__WEBPACK_IMPORTED_MODULE_11__[/* Icon */ "e"], { iconName: hasQuery ? 'SearchIssue' : 'People', className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].emptyStateIcon }),
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { block: true, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].emptyStateText }, hasQuery ? _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MSG_NO_RESULTS : 'Search for people'),
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { block: true, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].emptyStateSubtext }, hasQuery
+                        ? 'Try adjusting your search or filters'
+                        : 'Type a name, email, or department, then press Search.')));
+            })()) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null, (() => {
                 const filteredUsers = getFilteredUsersByLetter();
+                const pageSize = props.paginationSize;
+                // Clamp against the current result size so a runtime page-size
+                // change (property pane) can never strand us on an empty page.
+                const pageCount = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+                const safePage = Math.min(currentPage, pageCount);
+                const pagedUsers = filteredUsers.slice((safePage - 1) * pageSize, safePage * pageSize);
                 return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null,
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium" }, `${searchText || getActiveFilterCount() > 0 || selectedLetter ? 'Found' : 'Showing'} ${filteredUsers.length} ${filteredUsers.length === 1 ? 'person' : 'people'}${selectedLetter ? ` starting with "${selectedLetter}"` : ''}`),
                     filteredUsers.length === 0 ? (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontalAlign: "center", tokens: { padding: 40 } },
-                        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium", style: { color: '#666' } }, `No people found starting with "${selectedLetter}"`))) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_15__[/* default */ "e"].userGrid }, filteredUsers.map(user => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserCard__WEBPACK_IMPORTED_MODULE_11__[/* UserCard */ "e"], { key: user.id, user: user, onUserClick: handleUserClick, profileNameFontSize: props.profileNameFontSize, profileNameFontColor: props.profileNameFontColor, jobTitleFontSize: props.jobTitleFontSize, jobTitleFontColor: props.jobTitleFontColor, jobTitleBold: props.jobTitleBold, profilePropertiesFontSize: props.profilePropertiesFontSize, profilePropertiesFontColor: props.profilePropertiesFontColor, iconSize: props.iconSize, iconColor: props.iconColor, profileCardBackgroundColor: props.profileCardBackgroundColor, profileCardBackgroundImage: props.profileCardBackgroundImage, showProfilePicture: props.showProfilePicture, textEllipsisLength: props.textEllipsisLength, showJobTitle: props.showJobTitle, showDepartment: props.showDepartment, showOfficeLocation: props.showOfficeLocation, showEmail: props.showEmail, showBusinessPhones: props.showBusinessPhones, showMobilePhone: props.showMobilePhone, showCity: props.showCity, showCountry: props.showCountry, showCompanyName: props.showCompanyName, showEmployeeId: props.showEmployeeId })))))));
+                        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "medium", style: { color: '#666' } }, `No people found starting with "${selectedLetter}"`))) : (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](react__WEBPACK_IMPORTED_MODULE_0__["Fragment"], null,
+                        react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("div", { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].userGrid }, pagedUsers.map(user => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserCard__WEBPACK_IMPORTED_MODULE_12__[/* UserCard */ "e"], { key: user.id, user: user, onUserClick: handleUserClick, profileNameFontSize: props.profileNameFontSize, profileNameFontColor: props.profileNameFontColor, jobTitleFontSize: props.jobTitleFontSize, jobTitleFontColor: props.jobTitleFontColor, jobTitleBold: props.jobTitleBold, profilePropertiesFontSize: props.profilePropertiesFontSize, profilePropertiesFontColor: props.profilePropertiesFontColor, iconSize: props.iconSize, iconColor: props.iconColor, profileCardBackgroundColor: props.profileCardBackgroundColor, profileCardBackgroundImage: props.profileCardBackgroundImage, showProfilePicture: props.showProfilePicture, textEllipsisLength: props.textEllipsisLength, showJobTitle: props.showJobTitle, showDepartment: props.showDepartment, showOfficeLocation: props.showOfficeLocation, showEmail: props.showEmail, showBusinessPhones: props.showBusinessPhones, showMobilePhone: props.showMobilePhone, showCity: props.showCity, showCountry: props.showCountry, showCompanyName: props.showCompanyName, showEmployeeId: props.showEmployeeId })))),
+                        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_Pagination__WEBPACK_IMPORTED_MODULE_16__[/* Pagination */ "e"], { currentPage: safePage, totalItems: filteredUsers.length, pageSize: pageSize, onPageChange: handlePageChange })))));
             })()))))),
-        selectedUser && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserDetailsPanel__WEBPACK_IMPORTED_MODULE_12__[/* UserDetailsPanel */ "e"], { user: selectedUser, isOpen: isPanelOpen, onDismiss: handleDetailsPanelDismiss, profileNameFontSize: props.profileNameFontSize, profileNameFontColor: props.profileNameFontColor, jobTitleFontSize: props.jobTitleFontSize, jobTitleFontColor: props.jobTitleFontColor, jobTitleBold: props.jobTitleBold, profilePropertiesFontSize: props.profilePropertiesFontSize, profilePropertiesFontColor: props.profilePropertiesFontColor, iconSize: props.iconSize, iconColor: props.iconColor, showProfilePicture: props.showProfilePicture, showEmail: props.showEmail, showJobTitle: props.showJobTitle, showDepartment: props.showDepartment, showOfficeLocation: props.showOfficeLocation, showBusinessPhones: props.showBusinessPhones, showMobilePhone: props.showMobilePhone, showCity: props.showCity, showCountry: props.showCountry, showCompanyName: props.showCompanyName, showEmployeeId: props.showEmployeeId }))));
+        selectedUser && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_UserDetailsPanel__WEBPACK_IMPORTED_MODULE_13__[/* UserDetailsPanel */ "e"], { user: selectedUser, isOpen: isPanelOpen, onDismiss: handleDetailsPanelDismiss, profileNameFontSize: props.profileNameFontSize, profileNameFontColor: props.profileNameFontColor, jobTitleFontSize: props.jobTitleFontSize, jobTitleFontColor: props.jobTitleFontColor, jobTitleBold: props.jobTitleBold, profilePropertiesFontSize: props.profilePropertiesFontSize, profilePropertiesFontColor: props.profilePropertiesFontColor, iconSize: props.iconSize, iconColor: props.iconColor, showProfilePicture: props.showProfilePicture, showEmail: true, showJobTitle: true, showDepartment: true, showOfficeLocation: true, showBusinessPhones: true, showMobilePhone: true, showCity: true, showCountry: true, showCompanyName: true, showEmployeeId: true }))));
 };
 
 
@@ -17865,6 +17923,7 @@ var createResolver = function (local) {
             }
             else if (ref) {
                 // work around the immutability of the React.Ref type
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ref.current = newValue;
             }
         }
@@ -21527,7 +21586,7 @@ var ProgressIndicator = Object(_Utilities__WEBPACK_IMPORTED_MODULE_0__[/* styled
 // Do not modify this file; it is generated as part of publish.
 // The checked in version is a placeholder only and will not be updated.
 
-Object(_fluentui_set_version__WEBPACK_IMPORTED_MODULE_0__[/* setVersion */ "e"])('@fluentui/style-utilities', '8.13.3');
+Object(_fluentui_set_version__WEBPACK_IMPORTED_MODULE_0__[/* setVersion */ "e"])('@fluentui/style-utilities', '8.15.2');
 //# sourceMappingURL=version.js.map
 
 /***/ }),
@@ -24216,8 +24275,13 @@ function _processStackChildren(children, _a) {
             return child;
         }
         if (child.type === react__WEBPACK_IMPORTED_MODULE_1__["Fragment"]) {
-            return child.props.children
-                ? _processStackChildren(child.props.children, { disableShrink: disableShrink, enableScopedSelectors: enableScopedSelectors, doNotRenderFalsyValues: doNotRenderFalsyValues })
+            var fragmentChild = child;
+            return fragmentChild.props.children
+                ? _processStackChildren(fragmentChild.props.children, {
+                    disableShrink: disableShrink,
+                    enableScopedSelectors: enableScopedSelectors,
+                    doNotRenderFalsyValues: doNotRenderFalsyValues,
+                })
                 : null;
         }
         var childAsReactElement = child;
@@ -32355,6 +32419,77 @@ const LetterIndex = ({ selectedLetter, onLetterSelect, availableLetters }) => {
 
 /***/ }),
 
+/***/ "pm1A":
+/*!***************************************************************!*\
+  !*** ./lib/webparts/peopleDirectory/components/Pagination.js ***!
+  \***************************************************************/
+/*! exports provided: Pagination */
+/*! exports used: Pagination */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return Pagination; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "cDcd");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @fluentui/react/lib/Stack */ "cXmr");
+/* harmony import */ var _fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @fluentui/react/lib/Text */ "VlbG");
+/* harmony import */ var _fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @fluentui/react/lib/Button */ "KYv7");
+/* harmony import */ var _fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @fluentui/react/lib/Button */ "ZwJW");
+
+
+
+
+/**
+ * Single page-number button. Owns a stable click handler so the parent's JSX
+ * stays free of inline arrow functions (react/jsx-no-bind).
+ */
+const PageButton = ({ page, active, onSelect }) => {
+    const handleClick = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"](() => {
+        onSelect(page);
+    }, [page, onSelect]);
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_3__[/* DefaultButton */ "e"], { text: String(page), onClick: handleClick, primary: active, checked: active, ariaLabel: `Page ${page}`, "aria-current": active ? 'page' : undefined, styles: { root: { minWidth: 36, padding: '0 8px' } } }));
+};
+/**
+ * Presentational client-side pager: previous / next, a windowed list of page
+ * numbers, and an "X–Y of Z" summary. Renders nothing when there is a single page.
+ */
+const Pagination = ({ currentPage, totalItems, pageSize, onPageChange, maxPageButtons = 5 }) => {
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const goToPage = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"]((page) => {
+        if (page >= 1 && page <= totalPages && page !== currentPage) {
+            onPageChange(page);
+        }
+    }, [currentPage, totalPages, onPageChange]);
+    const handlePrevious = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"](() => {
+        goToPage(currentPage - 1);
+    }, [goToPage, currentPage]);
+    const handleNext = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"](() => {
+        goToPage(currentPage + 1);
+    }, [goToPage, currentPage]);
+    // Nothing to page through
+    if (totalPages <= 1) {
+        return null;
+    }
+    // Build a windowed list of page numbers centred on the current page
+    const half = Math.floor(maxPageButtons / 2);
+    const endPage = Math.min(totalPages, Math.max(1, currentPage - half) + maxPageButtons - 1);
+    const startPage = Math.max(1, endPage - maxPageButtons + 1);
+    const pages = [];
+    for (let p = startPage; p <= endPage; p++) {
+        pages.push(p);
+    }
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, horizontalAlign: "center", verticalAlign: "center", wrap: true, tokens: { childrenGap: 12 }, role: "navigation", "aria-label": "Pagination", styles: { root: { marginTop: 16 } } },
+        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronLeft' }, title: "Previous page", ariaLabel: "Previous page", onClick: handlePrevious, disabled: currentPage === 1, allowDisabledFocus: true }),
+            startPage > 1 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { padding: '0 4px', color: '#605E5C' } }, "\u2026")),
+            pages.map(page => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](PageButton, { key: page, page: page, active: page === currentPage, onSelect: goToPage }))),
+            endPage < totalPages && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { padding: '0 4px', color: '#605E5C' } }, "\u2026")),
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronRight' }, title: "Next page", ariaLabel: "Next page", onClick: handleNext, disabled: currentPage === totalPages, allowDisabledFocus: true }))));
+};
+
+
+/***/ }),
+
 /***/ "polh":
 /*!********************************************************************!*\
   !*** ./node_modules/@fluentui/theme/lib/motion/AnimationStyles.js ***!
@@ -32922,7 +33057,6 @@ function getWindow(rootElement) {
 /**
  * Context for providing the window.
  */
-// eslint-disable-next-line @fluentui/no-context-default-value
 var WindowContext = react__WEBPACK_IMPORTED_MODULE_0__["createContext"]({
     // eslint-disable-next-line no-restricted-globals
     window: typeof window === 'object' ? window : undefined,
@@ -35078,8 +35212,6 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
             // Profile Properties Styling
             profilePropertiesFontSize: this.properties.profilePropertiesFontSize || 14,
             profilePropertiesFontColor: this.properties.profilePropertiesFontColor || '#605E5C',
-            // Property Display Order
-            propertyDisplayOrder: this.properties.propertyDisplayOrder || 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
             // Text Truncation
             textEllipsisLength: this.properties.textEllipsisLength || 50,
             // Icon Styling
@@ -35099,7 +35231,11 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
             searchButtonText: this.properties.searchButtonText || 'Search',
             searchButtonColor: this.properties.searchButtonColor || '#0078d4',
             searchButtonTextSize: this.properties.searchButtonTextSize || 14,
-            searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe'
+            searchButtonHoverColor: this.properties.searchButtonHoverColor || '#106ebe',
+            // People & Pagination
+            showPeopleOnStart: this.properties.showPeopleOnStart !== false,
+            initialPeopleCount: this.properties.initialPeopleCount || 30,
+            paginationSize: this.properties.paginationSize || 20
         });
         react_dom__WEBPACK_IMPORTED_MODULE_1__["render"](element, this.domElement);
     }
@@ -35215,18 +35351,6 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
                                     label: 'Properties Color (hex, rgba, or hsla)',
                                     placeholder: '#605E5C or rgba(96,94,92,1)',
                                     description: 'Examples: #605E5C, rgba(96,94,92,0.9), hsla(20,3%,37%,0.9)'
-                                })
-                            ]
-                        },
-                        {
-                            groupName: 'Property Display Order',
-                            groupFields: [
-                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneTextField"])('propertyDisplayOrder', {
-                                    label: 'Field Display Order (comma-separated)',
-                                    placeholder: 'jobTitle,email,department,officeLocation,city,country,companyName,businessPhones,mobilePhone,employeeId',
-                                    description: 'Specify the order of fields. Available: jobTitle, email, department, officeLocation, city, country, companyName, businessPhones, mobilePhone, employeeId',
-                                    multiline: true,
-                                    rows: 3
                                 })
                             ]
                         },
@@ -35370,6 +35494,34 @@ class PeopleDirectoryWebPart extends _microsoft_sp_webpart_base__WEBPACK_IMPORTE
                                     onText: 'Visible',
                                     offText: 'Hidden',
                                     checked: this.properties.showProfilePicture !== false
+                                })
+                            ]
+                        },
+                        {
+                            groupName: 'People & Pagination',
+                            groupFields: [
+                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneToggle"])('showPeopleOnStart', {
+                                    label: 'Show People on Start',
+                                    onText: 'On',
+                                    offText: 'Off',
+                                    checked: this.properties.showPeopleOnStart !== false
+                                }),
+                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneSlider"])('initialPeopleCount', {
+                                    label: 'People to Show on Start',
+                                    min: 5,
+                                    max: 100,
+                                    step: 5,
+                                    value: 30,
+                                    showValue: true,
+                                    disabled: this.properties.showPeopleOnStart === false
+                                }),
+                                Object(_microsoft_sp_property_pane__WEBPACK_IMPORTED_MODULE_3__["PropertyPaneSlider"])('paginationSize', {
+                                    label: 'Results per Page',
+                                    min: 5,
+                                    max: 50,
+                                    step: 5,
+                                    value: 20,
+                                    showValue: true
                                 })
                             ]
                         },

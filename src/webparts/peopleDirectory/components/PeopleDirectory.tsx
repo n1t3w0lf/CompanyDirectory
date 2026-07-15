@@ -11,10 +11,12 @@ import { Spinner, SpinnerSize } from '@fluentui/react/lib/Spinner';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
 import { PrimaryButton } from '@fluentui/react/lib/Button';
 import { Dropdown, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Icon } from '@fluentui/react/lib/Icon';
 import { UserCard } from './UserCard';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { SyncStatusBanner } from './SyncStatusBanner';
 import { LetterIndex } from './LetterIndex';
+import { Pagination } from './Pagination';
 import { IAdvancedFilters } from './AdvancedFilterPanel';
 import styles from './PeopleDirectory.module.scss';
 
@@ -40,7 +42,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
   // Sync status
   const [syncStatus, setSyncStatus] = useState<ISyncStatus | null>(null);
-  const [totalUsers, setTotalUsers] = useState<number>(0);
+
+  // Client-side pagination
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Initialize: Check sync status and load initial users
   useEffect(() => {
@@ -68,11 +72,17 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         });
         setLoading(false);
       } else {
-        // Load initial 30 users
-        await loadInitialUsers();
-
-        // Load filter options in background
+        // Load filter options in background (needed for dropdowns regardless)
         loadFilterOptions();
+
+        if (props.showPeopleOnStart) {
+          // Load the configured number of people
+          await loadInitialUsers();
+        } else {
+          // Startup list disabled: show the search prompt instead
+          setUsers([]);
+          setLoading(false);
+        }
       }
     } catch (err) {
       console.error('Error initializing:', err);
@@ -82,17 +92,14 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   };
 
   /**
-   * Load first 30 users
+   * Load the configured number of people (props.initialPeopleCount) for the startup view
    */
   const loadInitialUsers = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
-      const initialUsers = await props.peopleService.getInitialUsers(30);
+      setCurrentPage(1);
+      const initialUsers = await props.peopleService.getInitialUsers(props.initialPeopleCount);
       setUsers(initialUsers);
-
-      // Get total count
-      const count = await props.peopleService.getTotalUserCount();
-      setTotalUsers(count);
 
       setLoading(false);
     } catch (err) {
@@ -100,7 +107,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       setError('Failed to load users. Please try again.');
       setLoading(false);
     }
-  }, [props.peopleService]);
+  }, [props.peopleService, props.initialPeopleCount]);
 
   /**
    * Load filter options
@@ -140,16 +147,20 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         setSyncStatus(status);
       });
 
-      // Sync complete, load users
-      await loadInitialUsers();
+      // Sync complete: load filter options, then restore the startup view
       loadFilterOptions();
+      if (props.showPeopleOnStart) {
+        await loadInitialUsers();
+      } else {
+        setUsers([]);
+      }
 
     } catch (err) {
       console.error('Sync error:', err);
       setError('Sync failed. Please try again.');
       setSyncStatus(props.syncService.getSyncStatus());
     }
-  }, [props.syncService, loadInitialUsers, loadFilterOptions]);
+  }, [props.syncService, props.showPeopleOnStart, loadInitialUsers, loadFilterOptions]);
 
   /**
    * Handle sync cancellation
@@ -175,6 +186,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
       const result = await props.peopleService.manualSearch(searchText.trim());
 
       setUsers(result.users);
+      setCurrentPage(1);
+      setSelectedLetter(null);
 
       if (!result.success) {
         setError(result.message);
@@ -196,11 +209,17 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     setSearchText(value);
     setError('');
 
-    // If search is cleared, reload initial users
+    // If search is cleared, restore the startup view
     if (value.length === 0) {
-      loadInitialUsers();
+      setCurrentPage(1);
+      setSelectedLetter(null);
+      if (props.showPeopleOnStart) {
+        loadInitialUsers();
+      } else {
+        setUsers([]);
+      }
     }
-  }, [loadInitialUsers]);
+  }, [loadInitialUsers, props.showPeopleOnStart]);
 
   /**
    * Apply advanced filters
@@ -217,6 +236,8 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
 
       const result = await props.peopleService.getFilteredUsers(combinedFilters, 100);
       setUsers(result);
+      setCurrentPage(1);
+      setSelectedLetter(null);
     } catch (err) {
       console.error('Filter error:', err);
       setError('Failed to apply filters. Please try again.');
@@ -232,8 +253,13 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
     setActiveFilters({});
     setSearchText('');
     setSelectedLetter(null);
-    await loadInitialUsers();
-  }, [loadInitialUsers]);
+    setCurrentPage(1);
+    if (props.showPeopleOnStart) {
+      await loadInitialUsers();
+    } else {
+      setUsers([]);
+    }
+  }, [loadInitialUsers, props.showPeopleOnStart]);
 
   /**
    * Handle user card click
@@ -295,6 +321,14 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
    */
   const handleLetterSelect = useCallback((letter: string | null): void => {
     setSelectedLetter(letter);
+    setCurrentPage(1);
+  }, []);
+
+  /**
+   * Handle pagination page change
+   */
+  const handlePageChange = useCallback((page: number): void => {
+    setCurrentPage(page);
   }, []);
 
   /**
@@ -395,11 +429,6 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 }}
               >
                 {props.subtextText}
-              </Text>
-            )}
-            {totalUsers > 0 && (
-              <Text variant="small" block style={{ color: '#666', marginTop: 4 }}>
-                {totalUsers.toLocaleString()} people in directory
               </Text>
             )}
           </Stack.Item>
@@ -528,22 +557,38 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {!loading && (
           <>
             {users.length === 0 ? (
-              <Stack horizontalAlign="center" tokens={{ padding: 40 }}>
-                <Text variant="large">{Constants.MSG_NO_RESULTS}</Text>
-                {searchText || getActiveFilterCount() > 0 ? (
-                  <Text variant="medium" style={{ marginTop: 8, color: '#666' }}>
-                    Try adjusting your search or filters
-                  </Text>
-                ) : (
-                  <Text variant="medium" style={{ marginTop: 8, color: '#666' }}>
-                    Start typing to search for people
-                  </Text>
-                )}
-              </Stack>
+              (() => {
+                const hasQuery = !!searchText || getActiveFilterCount() > 0;
+                return (
+                  <div className={styles.emptyState}>
+                    <Icon
+                      iconName={hasQuery ? 'SearchIssue' : 'People'}
+                      className={styles.emptyStateIcon}
+                    />
+                    <Text block className={styles.emptyStateText}>
+                      {hasQuery ? Constants.MSG_NO_RESULTS : 'Search for people'}
+                    </Text>
+                    <Text block className={styles.emptyStateSubtext}>
+                      {hasQuery
+                        ? 'Try adjusting your search or filters'
+                        : 'Type a name, email, or department, then press Search.'}
+                    </Text>
+                  </div>
+                );
+              })()
             ) : (
               <>
                 {(() => {
                   const filteredUsers = getFilteredUsersByLetter();
+                  const pageSize = props.paginationSize;
+                  // Clamp against the current result size so a runtime page-size
+                  // change (property pane) can never strand us on an empty page.
+                  const pageCount = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+                  const safePage = Math.min(currentPage, pageCount);
+                  const pagedUsers = filteredUsers.slice(
+                    (safePage - 1) * pageSize,
+                    safePage * pageSize
+                  );
                   return (
                     <>
                       <Text variant="medium">
@@ -556,8 +601,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                           </Text>
                         </Stack>
                       ) : (
+                        <>
                         <div className={styles.userGrid}>
-                          {filteredUsers.map(user => (
+                          {pagedUsers.map(user => (
                     <UserCard
                       key={user.id}
                       user={user}
@@ -588,6 +634,13 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                     />
                   ))}
                         </div>
+                        <Pagination
+                          currentPage={safePage}
+                          totalItems={filteredUsers.length}
+                          pageSize={pageSize}
+                          onPageChange={handlePageChange}
+                        />
+                        </>
                       )}
                     </>
                   );
@@ -614,16 +667,16 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
           iconSize={props.iconSize}
           iconColor={props.iconColor}
           showProfilePicture={props.showProfilePicture}
-          showEmail={props.showEmail}
-          showJobTitle={props.showJobTitle}
-          showDepartment={props.showDepartment}
-          showOfficeLocation={props.showOfficeLocation}
-          showBusinessPhones={props.showBusinessPhones}
-          showMobilePhone={props.showMobilePhone}
-          showCity={props.showCity}
-          showCountry={props.showCountry}
-          showCompanyName={props.showCompanyName}
-          showEmployeeId={props.showEmployeeId}
+          showEmail={true}
+          showJobTitle={true}
+          showDepartment={true}
+          showOfficeLocation={true}
+          showBusinessPhones={true}
+          showMobilePhone={true}
+          showCity={true}
+          showCountry={true}
+          showCompanyName={true}
+          showEmployeeId={true}
         />
       )}
     </div>
