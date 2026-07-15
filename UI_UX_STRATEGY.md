@@ -6,7 +6,7 @@
 - **Fluent UI first** — use Fluent 8 components/tokens; match host SharePoint theme (`supportsThemeVariants: true`).
 - **Configurable, not hard-coded** — admins control colours, fonts, visible fields, background via the property pane.
 - **Accessible** — WCAG 2.1 AA target: keyboard nav, ARIA labels, focus states, sufficient contrast.
-- **Responsive** — card grid reflows; works on mobile + Teams.
+- **Responsive** — mobile-verified to 320px (5-inch): no horizontal scroll, ≥44px tap targets, card grid reflows. Works on mobile + Teams.
 - **Fast-perceived** — spinner on load, background photo enrichment, no layout jank.
 
 ## Current layout (PeopleDirectory.tsx)
@@ -26,6 +26,16 @@ Header text/size/colour, subtext, per-field visibility toggles (email, job title
 - **People to Show on Start** → count loaded on render (default 30), replaces the old hardcoded 30.
 - **Results per Page** → client-side page size (default 20); centred pager below the grid, resets to page 1 on any search/filter/letter change. No "X–Y of Z" range summary (hidden per request). ⚠️ Search fetches ≤100 hits (`manualSearch`), so paging covers up to that cap.
 - **Header count removed** — the "N people in directory" line was removed (user edit); the `totalUsers` state + its count fetches were cleaned up.
+
+## Mobile responsiveness (2026-07-15) — verified 320/360/375px
+Single breakpoint **`@media (max-width: 640px)`** (matches the existing convention). At ≤640px:
+- **Rolodex hidden** (`LetterIndex` → `display:none`) — too small to tap on phones; use search + filters.
+- **Tap targets ≥44×44** enforced on Fluent controls via web-part-scoped `:global(.ms-Button/.ms-Dropdown-title/.ms-SearchBox)` rules in `PeopleDirectory.module.scss`.
+- **Filter dropdowns full-width** (`.filterItem`: 200px desktop → 100% mobile).
+- **Card text can't overflow** — `word-break`/`overflow-wrap:anywhere` + `min-width:0` on `.userInfo`/`.userJobTitle` (and panel `.details*`).
+- **Pager wraps** (`Pagination` inner Stack `wrap`), smaller empty-state icon.
+Desktop (>640px) layout unchanged. Verified with a Playwright CSS harness (no horizontal scroll, tap sizes, no overflow culprit).
+⚠️ Rules are **viewport-based**: a web part in a narrow section column on a wide monitor keeps desktop rules until the viewport itself is ≤640px.
 
 ## Known UX gaps / opportunities (candidate work — confirm before doing)
 - **City filter is always empty** — `getCities()` is stubbed to `[]`; dropdown renders but does nothing. Either populate or hide.

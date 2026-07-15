@@ -10,6 +10,13 @@
 - This repo's ESLint enforces **`react/jsx-no-bind`** — no inline arrows in JSX; use `useCallback`/sub-components (see `LetterIndex`, `Pagination`).
 - **A11y is a build gate here** — active nav item needs `aria-current`; keep boundary-disabled buttons focusable with `allowDisabledFocus`.
 
+## Responsive / CSS (SPFx + Fluent 8)
+- **Enforce touch targets on Fluent controls** without editing each TSX: in the SCSS module, nest `:global(.ms-Button){min-height:44px;min-width:44px}` (also `.ms-Dropdown .ms-Dropdown-title`, `.ms-SearchBox`) inside the web-part root class + `@media (max-width:640px)`. Compiles to `.peopleDirectory_x .ms-Button` — scoped to the web part, and its 2-class specificity beats Fluent's own base + any `styles={{root:{...}}}` merge-styles class. `min-height` overrides Fluent's `height:32px` (min-height wins when larger).
+- **Caveat**: Fluent `Panel`/`Callout`/`Dropdown` callout portal to `document.body`, *outside* the web-part root — scoped `:global` rules don't reach them. Style those via the component's `styles` prop.
+- **Prevent text overflow in a Fluent `Stack` row**: the text needs `min-width:0` (flex children default to `min-width:auto` and won't shrink) plus `word-break:break-word; overflow-wrap:anywhere`.
+- SPFx media queries are **viewport-based**, not container-based — a web part in a narrow column on a wide monitor keeps desktop rules.
+- Verify CSS responsiveness without SharePoint/Graph: inline the compiled `lib/**/*.module.css` into a static HTML harness (reuse the hashed class names from `*.module.scss.ts`), serve over `http://localhost` (Playwright blocks `file://`), and assert `scrollWidth<=clientWidth` + tap-box sizes at 320/360/375px.
+
 ## Workflow / process
 - Give review/analysis subagents **read-only** tools. A review workflow once mutated a source file (removed a feature block) — always run `git diff HEAD` and rebuild before trusting a post-review tree.
 

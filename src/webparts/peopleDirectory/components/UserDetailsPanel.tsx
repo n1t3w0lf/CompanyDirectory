@@ -121,6 +121,7 @@ export const UserDetailsPanel: React.FC<IUserDetailsPanelProps> = ({
       headerText="Profile Details"
       closeButtonAriaLabel="Close"
       isLightDismiss
+      styles={{ closeButton: { selectors: { '@media (max-width: 640px)': { width: 44, height: 44 } } } }}
     >
       <Stack tokens={{ childrenGap: 24 }} styles={{ root: { marginTop: 20 } }}>
         {/* Profile Header */}

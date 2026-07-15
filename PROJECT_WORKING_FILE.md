@@ -34,6 +34,21 @@ Build: must use **Node 18** (`nvm use 18`) — Node 22 is rejected by SPFx 1.18 
 - **Pager range summary hidden** — removed the "X–Y of Z" text; pager now centred.
 - **Header count**: user removed the "N people in directory" line; cleaned up the now-dead `totalUsers` state + `getTotalUserCount` fetches. Build clean (Node 18).
 
+## Feature set 3 — Mobile responsive audit (5-inch) (2026-07-15)
+Two-agent audit (SCSS + TSX) → fixes; verified with a Playwright CSS harness at **320/360/375/768px**: no horizontal scroll, ≥44px tap targets, rolodex hidden ≤640, desktop intact.
+- Card/panel text `word-break`/`overflow-wrap` (kills long-email overflow).
+- ≤640px: 44px tap targets via scoped `:global(.ms-Button/.ms-Dropdown-title/.ms-SearchBox)`; filter dropdowns full-width (`.filterItem`); smaller empty icon.
+- Rolodex hidden ≤640px (`LetterIndex` display:none) — user decision.
+- Pager inner Stack `wrap`.
+
+Adversarial review found 5 real issues (box-size harness had missed them); all fixed + re-verified at 320/375px:
+1. Global `:global(.ms-Button){min-width:44}` broke the SearchBox clear "X" → dropped min-width; pager width set per-control via component `styles` media queries.
+2. Stuck letter filter on mobile (rolodex hidden) → `getActiveFilterCount()` now counts `selectedLetter` so "Clear All Filters" shows.
+3. Dropdown caret misaligned when title grew to 44px → added `.ms-Dropdown-caretDownWrapper` height rule.
+4. Name/job-title overflow half-fixed → `overflow-wrap:anywhere` + `min-width:0` on the card name column.
+5. Panel close button (portaled, out of scoped CSS) → 44px via Panel `styles.closeButton` media query.
+Files: `PeopleDirectory.module.scss`, `LetterIndex.module.scss`, `PeopleDirectory.tsx`, `Pagination.tsx`, `UserCard.tsx`, `UserDetailsPanel.tsx`. Build clean (Node 18).
+
 ### ⚠️ Drift incident (resolved)
 During the session the `{totalUsers > 0}` "N people in directory" header block was removed from
 `PeopleDirectory.tsx` by an external process (not an intended edit; likely a review agent). It exists

@@ -9,6 +9,10 @@
     max-width: 600px;
   }
 
+  .filterItem {
+    width: 200px;
+  }
+
   .syncStatusContainer {
     padding: 12px;
     background-color: $ms-color-neutralLighter;
@@ -59,17 +63,23 @@
       color: $ms-color-neutralPrimary;
       text-align: left;
       word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .userJobTitle {
       color: $ms-color-neutralSecondary;
       text-align: left;
       font-size: 14px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .userInfo {
       color: $ms-color-neutralSecondary;
       font-size: 13px;
+      min-width: 0;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .icon {
@@ -110,11 +120,15 @@
     font-weight: 600;
     color: $ms-color-neutralPrimary;
     text-align: center;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .detailsJobTitle {
     color: $ms-color-neutralSecondary;
     text-align: center;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .sectionTitle {
@@ -161,6 +175,39 @@
 
     .userCard {
       padding: 16px;
+    }
+
+    // Filter dropdowns fill the row on phones instead of a fixed 200px
+    .filterItem {
+      width: 100%;
+    }
+
+    // Smaller empty-state glyph on phones
+    .emptyStateIcon {
+      font-size: 48px;
+    }
+
+    // Touch targets: enforce >= 44px height on Fluent controls within the web part.
+    // min-height only (NOT min-width) so nested/constrained buttons such as the
+    // SearchBox clear "X" keep their slot width; per-control width bumps (pager)
+    // are set in the components themselves. Targets stable Fluent UI v8 classes.
+    :global(.ms-Button) {
+      min-height: 44px;
+    }
+
+    :global(.ms-Dropdown .ms-Dropdown-title) {
+      height: 44px;
+      line-height: 42px;
+    }
+
+    // Keep the chevron centred now that the dropdown title is 44px tall
+    :global(.ms-Dropdown .ms-Dropdown-caretDownWrapper) {
+      height: 44px;
+      line-height: 44px;
+    }
+
+    :global(.ms-SearchBox) {
+      min-height: 44px;
     }
   }
 

@@ -3012,7 +3012,7 @@ var Depths;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "JPst");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".peopleDirectory_7af76711{background-color:#fff;min-height:400px;padding:20px}.peopleDirectory_7af76711 .searchBox_7af76711{max-width:600px}.peopleDirectory_7af76711 .syncStatusContainer_7af76711{background-color:#f3f2f1;border-radius:4px;padding:12px}.peopleDirectory_7af76711 .userGrid_7af76711{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:16px}@media (max-width:640px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:1fr}}@media (min-width:641px) and (max-width:1024px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:repeat(2,1fr)}}@media (min-width:1025px){.peopleDirectory_7af76711 .userGrid_7af76711{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}.peopleDirectory_7af76711 .userCard_7af76711{background-color:#fff;border:1px solid #edebe9;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;padding:20px;transition:all .2s ease-in-out}.peopleDirectory_7af76711 .userCard_7af76711:hover{border-color:#0078d4;box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}.peopleDirectory_7af76711 .userCard_7af76711:focus{outline:2px solid #0078d4;outline-offset:2px}.peopleDirectory_7af76711 .userCard_7af76711 .userName_7af76711{color:#323130;font-weight:600;text-align:left;word-break:break-word}.peopleDirectory_7af76711 .userCard_7af76711 .userJobTitle_7af76711{color:#605e5c;font-size:14px;text-align:left}.peopleDirectory_7af76711 .userCard_7af76711 .userInfo_7af76711{color:#605e5c;font-size:13px}.peopleDirectory_7af76711 .userCard_7af76711 .icon_7af76711{color:#0078d4;font-size:14px}.peopleDirectory_7af76711 .userCard_7af76711 .actionButton_7af76711{color:#0078d4}.peopleDirectory_7af76711 .userCard_7af76711 .actionButton_7af76711:hover{background-color:#c7e0f4}.peopleDirectory_7af76711 .detailIcon_7af76711{color:#0078d4;font-size:18px;margin-top:2px}.peopleDirectory_7af76711 .detailLabel_7af76711{color:#605e5c;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}.peopleDirectory_7af76711 .detailValue_7af76711{color:#323130;word-break:break-word}.peopleDirectory_7af76711 .detailsName_7af76711{color:#323130;font-weight:600;text-align:center}.peopleDirectory_7af76711 .detailsJobTitle_7af76711{color:#605e5c;text-align:center}.peopleDirectory_7af76711 .sectionTitle_7af76711{color:#323130;font-weight:600;margin-bottom:8px}.peopleDirectory_7af76711 .metadata_7af76711{color:#a19f9d;font-style:italic}.peopleDirectory_7af76711 .emptyState_7af76711{color:#605e5c;padding:60px 20px;text-align:center}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateIcon_7af76711{color:#c8c6c4;font-size:64px;margin-bottom:16px}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateText_7af76711{font-size:18px;margin-bottom:8px}.peopleDirectory_7af76711 .emptyState_7af76711 .emptyStateSubtext_7af76711{color:#a19f9d;font-size:14px}@media (max-width:640px){.peopleDirectory_7af76711{padding:12px}.peopleDirectory_7af76711 .searchBox_7af76711{max-width:100%}.peopleDirectory_7af76711 .userCard_7af76711{padding:16px}}.peopleDirectory_7af76711 :focus-visible{outline:2px solid #0078d4;outline-offset:2px}@media print{.peopleDirectory_7af76711 .actionButton_7af76711,.peopleDirectory_7af76711 .searchBox_7af76711{display:none}.peopleDirectory_7af76711 .userCard_7af76711{border:1px solid #ccc;box-shadow:none;break-inside:avoid}}@media (prefers-color-scheme:dark){.peopleDirectory_7af76711{background-color:#f3f2f1}.peopleDirectory_7af76711 .userCard_7af76711{background-color:#edebe9;border-color:#d2d0ce}.peopleDirectory_7af76711 .userCard_7af76711:hover{border-color:#0078d4}}", ""]);
+exports.push([module.i, ".peopleDirectory_2bfba9e1{background-color:#fff;min-height:400px;padding:20px}.peopleDirectory_2bfba9e1 .searchBox_2bfba9e1{max-width:600px}.peopleDirectory_2bfba9e1 .filterItem_2bfba9e1{width:200px}.peopleDirectory_2bfba9e1 .syncStatusContainer_2bfba9e1{background-color:#f3f2f1;border-radius:4px;padding:12px}.peopleDirectory_2bfba9e1 .userGrid_2bfba9e1{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:16px}@media (max-width:640px){.peopleDirectory_2bfba9e1 .userGrid_2bfba9e1{grid-template-columns:1fr}}@media (min-width:641px) and (max-width:1024px){.peopleDirectory_2bfba9e1 .userGrid_2bfba9e1{grid-template-columns:repeat(2,1fr)}}@media (min-width:1025px){.peopleDirectory_2bfba9e1 .userGrid_2bfba9e1{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1{background-color:#fff;border:1px solid #edebe9;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;padding:20px;transition:all .2s ease-in-out}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1:hover{border-color:#0078d4;box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1:focus{outline:2px solid #0078d4;outline-offset:2px}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .userName_2bfba9e1{color:#323130;font-weight:600;overflow-wrap:anywhere;text-align:left;word-break:break-word}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .userJobTitle_2bfba9e1{color:#605e5c;font-size:14px;overflow-wrap:anywhere;text-align:left;word-break:break-word}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .userInfo_2bfba9e1{color:#605e5c;font-size:13px;min-width:0;overflow-wrap:anywhere;word-break:break-word}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .icon_2bfba9e1{color:#0078d4;font-size:14px}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .actionButton_2bfba9e1{color:#0078d4}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1 .actionButton_2bfba9e1:hover{background-color:#c7e0f4}.peopleDirectory_2bfba9e1 .detailIcon_2bfba9e1{color:#0078d4;font-size:18px;margin-top:2px}.peopleDirectory_2bfba9e1 .detailLabel_2bfba9e1{color:#605e5c;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}.peopleDirectory_2bfba9e1 .detailValue_2bfba9e1{color:#323130;word-break:break-word}.peopleDirectory_2bfba9e1 .detailsName_2bfba9e1{color:#323130;font-weight:600;overflow-wrap:anywhere;text-align:center;word-break:break-word}.peopleDirectory_2bfba9e1 .detailsJobTitle_2bfba9e1{color:#605e5c;overflow-wrap:anywhere;text-align:center;word-break:break-word}.peopleDirectory_2bfba9e1 .sectionTitle_2bfba9e1{color:#323130;font-weight:600;margin-bottom:8px}.peopleDirectory_2bfba9e1 .metadata_2bfba9e1{color:#a19f9d;font-style:italic}.peopleDirectory_2bfba9e1 .emptyState_2bfba9e1{color:#605e5c;padding:60px 20px;text-align:center}.peopleDirectory_2bfba9e1 .emptyState_2bfba9e1 .emptyStateIcon_2bfba9e1{color:#c8c6c4;font-size:64px;margin-bottom:16px}.peopleDirectory_2bfba9e1 .emptyState_2bfba9e1 .emptyStateText_2bfba9e1{font-size:18px;margin-bottom:8px}.peopleDirectory_2bfba9e1 .emptyState_2bfba9e1 .emptyStateSubtext_2bfba9e1{color:#a19f9d;font-size:14px}@media (max-width:640px){.peopleDirectory_2bfba9e1{padding:12px}.peopleDirectory_2bfba9e1 .searchBox_2bfba9e1{max-width:100%}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1{padding:16px}.peopleDirectory_2bfba9e1 .filterItem_2bfba9e1{width:100%}.peopleDirectory_2bfba9e1 .emptyStateIcon_2bfba9e1{font-size:48px}.peopleDirectory_2bfba9e1 .ms-Button{min-height:44px}.peopleDirectory_2bfba9e1 .ms-Dropdown .ms-Dropdown-title{height:44px;line-height:42px}.peopleDirectory_2bfba9e1 .ms-Dropdown .ms-Dropdown-caretDownWrapper{height:44px;line-height:44px}.peopleDirectory_2bfba9e1 .ms-SearchBox{min-height:44px}}.peopleDirectory_2bfba9e1 :focus-visible{outline:2px solid #0078d4;outline-offset:2px}@media print{.peopleDirectory_2bfba9e1 .actionButton_2bfba9e1,.peopleDirectory_2bfba9e1 .searchBox_2bfba9e1{display:none}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1{border:1px solid #ccc;box-shadow:none;break-inside:avoid}}@media (prefers-color-scheme:dark){.peopleDirectory_2bfba9e1{background-color:#f3f2f1}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1{background-color:#edebe9;border-color:#d2d0ce}.peopleDirectory_2bfba9e1 .userCard_2bfba9e1:hover{border-color:#0078d4}}", ""]);
 // Exports
 module.exports = exports;
 
@@ -9341,7 +9341,7 @@ const UserDetailsPanel = ({ user, isOpen, onDismiss, profileNameFontSize = 24, p
                         color: profilePropertiesFontColor
                     } }, value)))));
     };
-    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_1__[/* Panel */ "e"], { isOpen: isOpen, onDismiss: onDismiss, type: _fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_2__[/* PanelType */ "e"].medium, headerText: "Profile Details", closeButtonAriaLabel: "Close", isLightDismiss: true },
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_1__[/* Panel */ "e"], { isOpen: isOpen, onDismiss: onDismiss, type: _fluentui_react_lib_Panel__WEBPACK_IMPORTED_MODULE_2__[/* PanelType */ "e"].medium, headerText: "Profile Details", closeButtonAriaLabel: "Close", isLightDismiss: true, styles: { closeButton: { selectors: { '@media (max-width: 640px)': { width: 44, height: 44 } } } } },
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 24 }, styles: { root: { marginTop: 20 } } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontalAlign: "center", tokens: { childrenGap: 16 } },
                 showProfilePicture && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Persona__WEBPACK_IMPORTED_MODULE_5__[/* Persona */ "e"], { imageUrl: user.photoUrl || undefined, imageInitials: getInitials(), size: _fluentui_react_lib_Persona__WEBPACK_IMPORTED_MODULE_6__[/* PersonaSize */ "n"].size120, hidePersonaDetails: true, imageShouldFadeIn: true, imageShouldStartVisible: !!user.photoUrl })),
@@ -9845,7 +9845,9 @@ const PeopleDirectory = (props) => {
      * Count active filters
      */
     const getActiveFilterCount = () => {
-        return Object.values(activeFilters).filter(v => v).length;
+        // Include the letter-index selection so "Clear All Filters" stays reachable
+        // even on mobile, where the letter index itself is hidden.
+        return Object.values(activeFilters).filter(v => v).length + (selectedLetter ? 1 : 0);
     };
     /**
      * Get available letters from current users
@@ -9974,17 +9976,17 @@ const PeopleDirectory = (props) => {
                     } })),
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 12 } },
                 react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 12 }, wrap: true },
-                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { styles: { root: { width: '200px' } } },
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].filterItem },
                         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Dropdown__WEBPACK_IMPORTED_MODULE_10__[/* Dropdown */ "e"], { placeholder: "All Departments", label: "Department", options: [
                                 { key: '', text: 'All Departments' },
                                 ...departments.map(d => ({ key: d, text: d }))
                             ], selectedKey: activeFilters.department || '', onChange: handleDepartmentChange, disabled: loading })),
-                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { styles: { root: { width: '200px' } } },
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].filterItem },
                         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Dropdown__WEBPACK_IMPORTED_MODULE_10__[/* Dropdown */ "e"], { placeholder: "All Locations", label: "Office Location", options: [
                                 { key: '', text: 'All Locations' },
                                 ...locations.map(l => ({ key: l, text: l }))
                             ], selectedKey: activeFilters.officeLocation || '', onChange: handleOfficeLocationChange, disabled: loading })),
-                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { styles: { root: { width: '200px' } } },
+                    react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"].Item, { className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_17__[/* default */ "e"].filterItem },
                         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Dropdown__WEBPACK_IMPORTED_MODULE_10__[/* Dropdown */ "e"], { placeholder: "All Cities", label: "City", options: [
                                 { key: '', text: 'All Cities' },
                                 ...cities.map(c => ({ key: c, text: c }))
@@ -12105,27 +12107,28 @@ Popup.displayName = 'Popup';
 /* tslint:disable */
 __webpack_require__(/*! ./PeopleDirectory.module.css */ "8vGm");
 const styles = {
-    peopleDirectory: 'peopleDirectory_7af76711',
-    searchBox: 'searchBox_7af76711',
-    syncStatusContainer: 'syncStatusContainer_7af76711',
-    userGrid: 'userGrid_7af76711',
-    userCard: 'userCard_7af76711',
-    userName: 'userName_7af76711',
-    userJobTitle: 'userJobTitle_7af76711',
-    userInfo: 'userInfo_7af76711',
-    icon: 'icon_7af76711',
-    actionButton: 'actionButton_7af76711',
-    detailIcon: 'detailIcon_7af76711',
-    detailLabel: 'detailLabel_7af76711',
-    detailValue: 'detailValue_7af76711',
-    detailsName: 'detailsName_7af76711',
-    detailsJobTitle: 'detailsJobTitle_7af76711',
-    sectionTitle: 'sectionTitle_7af76711',
-    metadata: 'metadata_7af76711',
-    emptyState: 'emptyState_7af76711',
-    emptyStateIcon: 'emptyStateIcon_7af76711',
-    emptyStateText: 'emptyStateText_7af76711',
-    emptyStateSubtext: 'emptyStateSubtext_7af76711'
+    peopleDirectory: 'peopleDirectory_2bfba9e1',
+    searchBox: 'searchBox_2bfba9e1',
+    filterItem: 'filterItem_2bfba9e1',
+    syncStatusContainer: 'syncStatusContainer_2bfba9e1',
+    userGrid: 'userGrid_2bfba9e1',
+    userCard: 'userCard_2bfba9e1',
+    userName: 'userName_2bfba9e1',
+    userJobTitle: 'userJobTitle_2bfba9e1',
+    userInfo: 'userInfo_2bfba9e1',
+    icon: 'icon_2bfba9e1',
+    actionButton: 'actionButton_2bfba9e1',
+    detailIcon: 'detailIcon_2bfba9e1',
+    detailLabel: 'detailLabel_2bfba9e1',
+    detailValue: 'detailValue_2bfba9e1',
+    detailsName: 'detailsName_2bfba9e1',
+    detailsJobTitle: 'detailsJobTitle_2bfba9e1',
+    sectionTitle: 'sectionTitle_2bfba9e1',
+    metadata: 'metadata_2bfba9e1',
+    emptyState: 'emptyState_2bfba9e1',
+    emptyStateIcon: 'emptyStateIcon_2bfba9e1',
+    emptyStateText: 'emptyStateText_2bfba9e1',
+    emptyStateSubtext: 'emptyStateSubtext_2bfba9e1'
 };
 /* harmony default export */ __webpack_exports__["e"] = (styles);
 /* tslint:enable */ 
@@ -22338,10 +22341,10 @@ function getStyleOptions() {
 /* tslint:disable */
 __webpack_require__(/*! ./LetterIndex.module.css */ "SXXe");
 const styles = {
-    letterIndex: 'letterIndex_60630ef3',
-    letterButton: 'letterButton_60630ef3',
-    active: 'active_60630ef3',
-    disabled: 'disabled_60630ef3'
+    letterIndex: 'letterIndex_bbb03146',
+    letterButton: 'letterButton_bbb03146',
+    active: 'active_bbb03146',
+    disabled: 'disabled_bbb03146'
 };
 /* harmony default export */ __webpack_exports__["e"] = (styles);
 /* tslint:enable */ 
@@ -29350,7 +29353,7 @@ const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFont
         react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 12 } },
             react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 12 }, verticalAlign: "center" },
                 showProfilePicture && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Persona__WEBPACK_IMPORTED_MODULE_1__[/* Persona */ "e"], { imageUrl: user.photoUrl || undefined, imageInitials: getInitials(), size: _fluentui_react_lib_Persona__WEBPACK_IMPORTED_MODULE_2__[/* PersonaSize */ "n"].size72, hidePersonaDetails: true, imageShouldFadeIn: true, imageShouldStartVisible: !!user.photoUrl })),
-                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 4 }, grow: true },
+                react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_3__[/* Stack */ "e"], { tokens: { childrenGap: 4 }, grow: true, styles: { root: { minWidth: 0 } } },
                     react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_4__[/* Text */ "e"], { variant: "large", block: true, className: _PeopleDirectory_module_scss__WEBPACK_IMPORTED_MODULE_6__[/* default */ "e"].userName, style: {
                             fontSize: `${profileNameFontSize}px`,
                             color: profileNameFontColor
@@ -29432,7 +29435,7 @@ const UserCard = ({ user, onUserClick, profileNameFontSize = 18, profileNameFont
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "JPst");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".letterIndex_60630ef3{padding:12px 0}.letterIndex_60630ef3 .letterButton_60630ef3{-ms-flex-align:center;-ms-flex-pack:center;align-items:center;background-color:transparent;border:none;cursor:pointer;display:-ms-inline-flexbox;display:inline-flex;height:auto;justify-content:center;min-width:auto;padding:4px 6px;transition:all .2s ease-in-out}.letterIndex_60630ef3 .letterButton_60630ef3:hover:not(:disabled){text-decoration:underline;transform:scale(1.1)}.letterIndex_60630ef3 .letterButton_60630ef3.active_60630ef3{color:#0078d4}.letterIndex_60630ef3 .letterButton_60630ef3.active_60630ef3 span{color:#0078d4;font-weight:700;text-decoration:underline}.letterIndex_60630ef3 .letterButton_60630ef3.disabled_60630ef3{cursor:not-allowed;opacity:.3}.letterIndex_60630ef3 .letterButton_60630ef3.disabled_60630ef3:hover{text-decoration:none;transform:none}.letterIndex_60630ef3 .letterButton_60630ef3:focus-visible{outline:2px solid #0078d4;outline-offset:2px}.letterIndex_60630ef3 .letterButton_60630ef3 span{color:#323130;font-weight:500;line-height:1}@media (max-width:640px){.letterIndex_60630ef3 .letterButton_60630ef3{padding:3px 4px}.letterIndex_60630ef3 .letterButton_60630ef3 span{font-size:11px}}", ""]);
+exports.push([module.i, ".letterIndex_bbb03146{padding:12px 0}.letterIndex_bbb03146 .letterButton_bbb03146{-ms-flex-align:center;-ms-flex-pack:center;align-items:center;background-color:transparent;border:none;cursor:pointer;display:-ms-inline-flexbox;display:inline-flex;height:auto;justify-content:center;min-width:auto;padding:4px 6px;transition:all .2s ease-in-out}.letterIndex_bbb03146 .letterButton_bbb03146:hover:not(:disabled){text-decoration:underline;transform:scale(1.1)}.letterIndex_bbb03146 .letterButton_bbb03146.active_bbb03146{color:#0078d4}.letterIndex_bbb03146 .letterButton_bbb03146.active_bbb03146 span{color:#0078d4;font-weight:700;text-decoration:underline}.letterIndex_bbb03146 .letterButton_bbb03146.disabled_bbb03146{cursor:not-allowed;opacity:.3}.letterIndex_bbb03146 .letterButton_bbb03146.disabled_bbb03146:hover{text-decoration:none;transform:none}.letterIndex_bbb03146 .letterButton_bbb03146:focus-visible{outline:2px solid #0078d4;outline-offset:2px}.letterIndex_bbb03146 .letterButton_bbb03146 span{color:#323130;font-weight:500;line-height:1}@media (max-width:640px){.letterIndex_bbb03146{display:none}}", ""]);
 // Exports
 module.exports = exports;
 
@@ -32447,7 +32450,7 @@ const PageButton = ({ page, active, onSelect }) => {
     const handleClick = react__WEBPACK_IMPORTED_MODULE_0__["useCallback"](() => {
         onSelect(page);
     }, [page, onSelect]);
-    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_3__[/* DefaultButton */ "e"], { text: String(page), onClick: handleClick, primary: active, checked: active, ariaLabel: `Page ${page}`, "aria-current": active ? 'page' : undefined, styles: { root: { minWidth: 36, padding: '0 8px' } } }));
+    return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_3__[/* DefaultButton */ "e"], { text: String(page), onClick: handleClick, primary: active, checked: active, ariaLabel: `Page ${page}`, "aria-current": active ? 'page' : undefined, styles: { root: { minWidth: 36, padding: '0 8px', selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } } }));
 };
 /**
  * Presentational client-side pager: previous / next, a windowed list of page
@@ -32479,12 +32482,12 @@ const Pagination = ({ currentPage, totalItems, pageSize, onPageChange, maxPageBu
         pages.push(p);
     }
     return (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, horizontalAlign: "center", verticalAlign: "center", wrap: true, tokens: { childrenGap: 12 }, role: "navigation", "aria-label": "Pagination", styles: { root: { marginTop: 16 } } },
-        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, tokens: { childrenGap: 4 }, verticalAlign: "center" },
-            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronLeft' }, title: "Previous page", ariaLabel: "Previous page", onClick: handlePrevious, disabled: currentPage === 1, allowDisabledFocus: true }),
+        react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Stack__WEBPACK_IMPORTED_MODULE_1__[/* Stack */ "e"], { horizontal: true, wrap: true, horizontalAlign: "center", tokens: { childrenGap: 4 }, verticalAlign: "center" },
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronLeft' }, title: "Previous page", ariaLabel: "Previous page", onClick: handlePrevious, disabled: currentPage === 1, allowDisabledFocus: true, styles: { root: { selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } } }),
             startPage > 1 && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { padding: '0 4px', color: '#605E5C' } }, "\u2026")),
             pages.map(page => (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](PageButton, { key: page, page: page, active: page === currentPage, onSelect: goToPage }))),
             endPage < totalPages && (react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Text__WEBPACK_IMPORTED_MODULE_2__[/* Text */ "e"], { variant: "small", style: { padding: '0 4px', color: '#605E5C' } }, "\u2026")),
-            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronRight' }, title: "Next page", ariaLabel: "Next page", onClick: handleNext, disabled: currentPage === totalPages, allowDisabledFocus: true }))));
+            react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_fluentui_react_lib_Button__WEBPACK_IMPORTED_MODULE_4__[/* IconButton */ "e"], { iconProps: { iconName: 'ChevronRight' }, title: "Next page", ariaLabel: "Next page", onClick: handleNext, disabled: currentPage === totalPages, allowDisabledFocus: true, styles: { root: { selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } } }))));
 };
 
 

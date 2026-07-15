@@ -54,14 +54,10 @@
 }
 
 // Responsive adjustments
+// Hidden on phones: the A-Z index is hard to tap at 5-inch widths, so we rely
+// on search + filters instead. (Confirmed product decision.)
 @media (max-width: 640px) {
   .letterIndex {
-    .letterButton {
-      padding: 3px 4px;
-
-      span {
-        font-size: 11px;
-      }
-    }
+    display: none;
   }
 }

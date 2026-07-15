@@ -26,7 +26,7 @@ const PageButton: React.FC<IPageButtonProps> = ({ page, active, onSelect }) => {
       checked={active}
       ariaLabel={`Page ${page}`}
       aria-current={active ? 'page' : undefined}
-      styles={{ root: { minWidth: 36, padding: '0 8px' } }}
+      styles={{ root: { minWidth: 36, padding: '0 8px', selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } }}
     />
   );
 };
@@ -93,7 +93,7 @@ export const Pagination: React.FC<IPaginationProps> = ({
       aria-label="Pagination"
       styles={{ root: { marginTop: 16 } }}
     >
-      <Stack horizontal tokens={{ childrenGap: 4 }} verticalAlign="center">
+      <Stack horizontal wrap horizontalAlign="center" tokens={{ childrenGap: 4 }} verticalAlign="center">
         <IconButton
           iconProps={{ iconName: 'ChevronLeft' }}
           title="Previous page"
@@ -101,6 +101,7 @@ export const Pagination: React.FC<IPaginationProps> = ({
           onClick={handlePrevious}
           disabled={currentPage === 1}
           allowDisabledFocus
+          styles={{ root: { selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } }}
         />
 
         {startPage > 1 && (
@@ -131,6 +132,7 @@ export const Pagination: React.FC<IPaginationProps> = ({
           onClick={handleNext}
           disabled={currentPage === totalPages}
           allowDisabledFocus
+          styles={{ root: { selectors: { '@media (max-width: 640px)': { minWidth: 44, minHeight: 44 } } } }}
         />
       </Stack>
     </Stack>

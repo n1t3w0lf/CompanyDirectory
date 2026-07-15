@@ -287,7 +287,9 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
    * Count active filters
    */
   const getActiveFilterCount = (): number => {
-    return Object.values(activeFilters).filter(v => v).length;
+    // Include the letter-index selection so "Clear All Filters" stays reachable
+    // even on mobile, where the letter index itself is hidden.
+    return Object.values(activeFilters).filter(v => v).length + (selectedLetter ? 1 : 0);
   };
 
   /**
@@ -480,7 +482,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
         {/* Inline Filters */}
         <Stack tokens={{ childrenGap: 12 }}>
           <Stack horizontal tokens={{ childrenGap: 12 }} wrap>
-            <Stack.Item styles={{ root: { width: '200px' } }}>
+            <Stack.Item className={styles.filterItem}>
               <Dropdown
                 placeholder="All Departments"
                 label="Department"
@@ -493,7 +495,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 disabled={loading}
               />
             </Stack.Item>
-            <Stack.Item styles={{ root: { width: '200px' } }}>
+            <Stack.Item className={styles.filterItem}>
               <Dropdown
                 placeholder="All Locations"
                 label="Office Location"
@@ -506,7 +508,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
                 disabled={loading}
               />
             </Stack.Item>
-            <Stack.Item styles={{ root: { width: '200px' } }}>
+            <Stack.Item className={styles.filterItem}>
               <Dropdown
                 placeholder="All Cities"
                 label="City"

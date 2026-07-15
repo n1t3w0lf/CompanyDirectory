@@ -22,6 +22,13 @@
 - 🟡 `AdvancedFilterPanel.tsx` not rendered anywhere; superseded by inline dropdowns.
 - 🟡 `react-window` installed but virtual scrolling not implemented (client-side pagination added instead, 2026-07-15).
 
+### Mobile responsive (audited + fixed 2026-07-15)
+- ✅ ~~`.userInfo`/`.userJobTitle` no word-break → long emails overflow~~ — fixed (word-break/overflow-wrap + min-width:0).
+- ✅ ~~Pager inner row couldn't wrap → horizontal scroll~~ — fixed (`wrap`).
+- ✅ ~~Sub-44px tap targets (rolodex, pager, search, dropdowns)~~ — fixed (44px `:global` rules ≤640; rolodex hidden ≤640).
+- ✅ ~~Filter dropdowns fixed 200px on mobile~~ — fixed (`.filterItem` full-width ≤640).
+- Note: media queries are viewport-based; a narrow section column on a wide screen keeps desktop rules.
+
 ### Cleanup
 - 🟡 Debug `console.log` left in `PeopleDirectory` (`webpartContainerStyle`) and `UserCard` (`cardStyle`). Standards discourage console logging in production paths.
 - 🟡 Broad `console.error`/`console.log` throughout services instead of a structured logger; `ErrorHandler.logError` has a TODO for App Insights.

@@ -122,7 +122,7 @@ export const UserCard: React.FC<IUserCardProps> = ({
               imageShouldStartVisible={!!user.photoUrl}
             />
           )}
-          <Stack tokens={{ childrenGap: 4 }} grow>
+          <Stack tokens={{ childrenGap: 4 }} grow styles={{ root: { minWidth: 0 } }}>
             <Text
               variant="large"
               block

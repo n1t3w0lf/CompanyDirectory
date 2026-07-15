@@ -1,0 +1,45 @@
+- generic [ref=e2]:
+  - heading "People Directory" [level=1] [ref=e3]
+  - generic [ref=e4]:
+    - generic [ref=e5]: Search by name, email, or department…
+    - button "Search" [ref=e7] [cursor=pointer]
+  - generic [ref=e8]:
+    - generic [ref=e9]: All Departments
+    - generic [ref=e12]: All Locations
+    - generic [ref=e15]: All Cities
+  - generic [ref=e18]:
+    - button "All" [ref=e19] [cursor=pointer]
+    - button "A" [ref=e21] [cursor=pointer]
+    - button "B" [ref=e23] [cursor=pointer]
+  - generic [ref=e25]:
+    - generic [ref=e26] [cursor=pointer]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: Aleksandra Konstantinopolskaya-Vasilievskaya
+        - generic [ref=e31]: Senior Principal Enterprise Solutions Architect and Integration Lead
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]: ✉
+          - generic [ref=e35]: aleksandra.konstantinopolskaya.vasilievskaya@averylongcorporatedomainname.example.com
+        - generic [ref=e36]:
+          - generic [ref=e37]: ☎
+          - generic [ref=e38]: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        - generic [ref=e39]:
+          - generic [ref=e40]: 🏢
+          - generic [ref=e41]: Global Enterprise Infrastructure & Platform Engineering Division
+    - generic [ref=e42] [cursor=pointer]:
+      - generic [ref=e45]:
+        - generic [ref=e46]: Jo Smith
+        - generic [ref=e47]: Analyst
+      - generic [ref=e49]:
+        - generic [ref=e50]: ✉
+        - generic [ref=e51]: jo.smith@example.com
+  - generic [ref=e52]:
+    - button "‹" [ref=e53] [cursor=pointer]
+    - generic [ref=e54]: …
+    - button "4" [ref=e55] [cursor=pointer]
+    - button "5" [ref=e56] [cursor=pointer]
+    - button "6" [ref=e57] [cursor=pointer]
+    - button "7" [ref=e58] [cursor=pointer]
+    - button "8" [ref=e59] [cursor=pointer]
+    - generic [ref=e60]: …
+    - button "›" [ref=e61] [cursor=pointer]
