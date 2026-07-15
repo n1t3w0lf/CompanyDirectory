@@ -9619,10 +9619,46 @@ const PeopleDirectory = (props) => {
     const [syncStatus, setSyncStatus] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
     // Client-side pagination
     const [currentPage, setCurrentPage] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(1);
+    // Ids we've already attempted a photo fetch for (prevents refetch loops)
+    const enrichedPhotoIds = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(new Set());
     // Initialize: Check sync status and load initial users
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
         initializeData();
     }, []);
+    // Lazily load profile photos for the currently visible page only, so large
+    // result sets don't trigger a photo request per user up front.
+    Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+        if (loading || users.length === 0) {
+            return;
+        }
+        const filtered = selectedLetter
+            ? users.filter(u => u.displayName.charAt(0).toUpperCase() === selectedLetter)
+            : users;
+        const pageSize = props.paginationSize;
+        const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+        const safePage = Math.min(currentPage, pageCount);
+        const pageUsers = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+        const toFetch = pageUsers.filter(u => !u.photoUrl && u.id && !enrichedPhotoIds.current.has(u.id));
+        if (toFetch.length === 0) {
+            return;
+        }
+        let cancelled = false;
+        props.peopleService.enrichPhotos(toFetch)
+            .then(({ photos, attemptedIds }) => {
+            if (cancelled) {
+                return;
+            }
+            // Mark only definitively-resolved ids (found or genuine 404) so a
+            // transient failure (e.g. throttling) is retried, not blanked forever.
+            attemptedIds.forEach(id => enrichedPhotoIds.current.add(id));
+            if (photos.size === 0) {
+                return;
+            }
+            setUsers(prev => prev.map(u => (photos.has(u.id) ? { ...u, photoUrl: photos.get(u.id) } : u)));
+        })
+            .catch(err => console.error('Error enriching photos:', err));
+        return () => { cancelled = true; };
+    }, [users, currentPage, selectedLetter, loading, props.paginationSize, props.peopleService]);
     const initializeData = async () => {
         try {
             setLoading(true);
@@ -9741,7 +9777,7 @@ const PeopleDirectory = (props) => {
      */
     const handleManualSearch = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(async () => {
         if (!searchText || searchText.trim().length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH) {
-            setError('Please enter at least 3 characters to search');
+            setError(`Please enter at least ${_models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].MIN_SEARCH_LENGTH} characters to search`);
             return;
         }
         setLoading(true);
@@ -18050,8 +18086,8 @@ class GraphService {
         this.graphClient = graphClient;
     }
     /**
-     * Search users by query string
-     * Uses $search query parameter for server-side filtering
+     * Search users by query string using the Graph $search parameter (tokenized,
+     * order-independent partial matching on displayName; prefix match on other fields).
      * @param nextLinkUrl - Full nextLink URL from previous response for pagination
      */
     async searchUsers(searchText, pageSize = _models_Constants__WEBPACK_IMPORTED_MODULE_0__[/* Constants */ "e"].DEFAULT_PAGE_SIZE, nextLinkUrl) {
@@ -18067,15 +18103,16 @@ class GraphService {
             else {
                 // Build initial request
                 let endpoint = `/users?$select=${_models_Constants__WEBPACK_IMPORTED_MODULE_0__[/* Constants */ "e"].GRAPH_SELECT_FIELDS}&$top=${pageSize}&$count=true`;
-                // Build filter query
+                // Build $search query (tokenized partial matching). displayName is
+                // tokenized (matches mid-name terms in any order); other fields fall
+                // back to prefix matching. Requires ConsistencyLevel: eventual (below).
                 if (searchText && searchText.length >= _models_Constants__WEBPACK_IMPORTED_MODULE_0__[/* Constants */ "e"].MIN_SEARCH_LENGTH) {
-                    // Use $filter for more precise matching
-                    const filter = `startswith(displayName,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(mail,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(surname,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(givenName,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(department,'${this.escapeODataString(searchText)}')`;
-                    endpoint += `&$filter=${filter}`;
+                    const term = this.escapeSearchTerm(searchText);
+                    const searchClause = `"displayName:${term}" OR "mail:${term}" OR ` +
+                        `"givenName:${term}" OR "surname:${term}" OR "department:${term}"`;
+                    // The Graph client assembles the query string verbatim (no encoding of
+                    // its own), so encode the $search value ourselves.
+                    endpoint += `&$search=${encodeURIComponent(searchClause)}`;
                 }
                 apiRequest = this.graphClient.api(endpoint);
             }
@@ -18119,9 +18156,12 @@ class GraphService {
         }
     }
     /**
-     * Get user profile photo
+     * Get user profile photo.
+     * @param throwOnError - when true, re-throws non-404 errors (e.g. 429 throttling)
+     *   so callers can distinguish a transient failure from a genuine "no photo"
+     *   (404 -> null). Defaults to false to preserve existing callers' behaviour.
      */
-    async getUserPhoto(userId) {
+    async getUserPhoto(userId, throwOnError = false) {
         try {
             const photoBlob = await this.graphClient
                 .api(`/users/${userId}/photos/${_models_Constants__WEBPACK_IMPORTED_MODULE_0__[/* Constants */ "e"].PHOTO_SIZE}/$value`)
@@ -18130,11 +18170,14 @@ class GraphService {
             return await this.blobToDataURL(photoBlob);
         }
         catch (error) {
-            // Photo not found is not an error condition
+            // Photo not found (404) is a genuine "no photo", not an error condition.
             if (error.statusCode === 404) {
                 return null;
             }
             console.warn('Failed to fetch user photo:', error);
+            if (throwOnError) {
+                throw error;
+            }
             return null;
         }
     }
@@ -18306,6 +18349,18 @@ class GraphService {
      */
     escapeODataString(str) {
         return str.replace(/'/g, "''");
+    }
+    /**
+     * Sanitise a term for use inside a KQL $search clause. Double quotes delimit
+     * clauses and backslash is an escape char, so both are stripped to prevent a
+     * term from breaking out of its "property:term" clause. Ampersands are
+     * replaced with a space: once URL-encoded they become %26, which trips a
+     * documented Graph v1.0 bug that 400s $search on directory objects. Replacing
+     * (not stripping) preserves token matching, e.g. "R&D" -> "R D" still matches.
+     * The value is URL-encoded by the caller.
+     */
+    escapeSearchTerm(str) {
+        return str.replace(/["\\]/g, '').replace(/&/g, ' ').replace(/\s+/g, ' ').trim();
     }
 }
 
@@ -19482,8 +19537,9 @@ class PeopleService {
      */
     async manualSearch(searchTerm) {
         try {
-            // Step 1: Search in SharePoint list first
-            const listResults = await this.listService.searchUsers(searchTerm, 100);
+            // Step 1: Search the SharePoint list first (all matches, bounded by the
+            // list-view threshold). Returns immediately if the list has any hits.
+            const listResults = await this.listService.searchUsers(searchTerm, _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].SEARCH_MAX_RESULTS);
             if (listResults.length > 0) {
                 return {
                     users: listResults,
@@ -19491,32 +19547,24 @@ class PeopleService {
                     success: true
                 };
             }
-            // Step 2: Not found in list, search Entra ID (Graph API)
+            // Step 2: Not in the list, search Entra ID (Graph), paging through all
+            // matches up to SEARCH_MAX_RESULTS.
             console.log('User not found in list, searching Entra ID...');
-            const graphResults = await this.graphService.searchUsers(searchTerm, 100);
-            if (!graphResults || graphResults.users.length === 0) {
+            const graphUsers = await this.fetchAllGraphMatches(searchTerm);
+            if (graphUsers.length === 0) {
                 return {
                     users: [],
                     message: 'User not found',
                     success: false
                 };
             }
-            // Step 3: Found in Entra ID, add to list
-            console.log(`Found ${graphResults.users.length} user(s) in Entra ID, adding to list...`);
-            // Get photos for users asynchronously
-            await this.enrichUsersWithPhotos(graphResults.users);
-            // Add all found users to the list
-            const addPromises = graphResults.users.map(user => this.listService.addOrUpdateUser(user));
-            await Promise.allSettled(addPromises);
-            // Update client cache
-            const updateCachePromises = graphResults.users.map(user => {
-                const cacheKey = this.getCacheKey('user', user.id);
-                return _utils_CacheHelper__WEBPACK_IMPORTED_MODULE_0__[/* cacheHelper */ "e"].set(cacheKey, user);
-            });
-            await Promise.allSettled(updateCachePromises);
+            // Step 3: Persist to the list + client cache in the background so the UI
+            // is not blocked. Photos are loaded per-page by the component (lazy).
+            console.log(`Found ${graphUsers.length} user(s) in Entra ID`);
+            this.persistUsersInBackground(graphUsers);
             return {
-                users: graphResults.users,
-                message: `Found ${graphResults.users.length} user(s) in Entra ID and added to directory`,
+                users: graphUsers,
+                message: `Found ${graphUsers.length} user(s) in Entra ID and added to directory`,
                 success: true
             };
         }
@@ -19528,6 +19576,54 @@ class PeopleService {
                 success: false
             };
         }
+    }
+    /**
+     * Page through Graph search results, accumulating up to SEARCH_MAX_RESULTS.
+     */
+    async fetchAllGraphMatches(searchTerm) {
+        const all = [];
+        let nextLink;
+        do {
+            const result = await this.graphService.searchUsers(searchTerm, _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].GRAPH_MAX_PAGE_SIZE, nextLink);
+            all.push(...result.users);
+            nextLink = result.nextLink;
+        } while (nextLink && all.length < _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].SEARCH_MAX_RESULTS);
+        return all.slice(0, _models_Constants__WEBPACK_IMPORTED_MODULE_1__[/* Constants */ "e"].SEARCH_MAX_RESULTS);
+    }
+    /**
+     * Persist users to the list cache + client cache without blocking the caller.
+     */
+    persistUsersInBackground(users) {
+        Promise.allSettled(users.map(user => this.listService.addOrUpdateUser(user)))
+            .catch(error => console.error('Error persisting users to list:', error));
+        Promise.allSettled(users.map(user => _utils_CacheHelper__WEBPACK_IMPORTED_MODULE_0__[/* cacheHelper */ "e"].set(this.getCacheKey('user', user.id), user)))
+            .catch(error => console.error('Error updating client cache:', error));
+    }
+    /**
+     * Fetch profile photos for the given users (used for lazy, page-aware loading
+     * so large result sets do not trigger a photo request per user up front).
+     * Returns the resolved photos plus the ids that were *definitively* resolved
+     * (photo found, or a genuine 404 "no photo"). Ids that failed transiently
+     * (e.g. 429 throttling) are omitted from `attemptedIds` so the caller can
+     * retry them rather than blanking the photo permanently.
+     */
+    async enrichPhotos(users) {
+        const photos = new Map();
+        const attemptedIds = [];
+        await Promise.allSettled(users.map(async (user) => {
+            try {
+                const photoUrl = await this.graphService.getUserPhoto(user.id, true);
+                // Reached here => success or a genuine 404 (no photo). Either way, done.
+                attemptedIds.push(user.id);
+                if (photoUrl) {
+                    photos.set(user.id, photoUrl);
+                }
+            }
+            catch {
+                // Transient failure — leave out of attemptedIds so it can be retried.
+            }
+        }));
+        return { photos, attemptedIds };
     }
 }
 
@@ -22401,6 +22497,11 @@ class Constants {
 // SharePoint List Configuration
 Constants.LIST_TITLE = 'PeopleDirectoryCache';
 Constants.LIST_MAX_ITEMS = 65000; // Increased to support large organizations (60K+ users)
+// Bulk sync: number of item operations per SharePoint $batch (Microsoft
+// recommends 50-100; 2 MB payload limit, non-transactional).
+Constants.LIST_BATCH_SIZE = 100;
+Constants.SYNC_MAX_RETRIES = 5; // Bounded retries per throttled batch
+Constants.LIST_PAGE_SIZE = 5000; // Max rows per SharePoint page request
 // Cache Configuration
 Constants.INDEXEDDB_NAME = 'PeopleDirectoryDB';
 Constants.INDEXEDDB_VERSION = 1;
@@ -22412,8 +22513,12 @@ Constants.SEARCH_DEBOUNCE_MS = 300;
 Constants.MIN_SEARCH_LENGTH = 2;
 Constants.DEFAULT_PAGE_SIZE = 50;
 Constants.VIRTUAL_SCROLL_ITEM_HEIGHT = 120;
+// Max results returned for a search. Bounded by SharePoint's fixed 5,000
+// list-view threshold; broad-term queries beyond this need a search index.
+Constants.SEARCH_MAX_RESULTS = 5000;
 // Graph API Configuration
 Constants.GRAPH_BATCH_SIZE = 20;
+Constants.GRAPH_MAX_PAGE_SIZE = 999; // Graph /users max $top per page
 Constants.GRAPH_SELECT_FIELDS = [
     'id',
     'userPrincipalName',
@@ -22643,12 +22748,8 @@ var getStyles = function (props) {
  */
 class SyncService {
     constructor(graphService, listService) {
-        this.BATCH_SIZE = 20; // Process 20 users at a time (conservative for throttling)
         this.GRAPH_PAGE_SIZE = 999; // Max Graph API page size
-        this.BASE_DELAY = 2500; // 2.5 seconds between batches
-        this.ERROR_DELAY = 8000; // 8 seconds after errors
         this.cancelRequested = false;
-        this.consecutiveThrottles = 0;
         this.graphService = graphService;
         this.listService = listService;
         this.syncStatus = this.getDefaultSyncStatus();
@@ -22685,7 +22786,6 @@ class SyncService {
             this.syncStatus.processedUsers = 0;
             this.syncStatus.currentBatch = 0;
             this.cancelRequested = false;
-            this.consecutiveThrottles = 0;
             console.log('Starting initial sync of all users from Entra ID...');
             // Ensure list is created
             await this.listService.ensureList();
@@ -22696,66 +22796,42 @@ class SyncService {
                 return;
             }
             this.syncStatus.totalUsers = allUsers.length;
-            this.syncStatus.totalBatches = Math.ceil(allUsers.length / this.BATCH_SIZE);
-            this.syncStatus.processedUsers = 0; // Reset for batch processing phase
-            console.log(`Fetched ${allUsers.length} users from Entra ID. Starting list population...`);
-            // Reset throttle counter
-            this.consecutiveThrottles = 0;
-            // Process users in batches to avoid overwhelming SharePoint
-            for (let i = 0; i < allUsers.length; i += this.BATCH_SIZE) {
-                // Check for cancellation
-                if (this.cancelRequested) {
-                    console.log('Sync cancelled. Saving progress...');
-                    break;
-                }
-                const batch = allUsers.slice(i, i + this.BATCH_SIZE);
-                this.syncStatus.currentBatch = Math.floor(i / this.BATCH_SIZE) + 1;
-                try {
-                    await this.processBatch(batch);
-                    this.syncStatus.processedUsers += batch.length;
-                    this.syncStatus.progress = Math.round((this.syncStatus.processedUsers / this.syncStatus.totalUsers) * 100);
-                    // Reset throttle counter on success
-                    this.consecutiveThrottles = 0;
-                    if (progressCallback) {
-                        progressCallback(this.getSyncStatus());
-                    }
-                    console.log(`Processed batch ${this.syncStatus.currentBatch}/${this.syncStatus.totalBatches} (${this.syncStatus.processedUsers}/${this.syncStatus.totalUsers} users)`);
-                    // Base delay between batches to avoid SharePoint throttling
-                    await this.delay(this.BASE_DELAY);
-                }
-                catch (error) {
-                    const errorMsg = `Error processing batch ${this.syncStatus.currentBatch}: ${_utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_0__[/* ErrorHandler */ "e"].getUserMessage(error)}`;
-                    this.syncStatus.errors.push(errorMsg);
-                    console.error(errorMsg);
-                    // Check if it's a throttling error
-                    const errorString = String(error);
-                    if (errorString.includes('429') || errorString.includes('Too Many Requests') ||
-                        errorString.includes('406') || errorString.includes('Throttle')) {
-                        this.consecutiveThrottles++;
-                        // Progressive backoff for throttling: multiply delay by number of consecutive throttles
-                        const throttleDelay = this.ERROR_DELAY * Math.min(this.consecutiveThrottles, 3);
-                        console.warn(`Throttled ${this.consecutiveThrottles} times. Waiting ${throttleDelay}ms before retry...`);
-                        await this.delay(throttleDelay);
-                    }
-                    else {
-                        // Non-throttling error, use standard error delay
-                        await this.delay(this.ERROR_DELAY);
-                    }
-                    // Continue with next batch even if one fails
-                }
+            this.syncStatus.processedUsers = 0;
+            console.log(`Fetched ${allUsers.length} users from Entra ID. Loading existing directory...`);
+            // Preload existing rows (UPN -> item Id) once, so writes route add-vs-update
+            // in memory (no per-user existence query) and never duplicate on re-run.
+            const existingMap = await this.listService.getExistingUserMap();
+            if (this.cancelRequested) {
+                console.log('Sync cancelled before write phase');
+                return;
             }
-            // Update sync metadata with progress
+            console.log(`Loaded ${existingMap.size} existing users. Writing via SharePoint $batch...`);
+            // Bulk upsert via $batch; throttled items are retried (Retry-After), not dropped.
+            const result = await this.listService.bulkUpsertUsers(allUsers, existingMap, (processed) => {
+                this.syncStatus.processedUsers = processed;
+                this.syncStatus.progress = this.syncStatus.totalUsers > 0
+                    ? Math.round((processed / this.syncStatus.totalUsers) * 100)
+                    : 100;
+                if (progressCallback) {
+                    progressCallback(this.getSyncStatus());
+                }
+            }, () => this.cancelRequested);
+            if (result.failed > 0) {
+                this.syncStatus.errors.push(`${result.failed} user(s) could not be written after retries.`);
+            }
+            console.log(`Write complete: ${result.added} added, ${result.updated} updated, ${result.failed} failed.`);
+            // Update sync metadata with the number actually written
             await this.listService.updateSyncMetadata({
                 lastFullSync: new Date(),
-                totalUsers: this.syncStatus.processedUsers,
-                lastSyncSuccess: this.syncStatus.errors.length === 0 && !this.cancelRequested
+                totalUsers: result.added + result.updated,
+                lastSyncSuccess: result.failed === 0 && !this.cancelRequested
             });
             this.syncStatus.lastSyncDate = new Date();
             this.syncStatus.progress = 100;
             if (progressCallback) {
                 progressCallback(this.getSyncStatus());
             }
-            console.log(`Initial sync completed. ${this.syncStatus.processedUsers} users synced with ${this.syncStatus.errors.length} errors.`);
+            console.log(`Initial sync completed. ${result.added + result.updated} users synced with ${this.syncStatus.errors.length} error group(s).`);
         }
         catch (error) {
             const errorMsg = _utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_0__[/* ErrorHandler */ "e"].getUserMessage(error, 'SyncService.performInitialSync');
@@ -22844,7 +22920,7 @@ class SyncService {
                 }
                 console.log(`Fetched page ${pageCount}: ${allUsers.length} total users so far...`);
                 // Small delay to avoid rate limiting
-                await this.delay(300);
+                await this.delay(100);
             }
             catch (error) {
                 consecutiveErrors++;
@@ -22869,26 +22945,6 @@ class SyncService {
         } while (nextLink && !this.cancelRequested);
         console.log(`Fetch completed. Total users: ${allUsers.length} from ${pageCount} pages`);
         return allUsers;
-    }
-    /**
-     * Process a batch of users
-     * Split into smaller chunks to avoid overwhelming SharePoint
-     */
-    async processBatch(users) {
-        const CHUNK_SIZE = 5; // Process 5 users at a time within each batch
-        const CHUNK_DELAY = 500; // 500ms delay between chunks
-        for (let i = 0; i < users.length; i += CHUNK_SIZE) {
-            const chunk = users.slice(i, i + CHUNK_SIZE);
-            const promises = chunk.map(user => this.listService.addOrUpdateUser(user).catch(error => {
-                console.error(`Error adding user ${user.userPrincipalName}:`, error);
-                return null; // Don't fail entire batch
-            }));
-            await Promise.allSettled(promises);
-            // Add delay between chunks (except after the last chunk)
-            if (i + CHUNK_SIZE < users.length) {
-                await this.delay(CHUNK_DELAY);
-            }
-        }
     }
     /**
      * Get default sync status
@@ -29456,20 +29512,56 @@ module.exports = exports;
 /* harmony import */ var _pnp_sp_lists__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @pnp/sp/lists */ "J7sA");
 /* harmony import */ var _pnp_sp_items__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @pnp/sp/items */ "lYrR");
 /* harmony import */ var _pnp_sp_fields__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @pnp/sp/fields */ "wmuB");
-/* harmony import */ var _models_Constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../models/Constants */ "ZXVF");
-/* harmony import */ var _utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/ErrorHandler */ "9HJ9");
+/* harmony import */ var _pnp_sp_batching__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @pnp/sp/batching */ "pAcn");
+/* harmony import */ var _models_Constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../models/Constants */ "ZXVF");
+/* harmony import */ var _utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../utils/ErrorHandler */ "9HJ9");
 
 
 
 
 
 
+
+const REQUIRED_FIELDS = [
+    { name: 'PD_UserPrincipalName', kind: 'text', maxLength: 255, required: true },
+    { name: 'PD_Email', kind: 'text', maxLength: 255 },
+    { name: 'PD_Department', kind: 'text', maxLength: 255 },
+    { name: 'PD_JobTitle', kind: 'text', maxLength: 255 },
+    { name: 'PD_OfficeLocation', kind: 'text', maxLength: 255 },
+    { name: 'PD_BusinessPhones', kind: 'multiline' },
+    { name: 'PD_MobilePhone', kind: 'text', maxLength: 50 },
+    { name: 'PD_City', kind: 'text', maxLength: 100 },
+    { name: 'PD_Country', kind: 'text', maxLength: 100 },
+    { name: 'PD_CompanyName', kind: 'text', maxLength: 255 },
+    { name: 'PD_PhotoUrl', kind: 'multiline' },
+    { name: 'PD_GivenName', kind: 'text', maxLength: 255 },
+    { name: 'PD_Surname', kind: 'text', maxLength: 255 },
+    { name: 'PD_UserId', kind: 'text', maxLength: 100 },
+    { name: 'PD_LastVerified', kind: 'datetime' },
+    { name: 'PD_AccessCount', kind: 'number' }
+];
+// Columns to index. Covers exact lookups, `eq` filters and `orderBy` targets —
+// NOT the `substringof` (contains) search columns, which SharePoint cannot serve
+// from an index. NOTE: SharePoint can only build an index while the list is
+// under the 5,000-item threshold, so index before a large sync populates it;
+// ensureFields applies these best-effort (failures on an already-large list are
+// logged, not fatal). Max 20 indexed columns per list.
+const INDEXED_FIELDS = [
+    'PD_UserPrincipalName',
+    'PD_Department',
+    'PD_LastVerified',
+    'Title',
+    'PD_OfficeLocation',
+    'PD_City',
+    'PD_Country',
+    'PD_AccessCount' // orderBy (search ranking)
+];
 /**
  * Service for managing SharePoint list cache
  */
 class ListService {
     constructor(sp) {
-        this.listTitle = _models_Constants__WEBPACK_IMPORTED_MODULE_4__[/* Constants */ "e"].LIST_TITLE;
+        this.listTitle = _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_TITLE;
         this.isListReady = false;
         this.sp = sp;
     }
@@ -29483,6 +29575,9 @@ class ListService {
             // Check if list exists
             try {
                 await this.sp.web.lists.getByTitle(this.listTitle).select('Id')();
+                // List exists — ensure its schema is complete (repairs missing columns
+                // from an interrupted creation or an older build).
+                await this.ensureFields(this.sp.web.lists.getByTitle(this.listTitle));
                 this.isListReady = true;
                 return;
             }
@@ -29497,38 +29592,17 @@ class ListService {
                     OnQuickLaunch: false,
                     AllowContentTypes: false
                 });
-                const list = listAddResult.list;
-                // Add custom fields with PD_ prefix to avoid SharePoint reserved name conflicts
-                await list.fields.addText('PD_UserPrincipalName', { MaxLength: 255, Required: true });
-                await list.fields.addText('PD_Email', { MaxLength: 255 });
-                await list.fields.addText('PD_Department', { MaxLength: 255 });
-                await list.fields.addText('PD_JobTitle', { MaxLength: 255 });
-                await list.fields.addText('PD_OfficeLocation', { MaxLength: 255 });
-                await list.fields.addMultilineText('PD_BusinessPhones', { NumberOfLines: 2, RichText: false });
-                await list.fields.addText('PD_MobilePhone', { MaxLength: 50 });
-                await list.fields.addText('PD_City', { MaxLength: 100 });
-                await list.fields.addText('PD_Country', { MaxLength: 100 });
-                await list.fields.addText('PD_CompanyName', { MaxLength: 255 });
-                await list.fields.addMultilineText('PD_PhotoUrl', { NumberOfLines: 2, RichText: false });
-                await list.fields.addText('PD_GivenName', { MaxLength: 255 });
-                await list.fields.addText('PD_Surname', { MaxLength: 255 });
-                await list.fields.addText('PD_UserId', { MaxLength: 100 });
-                await list.fields.addDateTime('PD_LastVerified', { DisplayFormat: 1 });
-                await list.fields.addNumber('PD_AccessCount', { MinimumValue: 0 });
-                // Create indexes for performance
-                await list.fields.getByInternalNameOrTitle('PD_UserPrincipalName').update({ Indexed: true });
-                await list.fields.getByInternalNameOrTitle('PD_Department').update({ Indexed: true });
-                await list.fields.getByInternalNameOrTitle('PD_LastVerified').update({ Indexed: true });
+                await this.ensureFields(listAddResult.list);
                 this.isListReady = true;
             }
             catch (createError) {
-                // Check if error is "list already exists"
+                // Check if error is "list already exists" (created by another tab/process)
                 const errorMessage = createError instanceof Error
                     ? createError.message
                     : String(createError);
                 if (errorMessage.includes('already exists') || errorMessage.includes('-2130575342')) {
-                    console.log('List already exists, will use existing list');
-                    // List was created by another process/tab, just mark as ready
+                    console.log('List already exists, ensuring schema on existing list');
+                    await this.ensureFields(this.sp.web.lists.getByTitle(this.listTitle));
                     this.isListReady = true;
                     return;
                 }
@@ -29537,7 +29611,60 @@ class ListService {
             }
         }
         catch (error) {
-            throw new Error(_utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_5__[/* ErrorHandler */ "e"].getUserMessage(error, 'ListService.ensureList'));
+            throw new Error(_utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_6__[/* ErrorHandler */ "e"].getUserMessage(error, 'ListService.ensureList'));
+        }
+    }
+    /**
+     * Idempotently ensure every required column exists on the list, adding any
+     * that are missing (schema self-heal). Reads existing internal names once and
+     * only adds the gaps, so it is cheap when the schema is already complete.
+     * Also re-applies indexing (idempotent) on the key columns.
+     */
+    async ensureFields(list) {
+        const existing = new Set();
+        try {
+            const fields = await list.fields.select('InternalName').top(500)();
+            fields.forEach(f => existing.add(f.InternalName));
+        }
+        catch (error) {
+            console.warn('ensureFields: could not read existing columns; will attempt all adds:', error);
+        }
+        for (const def of REQUIRED_FIELDS) {
+            if (existing.has(def.name)) {
+                continue;
+            }
+            try {
+                switch (def.kind) {
+                    case 'text':
+                        await list.fields.addText(def.name, { MaxLength: def.maxLength || 255, Required: def.required === true });
+                        break;
+                    case 'multiline':
+                        await list.fields.addMultilineText(def.name, { NumberOfLines: 2, RichText: false });
+                        break;
+                    case 'datetime':
+                        await list.fields.addDateTime(def.name, { DisplayFormat: 1 });
+                        break;
+                    case 'number':
+                        await list.fields.addNumber(def.name, { MinimumValue: 0 });
+                        break;
+                }
+            }
+            catch (error) {
+                // A concurrent creator may have added it between our read and write.
+                const msg = error instanceof Error ? error.message : String(error);
+                if (!/exists|duplicate/i.test(msg)) {
+                    console.warn(`ensureFields: failed to add column ${def.name}:`, error);
+                }
+            }
+        }
+        // Best-effort, idempotent indexing on the key query columns.
+        for (const name of INDEXED_FIELDS) {
+            try {
+                await list.fields.getByInternalNameOrTitle(name).update({ Indexed: true });
+            }
+            catch (error) {
+                console.warn(`ensureFields: could not index ${name}:`, error);
+            }
         }
     }
     /**
@@ -29563,7 +29690,7 @@ class ListService {
                 // Check if we're at capacity, remove least accessed item
                 const items = await list.items.select('Id').top(1)();
                 const itemCount = items.length > 0 ? await list.items.select('Id').top(5000)().then(i => i.length) : 0;
-                if (itemCount >= _models_Constants__WEBPACK_IMPORTED_MODULE_4__[/* Constants */ "e"].LIST_MAX_ITEMS) {
+                if (itemCount >= _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_MAX_ITEMS) {
                     await this.evictLeastAccessedItem();
                 }
                 // Add new item
@@ -29592,7 +29719,7 @@ class ListService {
             const item = items[0];
             // Check if cache entry is expired
             const lastVerified = item.PD_LastVerified ? new Date(item.PD_LastVerified) : null;
-            if (lastVerified && Date.now() - lastVerified.getTime() > _models_Constants__WEBPACK_IMPORTED_MODULE_4__[/* Constants */ "e"].LIST_CACHE_TTL) {
+            if (lastVerified && Date.now() - lastVerified.getTime() > _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_CACHE_TTL) {
                 return null;
             }
             return this.mapListItemToUser(item);
@@ -29609,10 +29736,14 @@ class ListService {
         try {
             await this.ensureList();
             const escapedSearch = searchText.replace(/'/g, "''");
-            const filter = `(substringof('${escapedSearch}', Title) or ` +
+            // Contains-match across the searchable columns; exclude the metadata row.
+            const filter = `Title ne '_SyncMetadata' and ` +
+                `(substringof('${escapedSearch}', Title) or ` +
                 `substringof('${escapedSearch}', PD_Email) or ` +
                 `substringof('${escapedSearch}', PD_Department) or ` +
-                `substringof('${escapedSearch}', PD_JobTitle))`;
+                `substringof('${escapedSearch}', PD_JobTitle) or ` +
+                `substringof('${escapedSearch}', PD_GivenName) or ` +
+                `substringof('${escapedSearch}', PD_Surname))`;
             const items = await this.sp.web.lists
                 .getByTitle(this.listTitle)
                 .items.filter(filter)
@@ -29684,7 +29815,7 @@ class ListService {
             await Promise.all(deletePromises);
         }
         catch (error) {
-            throw new Error(_utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_5__[/* ErrorHandler */ "e"].getUserMessage(error, 'ListService.clearCache'));
+            throw new Error(_utils_ErrorHandler__WEBPACK_IMPORTED_MODULE_6__[/* ErrorHandler */ "e"].getUserMessage(error, 'ListService.clearCache'));
         }
     }
     /**
@@ -29731,23 +29862,207 @@ class ListService {
         }
     }
     /**
-     * Get total user count from list
+     * Get total user count from list. Uses the list's ItemCount property, which is
+     * accurate beyond the 5,000 view threshold and costs a single cheap call.
+     * Subtracts the `_SyncMetadata` bookkeeping row.
      */
     async getTotalUserCount() {
         try {
             await this.ensureList();
-            // For large lists, we need to estimate
-            // This is a limitation of SharePoint - getting exact count > 5000 is expensive
-            const result = await this.sp.web.lists
+            const listInfo = await this.sp.web.lists
                 .getByTitle(this.listTitle)
-                .items.select('Id')
-                .top(5000)();
-            return result.length;
+                .select('ItemCount')();
+            const count = listInfo.ItemCount || 0;
+            // Exclude the single _SyncMetadata bookkeeping row when present.
+            return count > 0 ? count - 1 : 0;
         }
         catch (error) {
             console.error('Error getting user count:', error);
             return 0;
         }
+    }
+    /**
+     * Bulk-read every existing row's SharePoint item Id keyed by lowercased UPN,
+     * using keyset paging on the indexed Id column so it scales past the 5,000
+     * list-view threshold. Used by the sync to route add-vs-update in memory and
+     * eliminate the per-user existence query.
+     */
+    async getExistingUserMap() {
+        await this.ensureList();
+        const map = new Map();
+        const pageSize = _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_PAGE_SIZE;
+        let lastId = 0;
+        let page;
+        do {
+            page = await this.sp.web.lists
+                .getByTitle(this.listTitle)
+                .items.select('Id', 'PD_UserPrincipalName')
+                .filter(`Id gt ${lastId}`)
+                .orderBy('Id', true)
+                .top(pageSize)();
+            for (const item of page) {
+                if (item.PD_UserPrincipalName && item.PD_UserPrincipalName.toLowerCase() !== 'system') {
+                    map.set(item.PD_UserPrincipalName.toLowerCase(), item.Id);
+                }
+                if (item.Id > lastId) {
+                    lastId = item.Id;
+                }
+            }
+        } while (page.length === pageSize);
+        return map;
+    }
+    /**
+     * Bulk add/update users via SharePoint $batch, routing add-vs-update from a
+     * preloaded UPN->Id map (so no per-user existence query, and no duplicates on
+     * re-run). Input is de-duped by UPN. Throttled/failed items are retried with
+     * Retry-After backoff rather than silently dropped.
+     */
+    async bulkUpsertUsers(users, existingMap, onProgress, isCancelled) {
+        await this.ensureList();
+        // De-dupe by lowercased UPN (last wins) to guard the no-duplicate invariant.
+        const byUpn = new Map();
+        for (const user of users) {
+            if (user.userPrincipalName) {
+                byUpn.set(user.userPrincipalName.toLowerCase(), user);
+            }
+        }
+        const unique = Array.from(byUpn.values());
+        let added = 0;
+        let updated = 0;
+        let failed = 0;
+        let processed = 0;
+        for (let i = 0; i < unique.length; i += _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_BATCH_SIZE) {
+            if (isCancelled && isCancelled()) {
+                break;
+            }
+            const chunk = unique.slice(i, i + _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].LIST_BATCH_SIZE);
+            const result = await this.writeChunkWithRetry(chunk, existingMap, isCancelled);
+            added += result.added;
+            updated += result.updated;
+            failed += result.failed;
+            processed += chunk.length;
+            if (onProgress) {
+                onProgress(processed);
+            }
+        }
+        return { added, updated, failed };
+    }
+    /**
+     * Write one chunk as a single $batch, retrying throttled items (honouring
+     * Retry-After) up to Constants.SYNC_MAX_RETRIES before giving up on them.
+     */
+    async writeChunkWithRetry(chunk, existingMap, isCancelled) {
+        let pending = chunk;
+        let added = 0;
+        let updated = 0;
+        let failed = 0;
+        for (let attempt = 0; attempt <= _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].SYNC_MAX_RETRIES && pending.length > 0; attempt++) {
+            if (isCancelled && isCancelled()) {
+                break;
+            }
+            const [batchedSp, execute] = this.sp.batched();
+            const list = batchedSp.web.lists.getByTitle(this.listTitle);
+            const ops = pending.map(user => {
+                const itemData = this.mapUserToListItem(user);
+                const existingId = existingMap.get(user.userPrincipalName.toLowerCase());
+                const op = existingId
+                    ? list.items.getById(existingId).update(itemData)
+                    : list.items.add(itemData);
+                return op.then(() => ({ ok: true, existing: !!existingId, user, error: undefined }), (error) => ({ ok: false, existing: !!existingId, user, error }));
+            });
+            try {
+                await execute();
+            }
+            catch (error) {
+                // The $batch POST itself failed. PnP only settles the per-op promises on
+                // the POST success path, so `ops` will NEVER settle here — do NOT await
+                // them. Retry the whole chunk on throttling, otherwise abandon it.
+                if (this.isThrottleError(error) && attempt < _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].SYNC_MAX_RETRIES) {
+                    await this.delay(this.getRetryAfterMs(error, attempt));
+                    continue; // pending unchanged -> retry the whole chunk
+                }
+                console.error('Bulk upsert batch POST failed, abandoning chunk:', error);
+                break; // remaining `pending` is counted as failed below
+            }
+            // Batch POST succeeded: inspect per-op results.
+            const results = await Promise.all(ops);
+            const nextPending = [];
+            let retryAfterMs = 0;
+            for (const r of results) {
+                if (r.ok) {
+                    if (r.existing) {
+                        updated++;
+                    }
+                    else {
+                        added++;
+                    }
+                }
+                else if (this.isThrottleError(r.error)) {
+                    nextPending.push(r.user);
+                    retryAfterMs = Math.max(retryAfterMs, this.getRetryAfterMs(r.error, attempt));
+                }
+                else {
+                    failed++; // permanent per-item failure: count it, do not retry
+                    console.error(`Bulk upsert failed for ${r.user.userPrincipalName}:`, r.error);
+                }
+            }
+            pending = nextPending;
+            if (pending.length > 0 && attempt < _models_Constants__WEBPACK_IMPORTED_MODULE_5__[/* Constants */ "e"].SYNC_MAX_RETRIES) {
+                await this.delay(retryAfterMs || this.backoffMs(attempt));
+            }
+        }
+        // Anything still pending (throttled through all retries) plus permanent failures.
+        return { added, updated, failed: failed + pending.length };
+    }
+    /**
+     * True if the error looks like SharePoint throttling (429/503).
+     */
+    isThrottleError(error) {
+        if (!error) {
+            return false;
+        }
+        const status = error.status
+            || error.statusCode;
+        if (status === 429 || status === 503) {
+            return true;
+        }
+        const text = String(error.message || error);
+        return text.indexOf('429') >= 0 || text.indexOf('503') >= 0 || text.indexOf('Too Many Requests') >= 0;
+    }
+    /**
+     * Milliseconds to wait before retrying, honouring a Retry-After header if the
+     * error carries a response, else an exponential backoff with jitter.
+     */
+    getRetryAfterMs(error, attempt) {
+        try {
+            const response = error.response;
+            const header = response && response.headers && response.headers.get
+                ? response.headers.get('Retry-After')
+                : null;
+            if (header) {
+                const seconds = parseInt(header, 10);
+                if (!isNaN(seconds) && seconds > 0) {
+                    return seconds * 1000;
+                }
+            }
+        }
+        catch {
+            // fall through to backoff
+        }
+        return this.backoffMs(attempt);
+    }
+    /**
+     * Exponential backoff with jitter (base 1s, capped ~30s).
+     */
+    backoffMs(attempt) {
+        const base = Math.min(30000, 1000 * Math.pow(2, attempt));
+        return base + Math.floor(Math.random() * base * 0.2);
+    }
+    /**
+     * Delay helper.
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
     /**
      * Add or update user (optimized for bulk operations)

@@ -62,8 +62,8 @@ export class GraphService {
   }
 
   /**
-   * Search users by query string
-   * Uses $search query parameter for server-side filtering
+   * Search users by query string using the Graph $search parameter (tokenized,
+   * order-independent partial matching on displayName; prefix match on other fields).
    * @param nextLinkUrl - Full nextLink URL from previous response for pagination
    */
   public async searchUsers(
@@ -84,15 +84,17 @@ export class GraphService {
         // Build initial request
         let endpoint = `/users?$select=${Constants.GRAPH_SELECT_FIELDS}&$top=${pageSize}&$count=true`;
 
-        // Build filter query
+        // Build $search query (tokenized partial matching). displayName is
+        // tokenized (matches mid-name terms in any order); other fields fall
+        // back to prefix matching. Requires ConsistencyLevel: eventual (below).
         if (searchText && searchText.length >= Constants.MIN_SEARCH_LENGTH) {
-          // Use $filter for more precise matching
-          const filter = `startswith(displayName,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(mail,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(surname,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(givenName,'${this.escapeODataString(searchText)}') or ` +
-                        `startswith(department,'${this.escapeODataString(searchText)}')`;
-          endpoint += `&$filter=${filter}`;
+          const term = this.escapeSearchTerm(searchText);
+          const searchClause =
+            `"displayName:${term}" OR "mail:${term}" OR ` +
+            `"givenName:${term}" OR "surname:${term}" OR "department:${term}"`;
+          // The Graph client assembles the query string verbatim (no encoding of
+          // its own), so encode the $search value ourselves.
+          endpoint += `&$search=${encodeURIComponent(searchClause)}`;
         }
 
         apiRequest = this.graphClient.api(endpoint);
@@ -141,9 +143,12 @@ export class GraphService {
   }
 
   /**
-   * Get user profile photo
+   * Get user profile photo.
+   * @param throwOnError - when true, re-throws non-404 errors (e.g. 429 throttling)
+   *   so callers can distinguish a transient failure from a genuine "no photo"
+   *   (404 -> null). Defaults to false to preserve existing callers' behaviour.
    */
-  public async getUserPhoto(userId: string): Promise<string | null> {
+  public async getUserPhoto(userId: string, throwOnError = false): Promise<string | null> {
     try {
       const photoBlob = await this.graphClient
         .api(`/users/${userId}/photos/${Constants.PHOTO_SIZE}/$value`)
@@ -152,11 +157,14 @@ export class GraphService {
       // Convert blob to base64 data URL
       return await this.blobToDataURL(photoBlob);
     } catch (error) {
-      // Photo not found is not an error condition
+      // Photo not found (404) is a genuine "no photo", not an error condition.
       if ((error as IGraphError).statusCode === 404) {
         return null;
       }
       console.warn('Failed to fetch user photo:', error);
+      if (throwOnError) {
+        throw error;
+      }
       return null;
     }
   }
@@ -347,5 +355,18 @@ export class GraphService {
    */
   private escapeODataString(str: string): string {
     return str.replace(/'/g, "''");
+  }
+
+  /**
+   * Sanitise a term for use inside a KQL $search clause. Double quotes delimit
+   * clauses and backslash is an escape char, so both are stripped to prevent a
+   * term from breaking out of its "property:term" clause. Ampersands are
+   * replaced with a space: once URL-encoded they become %26, which trips a
+   * documented Graph v1.0 bug that 400s $search on directory objects. Replacing
+   * (not stripping) preserves token matching, e.g. "R&D" -> "R D" still matches.
+   * The value is URL-encoded by the caller.
+   */
+  private escapeSearchTerm(str: string): string {
+    return str.replace(/["\\]/g, '').replace(/&/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }

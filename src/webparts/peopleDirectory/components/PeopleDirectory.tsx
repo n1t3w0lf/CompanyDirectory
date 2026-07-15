@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { IPeopleDirectoryProps } from './IPeopleDirectoryProps';
 import { IUserProfile } from '../../../models/IUserProfile';
 import { ISyncStatus } from '../../../services/SyncService';
@@ -46,10 +46,52 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
   // Client-side pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Ids we've already attempted a photo fetch for (prevents refetch loops)
+  const enrichedPhotoIds = useRef<Set<string>>(new Set<string>());
+
   // Initialize: Check sync status and load initial users
   useEffect(() => {
     initializeData();
   }, []);
+
+  // Lazily load profile photos for the currently visible page only, so large
+  // result sets don't trigger a photo request per user up front.
+  useEffect(() => {
+    if (loading || users.length === 0) {
+      return;
+    }
+
+    const filtered = selectedLetter
+      ? users.filter(u => u.displayName.charAt(0).toUpperCase() === selectedLetter)
+      : users;
+    const pageSize = props.paginationSize;
+    const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const safePage = Math.min(currentPage, pageCount);
+    const pageUsers = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+    const toFetch = pageUsers.filter(u => !u.photoUrl && u.id && !enrichedPhotoIds.current.has(u.id));
+    if (toFetch.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+    props.peopleService.enrichPhotos(toFetch)
+      .then(({ photos, attemptedIds }) => {
+        if (cancelled) {
+          return;
+        }
+        // Mark only definitively-resolved ids (found or genuine 404) so a
+        // transient failure (e.g. throttling) is retried, not blanked forever.
+        attemptedIds.forEach(id => enrichedPhotoIds.current.add(id));
+        if (photos.size === 0) {
+          return;
+        }
+        setUsers(prev => prev.map(u => (photos.has(u.id) ? { ...u, photoUrl: photos.get(u.id) } : u)));
+      })
+      .catch(err => console.error('Error enriching photos:', err));
+
+    return () => { cancelled = true; };
+  }, [users, currentPage, selectedLetter, loading, props.paginationSize, props.peopleService]);
 
   const initializeData = async (): Promise<void> => {
     try {
@@ -175,7 +217,7 @@ export const PeopleDirectory: React.FC<IPeopleDirectoryProps> = (props) => {
    */
   const handleManualSearch = useCallback(async (): Promise<void> => {
     if (!searchText || searchText.trim().length < Constants.MIN_SEARCH_LENGTH) {
-      setError('Please enter at least 3 characters to search');
+      setError(`Please enter at least ${Constants.MIN_SEARCH_LENGTH} characters to search`);
       return;
     }
 

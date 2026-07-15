@@ -24,12 +24,8 @@ export class SyncService {
   private graphService: GraphService;
   private listService: ListService;
   private syncStatus: ISyncStatus;
-  private readonly BATCH_SIZE = 20; // Process 20 users at a time (conservative for throttling)
   private readonly GRAPH_PAGE_SIZE = 999; // Max Graph API page size
-  private readonly BASE_DELAY = 2500; // 2.5 seconds between batches
-  private readonly ERROR_DELAY = 8000; // 8 seconds after errors
   private cancelRequested = false;
-  private consecutiveThrottles = 0;
 
   constructor(graphService: GraphService, listService: ListService) {
     this.graphService = graphService;
@@ -71,7 +67,6 @@ export class SyncService {
       this.syncStatus.processedUsers = 0;
       this.syncStatus.currentBatch = 0;
       this.cancelRequested = false;
-      this.consecutiveThrottles = 0;
 
       console.log('Starting initial sync of all users from Entra ID...');
 
@@ -87,68 +82,48 @@ export class SyncService {
       }
 
       this.syncStatus.totalUsers = allUsers.length;
-      this.syncStatus.totalBatches = Math.ceil(allUsers.length / this.BATCH_SIZE);
-      this.syncStatus.processedUsers = 0; // Reset for batch processing phase
+      this.syncStatus.processedUsers = 0;
 
-      console.log(`Fetched ${allUsers.length} users from Entra ID. Starting list population...`);
+      console.log(`Fetched ${allUsers.length} users from Entra ID. Loading existing directory...`);
 
-      // Reset throttle counter
-      this.consecutiveThrottles = 0;
+      // Preload existing rows (UPN -> item Id) once, so writes route add-vs-update
+      // in memory (no per-user existence query) and never duplicate on re-run.
+      const existingMap = await this.listService.getExistingUserMap();
 
-      // Process users in batches to avoid overwhelming SharePoint
-      for (let i = 0; i < allUsers.length; i += this.BATCH_SIZE) {
-        // Check for cancellation
-        if (this.cancelRequested) {
-          console.log('Sync cancelled. Saving progress...');
-          break;
-        }
+      if (this.cancelRequested) {
+        console.log('Sync cancelled before write phase');
+        return;
+      }
 
-        const batch = allUsers.slice(i, i + this.BATCH_SIZE);
-        this.syncStatus.currentBatch = Math.floor(i / this.BATCH_SIZE) + 1;
+      console.log(`Loaded ${existingMap.size} existing users. Writing via SharePoint $batch...`);
 
-        try {
-          await this.processBatch(batch);
-          this.syncStatus.processedUsers += batch.length;
-          this.syncStatus.progress = Math.round((this.syncStatus.processedUsers / this.syncStatus.totalUsers) * 100);
-
-          // Reset throttle counter on success
-          this.consecutiveThrottles = 0;
-
+      // Bulk upsert via $batch; throttled items are retried (Retry-After), not dropped.
+      const result = await this.listService.bulkUpsertUsers(
+        allUsers,
+        existingMap,
+        (processed) => {
+          this.syncStatus.processedUsers = processed;
+          this.syncStatus.progress = this.syncStatus.totalUsers > 0
+            ? Math.round((processed / this.syncStatus.totalUsers) * 100)
+            : 100;
           if (progressCallback) {
             progressCallback(this.getSyncStatus());
           }
+        },
+        () => this.cancelRequested
+      );
 
-          console.log(`Processed batch ${this.syncStatus.currentBatch}/${this.syncStatus.totalBatches} (${this.syncStatus.processedUsers}/${this.syncStatus.totalUsers} users)`);
-
-          // Base delay between batches to avoid SharePoint throttling
-          await this.delay(this.BASE_DELAY);
-        } catch (error) {
-          const errorMsg = `Error processing batch ${this.syncStatus.currentBatch}: ${ErrorHandler.getUserMessage(error)}`;
-          this.syncStatus.errors.push(errorMsg);
-          console.error(errorMsg);
-
-          // Check if it's a throttling error
-          const errorString = String(error);
-          if (errorString.includes('429') || errorString.includes('Too Many Requests') ||
-              errorString.includes('406') || errorString.includes('Throttle')) {
-            this.consecutiveThrottles++;
-            // Progressive backoff for throttling: multiply delay by number of consecutive throttles
-            const throttleDelay = this.ERROR_DELAY * Math.min(this.consecutiveThrottles, 3);
-            console.warn(`Throttled ${this.consecutiveThrottles} times. Waiting ${throttleDelay}ms before retry...`);
-            await this.delay(throttleDelay);
-          } else {
-            // Non-throttling error, use standard error delay
-            await this.delay(this.ERROR_DELAY);
-          }
-          // Continue with next batch even if one fails
-        }
+      if (result.failed > 0) {
+        this.syncStatus.errors.push(`${result.failed} user(s) could not be written after retries.`);
       }
 
-      // Update sync metadata with progress
+      console.log(`Write complete: ${result.added} added, ${result.updated} updated, ${result.failed} failed.`);
+
+      // Update sync metadata with the number actually written
       await this.listService.updateSyncMetadata({
         lastFullSync: new Date(),
-        totalUsers: this.syncStatus.processedUsers, // Use processed count, not total
-        lastSyncSuccess: this.syncStatus.errors.length === 0 && !this.cancelRequested
+        totalUsers: result.added + result.updated,
+        lastSyncSuccess: result.failed === 0 && !this.cancelRequested
       });
 
       this.syncStatus.lastSyncDate = new Date();
@@ -158,7 +133,7 @@ export class SyncService {
         progressCallback(this.getSyncStatus());
       }
 
-      console.log(`Initial sync completed. ${this.syncStatus.processedUsers} users synced with ${this.syncStatus.errors.length} errors.`);
+      console.log(`Initial sync completed. ${result.added + result.updated} users synced with ${this.syncStatus.errors.length} error group(s).`);
 
     } catch (error) {
       const errorMsg = ErrorHandler.getUserMessage(error, 'SyncService.performInitialSync');
@@ -258,7 +233,7 @@ export class SyncService {
         console.log(`Fetched page ${pageCount}: ${allUsers.length} total users so far...`);
 
         // Small delay to avoid rate limiting
-        await this.delay(300);
+        await this.delay(100);
 
       } catch (error) {
         consecutiveErrors++;
@@ -287,32 +262,6 @@ export class SyncService {
 
     console.log(`Fetch completed. Total users: ${allUsers.length} from ${pageCount} pages`);
     return allUsers;
-  }
-
-  /**
-   * Process a batch of users
-   * Split into smaller chunks to avoid overwhelming SharePoint
-   */
-  private async processBatch(users: IUserProfile[]): Promise<void> {
-    const CHUNK_SIZE = 5; // Process 5 users at a time within each batch
-    const CHUNK_DELAY = 500; // 500ms delay between chunks
-
-    for (let i = 0; i < users.length; i += CHUNK_SIZE) {
-      const chunk = users.slice(i, i + CHUNK_SIZE);
-      const promises = chunk.map(user =>
-        this.listService.addOrUpdateUser(user).catch(error => {
-          console.error(`Error adding user ${user.userPrincipalName}:`, error);
-          return null; // Don't fail entire batch
-        })
-      );
-
-      await Promise.allSettled(promises);
-
-      // Add delay between chunks (except after the last chunk)
-      if (i + CHUNK_SIZE < users.length) {
-        await this.delay(CHUNK_DELAY);
-      }
-    }
   }
 
   /**

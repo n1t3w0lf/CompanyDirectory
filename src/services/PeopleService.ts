@@ -430,8 +430,9 @@ export class PeopleService {
    */
   public async manualSearch(searchTerm: string): Promise<{ users: IUserProfile[]; message: string; success: boolean }> {
     try {
-      // Step 1: Search in SharePoint list first
-      const listResults = await this.listService.searchUsers(searchTerm, 100);
+      // Step 1: Search the SharePoint list first (all matches, bounded by the
+      // list-view threshold). Returns immediately if the list has any hits.
+      const listResults = await this.listService.searchUsers(searchTerm, Constants.SEARCH_MAX_RESULTS);
 
       if (listResults.length > 0) {
         return {
@@ -441,11 +442,12 @@ export class PeopleService {
         };
       }
 
-      // Step 2: Not found in list, search Entra ID (Graph API)
+      // Step 2: Not in the list, search Entra ID (Graph), paging through all
+      // matches up to SEARCH_MAX_RESULTS.
       console.log('User not found in list, searching Entra ID...');
-      const graphResults = await this.graphService.searchUsers(searchTerm, 100);
+      const graphUsers = await this.fetchAllGraphMatches(searchTerm);
 
-      if (!graphResults || graphResults.users.length === 0) {
+      if (graphUsers.length === 0) {
         return {
           users: [],
           message: 'User not found',
@@ -453,26 +455,14 @@ export class PeopleService {
         };
       }
 
-      // Step 3: Found in Entra ID, add to list
-      console.log(`Found ${graphResults.users.length} user(s) in Entra ID, adding to list...`);
-
-      // Get photos for users asynchronously
-      await this.enrichUsersWithPhotos(graphResults.users);
-
-      // Add all found users to the list
-      const addPromises = graphResults.users.map(user => this.listService.addOrUpdateUser(user));
-      await Promise.allSettled(addPromises);
-
-      // Update client cache
-      const updateCachePromises = graphResults.users.map(user => {
-        const cacheKey = this.getCacheKey('user', user.id);
-        return cacheHelper.set(cacheKey, user);
-      });
-      await Promise.allSettled(updateCachePromises);
+      // Step 3: Persist to the list + client cache in the background so the UI
+      // is not blocked. Photos are loaded per-page by the component (lazy).
+      console.log(`Found ${graphUsers.length} user(s) in Entra ID`);
+      this.persistUsersInBackground(graphUsers);
 
       return {
-        users: graphResults.users,
-        message: `Found ${graphResults.users.length} user(s) in Entra ID and added to directory`,
+        users: graphUsers,
+        message: `Found ${graphUsers.length} user(s) in Entra ID and added to directory`,
         success: true
       };
     } catch (error) {
@@ -483,5 +473,59 @@ export class PeopleService {
         success: false
       };
     }
+  }
+
+  /**
+   * Page through Graph search results, accumulating up to SEARCH_MAX_RESULTS.
+   */
+  private async fetchAllGraphMatches(searchTerm: string): Promise<IUserProfile[]> {
+    const all: IUserProfile[] = [];
+    let nextLink: string | undefined;
+
+    do {
+      const result = await this.graphService.searchUsers(searchTerm, Constants.GRAPH_MAX_PAGE_SIZE, nextLink);
+      all.push(...result.users);
+      nextLink = result.nextLink;
+    } while (nextLink && all.length < Constants.SEARCH_MAX_RESULTS);
+
+    return all.slice(0, Constants.SEARCH_MAX_RESULTS);
+  }
+
+  /**
+   * Persist users to the list cache + client cache without blocking the caller.
+   */
+  private persistUsersInBackground(users: IUserProfile[]): void {
+    Promise.allSettled(users.map(user => this.listService.addOrUpdateUser(user)))
+      .catch(error => console.error('Error persisting users to list:', error));
+    Promise.allSettled(users.map(user => cacheHelper.set(this.getCacheKey('user', user.id), user)))
+      .catch(error => console.error('Error updating client cache:', error));
+  }
+
+  /**
+   * Fetch profile photos for the given users (used for lazy, page-aware loading
+   * so large result sets do not trigger a photo request per user up front).
+   * Returns the resolved photos plus the ids that were *definitively* resolved
+   * (photo found, or a genuine 404 "no photo"). Ids that failed transiently
+   * (e.g. 429 throttling) are omitted from `attemptedIds` so the caller can
+   * retry them rather than blanking the photo permanently.
+   */
+  public async enrichPhotos(users: IUserProfile[]): Promise<{ photos: Map<string, string>; attemptedIds: string[] }> {
+    const photos = new Map<string, string>();
+    const attemptedIds: string[] = [];
+
+    await Promise.allSettled(users.map(async (user) => {
+      try {
+        const photoUrl = await this.graphService.getUserPhoto(user.id, true);
+        // Reached here => success or a genuine 404 (no photo). Either way, done.
+        attemptedIds.push(user.id);
+        if (photoUrl) {
+          photos.set(user.id, photoUrl);
+        }
+      } catch {
+        // Transient failure — leave out of attemptedIds so it can be retried.
+      }
+    }));
+
+    return { photos, attemptedIds };
   }
 }

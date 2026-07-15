@@ -6,6 +6,11 @@ export class Constants {
   // SharePoint List Configuration
   public static readonly LIST_TITLE = 'PeopleDirectoryCache';
   public static readonly LIST_MAX_ITEMS = 65000; // Increased to support large organizations (60K+ users)
+  // Bulk sync: number of item operations per SharePoint $batch (Microsoft
+  // recommends 50-100; 2 MB payload limit, non-transactional).
+  public static readonly LIST_BATCH_SIZE = 100;
+  public static readonly SYNC_MAX_RETRIES = 5; // Bounded retries per throttled batch
+  public static readonly LIST_PAGE_SIZE = 5000; // Max rows per SharePoint page request
 
   // Cache Configuration
   public static readonly INDEXEDDB_NAME = 'PeopleDirectoryDB';
@@ -19,9 +24,13 @@ export class Constants {
   public static readonly MIN_SEARCH_LENGTH = 2;
   public static readonly DEFAULT_PAGE_SIZE = 50;
   public static readonly VIRTUAL_SCROLL_ITEM_HEIGHT = 120;
+  // Max results returned for a search. Bounded by SharePoint's fixed 5,000
+  // list-view threshold; broad-term queries beyond this need a search index.
+  public static readonly SEARCH_MAX_RESULTS = 5000;
 
   // Graph API Configuration
   public static readonly GRAPH_BATCH_SIZE = 20;
+  public static readonly GRAPH_MAX_PAGE_SIZE = 999; // Graph /users max $top per page
   public static readonly GRAPH_SELECT_FIELDS = [
     'id',
     'userPrincipalName',

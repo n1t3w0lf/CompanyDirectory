@@ -20,6 +20,14 @@
 ## Workflow / process
 - Give review/analysis subagents **read-only** tools. A review workflow once mutated a source file (removed a feature block) — always run `git diff HEAD` and rebuild before trusting a post-review tree.
 
+## SharePoint / PnPjs — bulk writes & sync
+- **PnP `$batch`** (`import '@pnp/sp/batching'` → `const [bsp, execute] = sp.batched()`) collapses many item add/update calls into one HTTP request. Batch **50–100 ops** (2 MB payload limit; batches are **not transactional** — inspect per-op results and retry failures).
+- **Bulk upsert without a per-user existence query**: preload `Map<upn, itemId>` once via **keyset paging on the indexed `Id`** (`filter('Id gt <lastId>').orderBy('Id',true).top(5000)` loop) — scales past the 5,000 threshold (unlike `.skip()` offset paging). Route add-vs-update from the map; this also makes re-sync idempotent (no duplicate rows).
+- **Update-by-ID does NOT hit the 5,000 view threshold** (only querying large unindexed sets does). So writes scale; the *read* to build the map is the part that needs keyset paging.
+- **Throttling**: honor `Retry-After` (read `error.response.headers.get('Retry-After')`) on 429/503, else exponential backoff+jitter; **retry**, never silently drop. Process batches sequentially; don't spike concurrency.
+- **Accurate item count >5000**: read the list's `ItemCount` property (`getByTitle(t).select('ItemCount')()`), not `.top(5000).length`.
+- SharePoint has no unique-value guarantee unless `EnforceUniqueValues` is set; app-side dedupe (preload map + de-dupe input by key) is how this project prevents duplicate rows.
+
 ## SharePoint / PnPjs
 - **5,000 list-view threshold is fixed** (per-query, not storage) and cannot be raised. Index every column you filter/sort on — at creation, while the list is small. Max 20 indexed columns. To read a whole large list: keyset-page on the indexed key (`Id gt <lastId>` ordered by `Id`) then filter/sort in memory. A bare `.top(5000)` is silent truncation, not a safe cap.
 - **`PD_` field prefix** avoids SharePoint reserved-name collisions on custom columns.
@@ -28,7 +36,11 @@
 
 ## Microsoft Graph
 - **`MSGraphClientV3` auto-prepends the `/v1.0` (or `/beta`) version prefix.** When reusing an `@odata.nextLink`, strip the version segment first or the path doubles up (see `GraphService.parseNextLink`).
-- **`ConsistencyLevel: eventual`** header is required for `$count` and advanced query params.
+- **`ConsistencyLevel: eventual`** header is required for `$count` and advanced query params (incl. `$search`).
+- **The Graph JS client (`@microsoft/microsoft-graph-client`) does NOT URL-encode the query string** — `GraphRequest.createQueryString` concatenates `key=value` verbatim. So when building a raw endpoint string with special chars (e.g. `$search="displayName:x"`), **`encodeURIComponent` the value yourself**. No double-encoding risk since the client doesn't re-encode.
+- **`$search` on `/users` is NOT true fuzzy** — tokenized/prefix, order-independent on displayName; other fields fall back to `startswith`. `$skip` unsupported → page via `@odata.nextLink` (max 999/page). Requires `ConsistencyLevel: eventual`.
+- **Graph v1.0 bug**: an encoded ampersand (`%26`) in a directory-object `$search` returns `400`. Sanitize `&` out of the term (replace with space to keep token matching) or send `Prefer: legacySearch=false`.
+- **Photo fetch throttling**: a full page of concurrent `/photos/$value` calls can 429. Lazy-load per visible page, and only mark an id "done" once *definitively* resolved (photo or 404) — never on a transient error, or the photo blanks for the session.
 - Batch reads with `$batch` (max 20 sub-requests). Always `$select` only the fields you use.
 - Honour `Retry-After` on 429/503; add exponential backoff + jitter otherwise; cap retries.
 

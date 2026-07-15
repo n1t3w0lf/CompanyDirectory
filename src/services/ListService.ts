@@ -1,11 +1,62 @@
 import { SPFI } from '@pnp/sp';
 import '@pnp/sp/webs';
 import '@pnp/sp/lists';
+import { IList } from '@pnp/sp/lists';
 import '@pnp/sp/items';
 import '@pnp/sp/fields';
+import '@pnp/sp/batching';
 import { IUserProfile } from '../models/IUserProfile';
 import { Constants } from '../models/Constants';
 import { ErrorHandler } from '../utils/ErrorHandler';
+
+/**
+ * Cache-list schema: the single source of truth for the custom columns.
+ * Used both to create the list and to repair an existing list that is missing
+ * columns (schema drift / interrupted creation).
+ */
+type FieldKind = 'text' | 'multiline' | 'datetime' | 'number';
+interface IFieldDef {
+  name: string;
+  kind: FieldKind;
+  maxLength?: number;
+  required?: boolean;
+}
+
+const REQUIRED_FIELDS: IFieldDef[] = [
+  { name: 'PD_UserPrincipalName', kind: 'text', maxLength: 255, required: true },
+  { name: 'PD_Email', kind: 'text', maxLength: 255 },
+  { name: 'PD_Department', kind: 'text', maxLength: 255 },
+  { name: 'PD_JobTitle', kind: 'text', maxLength: 255 },
+  { name: 'PD_OfficeLocation', kind: 'text', maxLength: 255 },
+  { name: 'PD_BusinessPhones', kind: 'multiline' },
+  { name: 'PD_MobilePhone', kind: 'text', maxLength: 50 },
+  { name: 'PD_City', kind: 'text', maxLength: 100 },
+  { name: 'PD_Country', kind: 'text', maxLength: 100 },
+  { name: 'PD_CompanyName', kind: 'text', maxLength: 255 },
+  { name: 'PD_PhotoUrl', kind: 'multiline' },
+  { name: 'PD_GivenName', kind: 'text', maxLength: 255 },
+  { name: 'PD_Surname', kind: 'text', maxLength: 255 },
+  { name: 'PD_UserId', kind: 'text', maxLength: 100 },
+  { name: 'PD_LastVerified', kind: 'datetime' },
+  { name: 'PD_AccessCount', kind: 'number' }
+];
+
+// Columns to index. Covers exact lookups, `eq` filters and `orderBy` targets —
+// NOT the `substringof` (contains) search columns, which SharePoint cannot serve
+// from an index. NOTE: SharePoint can only build an index while the list is
+// under the 5,000-item threshold, so index before a large sync populates it;
+// ensureFields applies these best-effort (failures on an already-large list are
+// logged, not fatal). Max 20 indexed columns per list.
+const INDEXED_FIELDS = [
+  'PD_UserPrincipalName', // exact lookup (dedupe / upsert)
+  'PD_Department',        // eq filter + search
+  'PD_LastVerified',      // retained
+  'Title',                // orderBy (initial list + filtered results)
+  'PD_OfficeLocation',    // eq filter
+  'PD_City',              // eq filter
+  'PD_Country',           // eq filter
+  'PD_AccessCount'        // orderBy (search ranking)
+];
 
 /**
  * SharePoint list item structure for cached user data
@@ -63,6 +114,9 @@ export class ListService {
       // Check if list exists
       try {
         await this.sp.web.lists.getByTitle(this.listTitle).select('Id')();
+        // List exists — ensure its schema is complete (repairs missing columns
+        // from an interrupted creation or an older build).
+        await this.ensureFields(this.sp.web.lists.getByTitle(this.listTitle));
         this.isListReady = true;
         return;
       } catch (checkError) {
@@ -78,40 +132,16 @@ export class ListService {
           AllowContentTypes: false
         });
 
-        const list = listAddResult.list;
-
-        // Add custom fields with PD_ prefix to avoid SharePoint reserved name conflicts
-        await list.fields.addText('PD_UserPrincipalName', { MaxLength: 255, Required: true });
-        await list.fields.addText('PD_Email', { MaxLength: 255 });
-        await list.fields.addText('PD_Department', { MaxLength: 255 });
-        await list.fields.addText('PD_JobTitle', { MaxLength: 255 });
-        await list.fields.addText('PD_OfficeLocation', { MaxLength: 255 });
-        await list.fields.addMultilineText('PD_BusinessPhones', { NumberOfLines: 2, RichText: false });
-        await list.fields.addText('PD_MobilePhone', { MaxLength: 50 });
-        await list.fields.addText('PD_City', { MaxLength: 100 });
-        await list.fields.addText('PD_Country', { MaxLength: 100 });
-        await list.fields.addText('PD_CompanyName', { MaxLength: 255 });
-        await list.fields.addMultilineText('PD_PhotoUrl', { NumberOfLines: 2, RichText: false });
-        await list.fields.addText('PD_GivenName', { MaxLength: 255 });
-        await list.fields.addText('PD_Surname', { MaxLength: 255 });
-        await list.fields.addText('PD_UserId', { MaxLength: 100 });
-        await list.fields.addDateTime('PD_LastVerified', { DisplayFormat: 1 });
-        await list.fields.addNumber('PD_AccessCount', { MinimumValue: 0 });
-
-        // Create indexes for performance
-        await list.fields.getByInternalNameOrTitle('PD_UserPrincipalName').update({ Indexed: true });
-        await list.fields.getByInternalNameOrTitle('PD_Department').update({ Indexed: true });
-        await list.fields.getByInternalNameOrTitle('PD_LastVerified').update({ Indexed: true });
-
+        await this.ensureFields(listAddResult.list);
         this.isListReady = true;
       } catch (createError: unknown) {
-        // Check if error is "list already exists"
+        // Check if error is "list already exists" (created by another tab/process)
         const errorMessage = createError instanceof Error
           ? createError.message
           : String(createError);
         if (errorMessage.includes('already exists') || errorMessage.includes('-2130575342')) {
-          console.log('List already exists, will use existing list');
-          // List was created by another process/tab, just mark as ready
+          console.log('List already exists, ensuring schema on existing list');
+          await this.ensureFields(this.sp.web.lists.getByTitle(this.listTitle));
           this.isListReady = true;
           return;
         }
@@ -120,6 +150,59 @@ export class ListService {
       }
     } catch (error) {
       throw new Error(ErrorHandler.getUserMessage(error, 'ListService.ensureList'));
+    }
+  }
+
+  /**
+   * Idempotently ensure every required column exists on the list, adding any
+   * that are missing (schema self-heal). Reads existing internal names once and
+   * only adds the gaps, so it is cheap when the schema is already complete.
+   * Also re-applies indexing (idempotent) on the key columns.
+   */
+  private async ensureFields(list: IList): Promise<void> {
+    const existing = new Set<string>();
+    try {
+      const fields: Array<{ InternalName: string }> = await list.fields.select('InternalName').top(500)();
+      fields.forEach(f => existing.add(f.InternalName));
+    } catch (error) {
+      console.warn('ensureFields: could not read existing columns; will attempt all adds:', error);
+    }
+
+    for (const def of REQUIRED_FIELDS) {
+      if (existing.has(def.name)) {
+        continue;
+      }
+      try {
+        switch (def.kind) {
+          case 'text':
+            await list.fields.addText(def.name, { MaxLength: def.maxLength || 255, Required: def.required === true });
+            break;
+          case 'multiline':
+            await list.fields.addMultilineText(def.name, { NumberOfLines: 2, RichText: false });
+            break;
+          case 'datetime':
+            await list.fields.addDateTime(def.name, { DisplayFormat: 1 });
+            break;
+          case 'number':
+            await list.fields.addNumber(def.name, { MinimumValue: 0 });
+            break;
+        }
+      } catch (error) {
+        // A concurrent creator may have added it between our read and write.
+        const msg = error instanceof Error ? error.message : String(error);
+        if (!/exists|duplicate/i.test(msg)) {
+          console.warn(`ensureFields: failed to add column ${def.name}:`, error);
+        }
+      }
+    }
+
+    // Best-effort, idempotent indexing on the key query columns.
+    for (const name of INDEXED_FIELDS) {
+      try {
+        await list.fields.getByInternalNameOrTitle(name).update({ Indexed: true });
+      } catch (error) {
+        console.warn(`ensureFields: could not index ${name}:`, error);
+      }
     }
   }
 
@@ -202,10 +285,14 @@ export class ListService {
       await this.ensureList();
 
       const escapedSearch = searchText.replace(/'/g, "''");
-      const filter = `(substringof('${escapedSearch}', Title) or ` +
+      // Contains-match across the searchable columns; exclude the metadata row.
+      const filter = `Title ne '_SyncMetadata' and ` +
+                    `(substringof('${escapedSearch}', Title) or ` +
                     `substringof('${escapedSearch}', PD_Email) or ` +
                     `substringof('${escapedSearch}', PD_Department) or ` +
-                    `substringof('${escapedSearch}', PD_JobTitle))`;
+                    `substringof('${escapedSearch}', PD_JobTitle) or ` +
+                    `substringof('${escapedSearch}', PD_GivenName) or ` +
+                    `substringof('${escapedSearch}', PD_Surname))`;
 
       const items = await this.sp.web.lists
         .getByTitle(this.listTitle)
@@ -340,24 +427,235 @@ export class ListService {
   }
 
   /**
-   * Get total user count from list
+   * Get total user count from list. Uses the list's ItemCount property, which is
+   * accurate beyond the 5,000 view threshold and costs a single cheap call.
+   * Subtracts the `_SyncMetadata` bookkeeping row.
    */
   public async getTotalUserCount(): Promise<number> {
     try {
       await this.ensureList();
 
-      // For large lists, we need to estimate
-      // This is a limitation of SharePoint - getting exact count > 5000 is expensive
-      const result = await this.sp.web.lists
+      const listInfo = await this.sp.web.lists
         .getByTitle(this.listTitle)
-        .items.select('Id')
-        .top(5000)();
+        .select('ItemCount')();
 
-      return result.length;
+      const count = (listInfo as { ItemCount?: number }).ItemCount || 0;
+      // Exclude the single _SyncMetadata bookkeeping row when present.
+      return count > 0 ? count - 1 : 0;
     } catch (error) {
       console.error('Error getting user count:', error);
       return 0;
     }
+  }
+
+  /**
+   * Bulk-read every existing row's SharePoint item Id keyed by lowercased UPN,
+   * using keyset paging on the indexed Id column so it scales past the 5,000
+   * list-view threshold. Used by the sync to route add-vs-update in memory and
+   * eliminate the per-user existence query.
+   */
+  public async getExistingUserMap(): Promise<Map<string, number>> {
+    await this.ensureList();
+
+    const map = new Map<string, number>();
+    const pageSize = Constants.LIST_PAGE_SIZE;
+    let lastId = 0;
+    let page: Array<{ Id: number; PD_UserPrincipalName?: string }>;
+
+    do {
+      page = await this.sp.web.lists
+        .getByTitle(this.listTitle)
+        .items.select('Id', 'PD_UserPrincipalName')
+        .filter(`Id gt ${lastId}`)
+        .orderBy('Id', true)
+        .top(pageSize)();
+
+      for (const item of page) {
+        if (item.PD_UserPrincipalName && item.PD_UserPrincipalName.toLowerCase() !== 'system') {
+          map.set(item.PD_UserPrincipalName.toLowerCase(), item.Id);
+        }
+        if (item.Id > lastId) {
+          lastId = item.Id;
+        }
+      }
+    } while (page.length === pageSize);
+
+    return map;
+  }
+
+  /**
+   * Bulk add/update users via SharePoint $batch, routing add-vs-update from a
+   * preloaded UPN->Id map (so no per-user existence query, and no duplicates on
+   * re-run). Input is de-duped by UPN. Throttled/failed items are retried with
+   * Retry-After backoff rather than silently dropped.
+   */
+  public async bulkUpsertUsers(
+    users: IUserProfile[],
+    existingMap: Map<string, number>,
+    onProgress?: (processed: number) => void,
+    isCancelled?: () => boolean
+  ): Promise<{ added: number; updated: number; failed: number }> {
+    await this.ensureList();
+
+    // De-dupe by lowercased UPN (last wins) to guard the no-duplicate invariant.
+    const byUpn = new Map<string, IUserProfile>();
+    for (const user of users) {
+      if (user.userPrincipalName) {
+        byUpn.set(user.userPrincipalName.toLowerCase(), user);
+      }
+    }
+    const unique = Array.from(byUpn.values());
+
+    let added = 0;
+    let updated = 0;
+    let failed = 0;
+    let processed = 0;
+
+    for (let i = 0; i < unique.length; i += Constants.LIST_BATCH_SIZE) {
+      if (isCancelled && isCancelled()) {
+        break;
+      }
+
+      const chunk = unique.slice(i, i + Constants.LIST_BATCH_SIZE);
+      const result = await this.writeChunkWithRetry(chunk, existingMap, isCancelled);
+      added += result.added;
+      updated += result.updated;
+      failed += result.failed;
+
+      processed += chunk.length;
+      if (onProgress) {
+        onProgress(processed);
+      }
+    }
+
+    return { added, updated, failed };
+  }
+
+  /**
+   * Write one chunk as a single $batch, retrying throttled items (honouring
+   * Retry-After) up to Constants.SYNC_MAX_RETRIES before giving up on them.
+   */
+  private async writeChunkWithRetry(
+    chunk: IUserProfile[],
+    existingMap: Map<string, number>,
+    isCancelled?: () => boolean
+  ): Promise<{ added: number; updated: number; failed: number }> {
+    let pending = chunk;
+    let added = 0;
+    let updated = 0;
+    let failed = 0;
+
+    for (let attempt = 0; attempt <= Constants.SYNC_MAX_RETRIES && pending.length > 0; attempt++) {
+      if (isCancelled && isCancelled()) {
+        break;
+      }
+
+      const [batchedSp, execute] = this.sp.batched();
+      const list = batchedSp.web.lists.getByTitle(this.listTitle);
+
+      const ops = pending.map(user => {
+        const itemData = this.mapUserToListItem(user);
+        const existingId = existingMap.get(user.userPrincipalName.toLowerCase());
+        const op = existingId
+          ? list.items.getById(existingId).update(itemData)
+          : list.items.add(itemData);
+        return op.then(
+          () => ({ ok: true, existing: !!existingId, user, error: undefined as unknown }),
+          (error: unknown) => ({ ok: false, existing: !!existingId, user, error })
+        );
+      });
+
+      try {
+        await execute();
+      } catch (error) {
+        // The $batch POST itself failed. PnP only settles the per-op promises on
+        // the POST success path, so `ops` will NEVER settle here — do NOT await
+        // them. Retry the whole chunk on throttling, otherwise abandon it.
+        if (this.isThrottleError(error) && attempt < Constants.SYNC_MAX_RETRIES) {
+          await this.delay(this.getRetryAfterMs(error, attempt));
+          continue; // pending unchanged -> retry the whole chunk
+        }
+        console.error('Bulk upsert batch POST failed, abandoning chunk:', error);
+        break; // remaining `pending` is counted as failed below
+      }
+
+      // Batch POST succeeded: inspect per-op results.
+      const results = await Promise.all(ops);
+      const nextPending: IUserProfile[] = [];
+      let retryAfterMs = 0;
+      for (const r of results) {
+        if (r.ok) {
+          if (r.existing) { updated++; } else { added++; }
+        } else if (this.isThrottleError(r.error)) {
+          nextPending.push(r.user);
+          retryAfterMs = Math.max(retryAfterMs, this.getRetryAfterMs(r.error, attempt));
+        } else {
+          failed++; // permanent per-item failure: count it, do not retry
+          console.error(`Bulk upsert failed for ${r.user.userPrincipalName}:`, r.error);
+        }
+      }
+
+      pending = nextPending;
+      if (pending.length > 0 && attempt < Constants.SYNC_MAX_RETRIES) {
+        await this.delay(retryAfterMs || this.backoffMs(attempt));
+      }
+    }
+
+    // Anything still pending (throttled through all retries) plus permanent failures.
+    return { added, updated, failed: failed + pending.length };
+  }
+
+  /**
+   * True if the error looks like SharePoint throttling (429/503).
+   */
+  private isThrottleError(error: unknown): boolean {
+    if (!error) {
+      return false;
+    }
+    const status = (error as { status?: number; statusCode?: number }).status
+      || (error as { statusCode?: number }).statusCode;
+    if (status === 429 || status === 503) {
+      return true;
+    }
+    const text = String((error as { message?: string }).message || error);
+    return text.indexOf('429') >= 0 || text.indexOf('503') >= 0 || text.indexOf('Too Many Requests') >= 0;
+  }
+
+  /**
+   * Milliseconds to wait before retrying, honouring a Retry-After header if the
+   * error carries a response, else an exponential backoff with jitter.
+   */
+  private getRetryAfterMs(error: unknown, attempt: number): number {
+    try {
+      const response = (error as { response?: { headers?: { get?: (name: string) => string | null } } }).response;
+      const header = response && response.headers && response.headers.get
+        ? response.headers.get('Retry-After')
+        : null;
+      if (header) {
+        const seconds = parseInt(header, 10);
+        if (!isNaN(seconds) && seconds > 0) {
+          return seconds * 1000;
+        }
+      }
+    } catch {
+      // fall through to backoff
+    }
+    return this.backoffMs(attempt);
+  }
+
+  /**
+   * Exponential backoff with jitter (base 1s, capped ~30s).
+   */
+  private backoffMs(attempt: number): number {
+    const base = Math.min(30000, 1000 * Math.pow(2, attempt));
+    return base + Math.floor(Math.random() * base * 0.2);
+  }
+
+  /**
+   * Delay helper.
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
